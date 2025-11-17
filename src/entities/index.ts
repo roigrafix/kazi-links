@@ -112,4 +112,6 @@ export interface Services {
   serviceImage?: string;
   /** @wixFieldType boolean */
   isBookable?: boolean;
+  /** @wixFieldType reference */
+  reference?: Freelancers;
 }

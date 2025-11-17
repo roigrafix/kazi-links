@@ -226,10 +226,10 @@ export default function BookingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center">
+      <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-neonyellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="font-paragraph text-lg">Loading booking form...</p>
+          <p className="font-paragraph text-base sm:text-lg">Loading booking form...</p>
         </div>
       </div>
     );
@@ -237,18 +237,18 @@ export default function BookingPage() {
 
   if (currentStep === 4) {
     return (
-      <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center">
+      <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="text-center max-w-md mx-auto px-6"
+          className="text-center max-w-md mx-auto w-full"
         >
-          <div className="w-20 h-20 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="h-10 w-10 text-[#3B3B3B]" />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-[#3B3B3B]" />
           </div>
-          <h1 className="font-heading text-3xl font-bold mb-4">Booking Confirmed!</h1>
-          <p className="font-paragraph text-lg text-primary-foreground/80 mb-6">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold mb-4">Booking Confirmed!</h1>
+          <p className="font-paragraph text-base sm:text-lg text-primary-foreground/80 mb-6">
             Your booking has been successfully created. You'll receive a confirmation email shortly.
           </p>
           <div className="space-y-3">
@@ -280,28 +280,28 @@ export default function BookingPage() {
   return (
     <div className="min-h-screen bg-primary text-primary-foreground">
       {/* Header */}
-      <section className="py-12 bg-secondary">
-        <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">
+      <section className="py-8 sm:py-12 bg-secondary">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-12 max-w-[100rem]">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="font-heading text-4xl lg:text-5xl font-bold mb-4 text-logoBlack">
+            <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-logoBlack">
               Book Your Service
             </h1>
-            <p className="font-paragraph text-xl text-logoBlack/70">
+            <p className="font-paragraph text-lg sm:text-xl text-logoBlack/70">
               Complete your booking in just a few simple steps
             </p>
           </motion.div>
 
           {/* Progress Steps */}
-          <div className="flex justify-center mt-8">
-            <div className="flex items-center space-x-4">
+          <div className="flex justify-center mt-6 sm:mt-8">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
                     currentStep >= step 
                       ? 'bg-logoGold text-logoBlack' 
                       : 'bg-logoBlack/20 text-logoBlack/60'
@@ -309,7 +309,7 @@ export default function BookingPage() {
                     {step}
                   </div>
                   {step < 3 && (
-                    <div className={`w-12 h-1 mx-2 ${
+                    <div className={`w-8 sm:w-12 h-1 mx-1 sm:mx-2 ${
                       currentStep > step ? 'bg-logoGold' : 'bg-logoBlack/20'
                     }`} />
                   )}
@@ -320,8 +320,8 @@ export default function BookingPage() {
         </div>
       </section>
       {/* Booking Form */}
-      <section className="py-12">
-        <div className="container mx-auto px-6 lg:px-12 max-w-4xl">
+      <section className="py-8 sm:py-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-12 max-w-4xl">
           <motion.div
             key={currentStep}
             initial={{ opacity: 0, x: 30 }}
@@ -358,19 +358,19 @@ export default function BookingPage() {
                   {/* Selected Service Display */}
                   {selectedService && (
                     <div className="bg-white/5 rounded-lg p-4">
-                      <div className="flex items-start gap-4">
+                      <div className="flex flex-col sm:flex-row items-start gap-4">
                         <Image
                           src={selectedService.serviceImage || 'https://static.wixstatic.com/media/d6d795_ffa1fed9e894425c8bcef95e4d1a2af6~mv2.png?originWidth=128&originHeight=128'}
                           alt={selectedService.serviceName || 'Service'}
                           width={80}
-                          className="w-16 h-16 rounded-lg object-cover"
+                          className="w-16 h-16 rounded-lg object-cover mx-auto sm:mx-0"
                         />
-                        <div className="flex-1">
+                        <div className="flex-1 text-center sm:text-left">
                           <h3 className="font-semibold text-gray-800">{selectedService.serviceName}</h3>
                           <p className="text-sm text-gray-600 mb-2">
                             {selectedService.description}
                           </p>
-                          <div className="flex items-center gap-4 text-sm">
+                          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 text-sm">
                             <span className="flex items-center gap-1">
                               <DollarSign className="h-3 w-3" />
                               ${selectedService.price}
@@ -407,19 +407,19 @@ export default function BookingPage() {
                   {/* Selected Freelancer Display */}
                   {selectedFreelancer && (
                     <div className="bg-white/5 rounded-lg p-4">
-                      <div className="flex items-start gap-4">
+                      <div className="flex flex-col sm:flex-row items-start gap-4">
                         <Image
                           src={selectedFreelancer.profilePicture || 'https://static.wixstatic.com/media/d6d795_a523e5f96c4b4c22a09bd966b6926006~mv2.png?originWidth=128&originHeight=128'}
                           alt={selectedFreelancer.fullName || 'Freelancer'}
                           width={60}
-                          className="w-12 h-12 rounded-full object-cover"
+                          className="w-12 h-12 rounded-full object-cover mx-auto sm:mx-0"
                         />
-                        <div className="flex-1">
+                        <div className="flex-1 text-center sm:text-left">
                           <h3 className="font-semibold text-gray-800">{selectedFreelancer.fullName}</h3>
                           <p className="text-sm text-gray-600 mb-2">
                             {selectedFreelancer.skills}
                           </p>
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 text-sm">
                             <span className="text-brightpink font-semibold">
                               ${selectedFreelancer.hourlyRate}/hr
                             </span>
@@ -493,13 +493,17 @@ export default function BookingPage() {
                       onValueChange={(value) => setFormData(prev => ({ ...prev, serviceLocationType: value }))}
                       className="mt-2"
                     >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="client" id="client" />
-                        <Label htmlFor="client">At my location (additional transport cost applies)</Label>
+                      <div className="flex items-start space-x-2">
+                        <RadioGroupItem value="client" id="client" className="mt-1" />
+                        <Label htmlFor="client" className="text-sm leading-relaxed">
+                          At my location (additional transport cost applies)
+                        </Label>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="freelancer" id="freelancer" />
-                        <Label htmlFor="freelancer">At freelancer's location</Label>
+                      <div className="flex items-start space-x-2">
+                        <RadioGroupItem value="freelancer" id="freelancer" className="mt-1" />
+                        <Label htmlFor="freelancer" className="text-sm leading-relaxed">
+                          At freelancer's location
+                        </Label>
                       </div>
                     </RadioGroup>
                   </div>
@@ -547,7 +551,7 @@ export default function BookingPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Contact Information */}
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="clientName">Full Name</Label>
                       <Input
@@ -580,34 +584,34 @@ export default function BookingPage() {
                   </div>
 
                   {/* Booking Summary */}
-                  <div className="bg-white/5 rounded-lg p-6">
+                  <div className="bg-white/5 rounded-lg p-4 sm:p-6">
                     <h3 className="font-semibold mb-4">Booking Summary</h3>
                     <div className="space-y-3">
-                      <div className="flex justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span>Service:</span>
-                        <span>{formData.serviceName}</span>
+                        <span className="font-medium">{formData.serviceName}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span>Freelancer:</span>
-                        <span>{formData.freelancerName}</span>
+                        <span className="font-medium">{formData.freelancerName}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span>Date & Time:</span>
-                        <span>
+                        <span className="font-medium">
                           {formData.bookingDate ? format(formData.bookingDate, "PPP") : ''} at {formData.bookingTime}
                         </span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span>Service Cost:</span>
-                        <span>${formData.paymentAmount}</span>
+                        <span className="font-medium">${formData.paymentAmount}</span>
                       </div>
                       {formData.transportationCost > 0 && (
-                        <div className="flex justify-between">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                           <span>Transportation:</span>
-                          <span>+${formData.transportationCost}</span>
+                          <span className="font-medium">+${formData.transportationCost}</span>
                         </div>
                       )}
-                      <div className="border-t pt-3 flex justify-between font-semibold text-lg">
+                      <div className="border-t pt-3 flex flex-col sm:flex-row sm:justify-between gap-1 font-semibold text-lg">
                         <span>Total:</span>
                         <span className="text-brightpink">
                           ${formData.paymentAmount + formData.transportationCost}
@@ -634,12 +638,12 @@ export default function BookingPage() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
+            <div className="flex flex-col sm:flex-row justify-between gap-4 mt-8">
               <Button
                 variant="outline"
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                className="w-full sm:w-auto border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
               >
                 Previous
               </Button>
@@ -647,7 +651,7 @@ export default function BookingPage() {
               <Button
                 onClick={nextStep}
                 disabled={!isStepValid() || isSubmitting}
-                className="bg-neonyellow hover:bg-neonyellow/90 text-[#6b6969]"
+                className="w-full sm:w-auto bg-neonyellow hover:bg-neonyellow/90 text-[#6b6969]"
               >
                 {isSubmitting ? 'Processing...' : currentStep === 3 ? 'Confirm Booking' : 'Next'}
               </Button>
