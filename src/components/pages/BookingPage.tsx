@@ -319,7 +319,6 @@ export default function BookingPage() {
           </div>
         </div>
       </section>
-
       {/* Booking Form */}
       <section className="py-12">
         <div className="container mx-auto px-6 lg:px-12 max-w-4xl">
@@ -341,7 +340,7 @@ export default function BookingPage() {
                 <CardContent className="space-y-6">
                   {/* Service Selection */}
                   <div>
-                    <Label htmlFor="service">Choose a Service</Label>
+                    <Label htmlFor="service" className="text-primary">Choose a Service</Label>
                     <Select value={selectedService?._id || ''} onValueChange={handleServiceChange}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a service" />
@@ -389,7 +388,7 @@ export default function BookingPage() {
                   {/* Freelancer Selection */}
                   {availableFreelancers.length > 0 && (
                     <div>
-                      <Label htmlFor="freelancer">Choose a Freelancer</Label>
+                      <Label htmlFor="freelancer" className="text-secondary-foreground">Choose a Freelancer</Label>
                       <Select value={selectedFreelancer?._id || ''} onValueChange={handleFreelancerChange}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a freelancer" />
@@ -648,7 +647,7 @@ export default function BookingPage() {
               <Button
                 onClick={nextStep}
                 disabled={!isStepValid() || isSubmitting}
-                className="bg-neonyellow text-black hover:bg-neonyellow/90"
+                className="bg-neonyellow hover:bg-neonyellow/90 text-[#6b6969]"
               >
                 {isSubmitting ? 'Processing...' : currentStep === 3 ? 'Confirm Booking' : 'Next'}
               </Button>
