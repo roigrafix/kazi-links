@@ -14,7 +14,8 @@ export default function Layout() {
     { name: 'Services', href: '/services' },
     { name: 'Freelancers', href: '/freelancers' },
     { name: 'Book Now', href: '/booking' },
-    { name: 'Track Booking', href: '/tracking' }
+    { name: 'Track Booking', href: '/tracking' },
+    { name: 'Login', href: '/login' }
   ];
 
   const isActive = (href: string) => {
