@@ -52,7 +52,7 @@ export default function ServiceDetailPage() {
     return (
       <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-neonyellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-logoGold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="font-paragraph text-lg">Loading service details...</p>
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function ServiceDetailPage() {
           <p className="font-paragraph text-primary-foreground/70 mb-6">
             The service you're looking for doesn't exist or has been removed.
           </p>
-          <Button asChild className="bg-neonyellow text-black hover:bg-neonyellow/90">
+          <Button asChild className="bg-logoGold text-logoBlack hover:bg-logoGold/90">
             <Link to="/services">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Services
@@ -159,7 +159,7 @@ export default function ServiceDetailPage() {
               {/* Booking Status */}
               <div className="bg-white/5 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="h-5 w-5 text-neonyellow" />
+                  <MapPin className="h-5 w-5 text-logoGold" />
                   <span className="font-paragraph text-sm text-secondary-foreground/70">Availability</span>
                 </div>
                 <span className="font-paragraph text-lg">
@@ -176,7 +176,7 @@ export default function ServiceDetailPage() {
                 <Button 
                   asChild 
                   size="lg" 
-                  className="w-full bg-neonyellow text-black hover:bg-neonyellow/90 text-lg py-6"
+                  className="w-full bg-logoGold text-logoBlack hover:bg-logoGold/90 text-lg py-6"
                   disabled={!service.isBookable}
                 >
                   <Link to={`/booking?service=${service._id}`}>

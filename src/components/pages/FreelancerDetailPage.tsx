@@ -50,7 +50,7 @@ export default function FreelancerDetailPage() {
     return (
       <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-neonyellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-logoGold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="font-paragraph text-lg">Loading freelancer profile...</p>
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function FreelancerDetailPage() {
           <p className="font-paragraph text-primary-foreground/70 mb-6">
             The freelancer you're looking for doesn't exist or has been removed.
           </p>
-          <Button asChild className="bg-neonyellow text-black hover:bg-neonyellow/90">
+          <Button asChild className="bg-logoGold text-logoBlack hover:bg-logoGold/90">
             <Link to="/freelancers">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Freelancers
@@ -131,7 +131,7 @@ export default function FreelancerDetailPage() {
                   {/* Rating and Rate */}
                   <div className="flex items-center justify-center gap-4 mb-6">
                     <div className="flex items-center gap-1">
-                      <Star className="h-5 w-5 text-neonyellow fill-current" />
+                      <Star className="h-5 w-5 text-logoGold fill-current" />
                       <span className="font-semibold">4.8</span>
                       <span className="text-sm text-secondary-foreground/70">(24 reviews)</span>
                     </div>
@@ -139,8 +139,8 @@ export default function FreelancerDetailPage() {
 
                   <div className="bg-brightpink/10 rounded-lg p-4 mb-6">
                     <div className="flex items-center justify-center gap-2">
-                      <DollarSign className="h-5 w-5 text-brightpink" />
-                      <span className="font-heading text-2xl font-bold text-brightpink">
+                      <DollarSign className="h-5 w-5 text-logoGold" />
+                      <span className="font-heading text-2xl font-bold text-logoGold">
                         ${freelancer.hourlyRate || 'Rate varies'}/hr
                       </span>
                     </div>
@@ -151,7 +151,7 @@ export default function FreelancerDetailPage() {
                     <Button 
                       asChild 
                       size="lg" 
-                      className="w-full bg-neonyellow text-black hover:bg-neonyellow/90"
+                      className="w-full bg-logoGold text-logoBlack hover:bg-logoGold/90"
                     >
                       <Link to={`/booking?freelancer=${freelancer._id}`}>
                         Book Now
@@ -241,7 +241,7 @@ export default function FreelancerDetailPage() {
                     <div className="text-sm text-secondary-foreground/70">Avg Response</div>
                   </div>
                   <div className="bg-white/5 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-neonyellow mb-1">4.8</div>
+                    <div className="text-2xl font-bold text-logoGold mb-1">4.8</div>
                     <div className="text-sm text-secondary-foreground/70">Rating</div>
                   </div>
                 </div>
@@ -381,7 +381,7 @@ export default function FreelancerDetailPage() {
                         <Star
                           key={i}
                           className={`h-4 w-4 ${
-                            i < review.rating ? 'text-neonyellow fill-current' : 'text-gray-300'
+                            i < review.rating ? 'text-logoGold fill-current' : 'text-gray-300'
                           }`}
                         />
                       ))}

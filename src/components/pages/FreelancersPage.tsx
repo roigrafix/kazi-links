@@ -194,7 +194,7 @@ export default function FreelancersPage() {
                   setSkillFilter('all');
                   setRateRange('all');
                 }}
-                className="bg-neonyellow text-black hover:bg-neonyellow/90"
+                className="bg-logoGold text-logoBlack hover:bg-logoGold/90"
               >
                 Clear Filters
               </Button>
@@ -274,10 +274,10 @@ export default function FreelancersPage() {
                       <div className="space-y-3 mt-auto">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 text-neonyellow fill-current" />
+                            <Star className="h-4 w-4 text-logoGold fill-current" />
                             <span className="font-paragraph text-sm">4.8</span>
                           </div>
-                          <div className="flex items-center gap-1 font-semibold text-brightpink">
+                          <div className="flex items-center gap-1 font-semibold text-logoGold">
                             <DollarSign className="h-4 w-4" />
                             <span>{freelancer.hourlyRate || 'Rate varies'}/hr</span>
                           </div>

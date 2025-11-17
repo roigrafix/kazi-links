@@ -23,18 +23,22 @@ export default {
                 paragraph: "roboto"
             },
             colors: {
-                brightpink: '#FF2EE0',
-                electricblue: '#5A7FFF',
-                palemint: '#CFF6E4',
-                neonyellow: '#F7FF3C',
+                // Updated color palette based on logo
+                brightpink: '#FF2EE0', // Keep for accent
+                electricblue: '#5A7FFF', // Keep for accent
+                palemint: '#F5F5DC', // Updated to cream/beige from logo
+                neonyellow: '#F4D03F', // Updated to golden yellow from logo
+                logoGold: '#F4D03F', // Primary golden yellow from logo
+                logoCream: '#F5F5DC', // Cream/beige from logo
+                logoBlack: '#1A1A1A', // Rich black from logo
                 foreground: '#ffffff',
                 destructive: '#DF3131',
                 destructiveforeground: '#FFFFFF',
-                background: '#000000',
-                secondary: '#FFFFFF',
-                'secondary-foreground': '#000000',
-                'primary-foreground': '#FFFFFF',
-                primary: '#000000'
+                background: '#1A1A1A', // Updated to logo black
+                secondary: '#F5F5DC', // Updated to cream
+                'secondary-foreground': '#1A1A1A', // Updated to logo black
+                'primary-foreground': '#F5F5DC', // Updated to cream
+                primary: '#1A1A1A' // Updated to logo black
             },
         },
     },

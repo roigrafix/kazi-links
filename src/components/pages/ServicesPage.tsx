@@ -197,7 +197,7 @@ export default function ServicesPage() {
                   setSelectedCategory('all');
                   setPriceRange('all');
                 }}
-                className="bg-neonyellow text-black hover:bg-neonyellow/90"
+                className="bg-logoGold text-logoBlack hover:bg-logoGold/90"
               >
                 Clear Filters
               </Button>

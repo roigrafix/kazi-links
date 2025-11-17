@@ -150,7 +150,7 @@ export default function TrackingPage() {
                 <Button 
                   onClick={handleSearch}
                   disabled={(!searchEmail && !searchPhone) || isLoading}
-                  className="w-full bg-neonyellow text-black hover:bg-neonyellow/90"
+                  className="w-full bg-logoGold text-logoBlack hover:bg-logoGold/90"
                 >
                   {isLoading ? 'Searching...' : 'Track Booking'}
                 </Button>
@@ -166,7 +166,7 @@ export default function TrackingPage() {
           <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">
             {isLoading ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 border-4 border-neonyellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <div className="w-16 h-16 border-4 border-logoGold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                 <p className="font-paragraph text-lg">Searching for your bookings...</p>
               </div>
             ) : filteredBookings.length === 0 ? (
@@ -192,7 +192,7 @@ export default function TrackingPage() {
                     setHasSearched(false);
                     setFilteredBookings([]);
                   }}
-                  className="bg-neonyellow text-black hover:bg-neonyellow/90"
+                  className="bg-logoGold text-logoBlack hover:bg-logoGold/90"
                 >
                   Try Again
                 </Button>
@@ -297,7 +297,7 @@ export default function TrackingPage() {
                                         <p className="text-xs text-secondary-foreground/70 mb-1">
                                           Estimated arrival
                                         </p>
-                                        <p className="font-semibold text-neonyellow">
+                                        <p className="font-semibold text-logoGold">
                                           15-20 minutes
                                         </p>
                                       </div>

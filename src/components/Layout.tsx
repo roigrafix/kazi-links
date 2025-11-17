@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Image } from '@/components/ui/image';
 import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail } from 'lucide-react';
 
 export default function Layout() {
@@ -30,8 +31,14 @@ export default function Layout() {
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="font-heading text-2xl font-bold">
-              KaziLinks
+            <Link to="/" className="flex items-center gap-3">
+              <Image
+                src="https://static.wixstatic.com/media/d6d795_240b4c7ea1dc48b4a2b100e99044aa72~mv2.png"
+                alt="KaziLinks Logo"
+                width={40}
+                className="w-10 h-10"
+              />
+              <span className="font-heading text-2xl font-bold">KaziLinks</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -40,8 +47,8 @@ export default function Layout() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`font-paragraph text-sm font-medium transition-colors hover:text-neonyellow ${
-                    isActive(item.href) ? 'text-neonyellow' : 'text-primary-foreground/80'
+                  className={`font-paragraph text-sm font-medium transition-colors hover:text-logoGold ${
+                    isActive(item.href) ? 'text-logoGold' : 'text-primary-foreground/80'
                   }`}
                 >
                   {item.name}
@@ -53,7 +60,7 @@ export default function Layout() {
             <div className="hidden lg:block">
               <Button 
                 asChild 
-                className="bg-neonyellow text-black hover:bg-neonyellow/90"
+                className="bg-logoGold text-logoBlack hover:bg-logoGold/90"
               >
                 <Link to="/booking">
                   Get Started
@@ -91,8 +98,8 @@ export default function Layout() {
                       key={item.name}
                       to={item.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className={`font-paragraph text-sm font-medium transition-colors hover:text-neonyellow ${
-                        isActive(item.href) ? 'text-neonyellow' : 'text-primary-foreground/80'
+                      className={`font-paragraph text-sm font-medium transition-colors hover:text-logoGold ${
+                        isActive(item.href) ? 'text-logoGold' : 'text-primary-foreground/80'
                       }`}
                     >
                       {item.name}
@@ -100,7 +107,7 @@ export default function Layout() {
                   ))}
                   <Button 
                     asChild 
-                    className="bg-neonyellow text-black hover:bg-neonyellow/90 w-full mt-4"
+                    className="bg-logoGold text-logoBlack hover:bg-logoGold/90 w-full mt-4"
                   >
                     <Link to="/booking" onClick={() => setIsMenuOpen(false)}>
                       Get Started
@@ -126,22 +133,28 @@ export default function Layout() {
             <div className="grid lg:grid-cols-4 gap-8">
               {/* Company Info */}
               <div className="lg:col-span-1">
-                <Link to="/" className="font-heading text-2xl font-bold mb-4 block">
-                  KaziLinks
+                <Link to="/" className="flex items-center gap-3 mb-4">
+                  <Image
+                    src="https://static.wixstatic.com/media/d6d795_240b4c7ea1dc48b4a2b100e99044aa72~mv2.png"
+                    alt="KaziLinks Logo"
+                    width={40}
+                    className="w-10 h-10"
+                  />
+                  <span className="font-heading text-2xl font-bold">KaziLinks</span>
                 </Link>
                 <p className="font-paragraph text-secondary-foreground/70 mb-6">
                   Connecting talented freelancers with clients who need exceptional services. 
                   Your trusted platform for professional collaborations.
                 </p>
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-brightpink rounded-full flex items-center justify-center">
-                    <Users className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 bg-logoGold rounded-full flex items-center justify-center">
+                    <Users className="h-5 w-5 text-logoBlack" />
                   </div>
                   <div className="w-10 h-10 bg-electricblue rounded-full flex items-center justify-center">
                     <Briefcase className="h-5 w-5 text-white" />
                   </div>
-                  <div className="w-10 h-10 bg-palemint rounded-full flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-black" />
+                  <div className="w-10 h-10 bg-logoCream rounded-full flex items-center justify-center">
+                    <MapPin className="h-5 w-5 text-logoBlack" />
                   </div>
                 </div>
               </div>
@@ -237,7 +250,7 @@ export default function Layout() {
                 <div className="mt-6">
                   <Button 
                     asChild 
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="bg-logoGold text-logoBlack hover:bg-logoGold/90"
                   >
                     <Link to="/booking">
                       <Calendar className="mr-2 h-4 w-4" />

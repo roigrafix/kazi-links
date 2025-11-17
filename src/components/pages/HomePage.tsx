@@ -64,7 +64,7 @@ export default function HomePage() {
                 <Button 
                   asChild 
                   size="lg" 
-                  className="bg-neonyellow text-black hover:bg-neonyellow/90 text-lg px-8 py-6"
+                  className="bg-logoGold text-logoBlack hover:bg-logoGold/90 text-lg px-8 py-6"
                 >
                   <Link to="/services">
                     Browse Services <ArrowRight className="ml-2 h-5 w-5" />
@@ -87,12 +87,12 @@ export default function HomePage() {
             {/* Right Content - Circular Elements inspired by the image */}
             <div className="relative h-[600px] hidden lg:block">
               <motion.div 
-                className="absolute top-16 right-12 w-32 h-32 bg-brightpink rounded-full flex items-center justify-center"
+                className="absolute top-16 right-12 w-32 h-32 bg-logoGold rounded-full flex items-center justify-center"
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ duration: 1, delay: 0.2 }}
               >
-                <div className="text-center text-black font-heading font-bold">
+                <div className="text-center text-logoBlack font-heading font-bold">
                   <div className="text-2xl">500+</div>
                   <div className="text-sm">Freelancers</div>
                 </div>
@@ -111,24 +111,24 @@ export default function HomePage() {
               </motion.div>
 
               <motion.div 
-                className="absolute bottom-32 right-4 w-28 h-28 bg-palemint rounded-full flex items-center justify-center"
+                className="absolute bottom-32 right-4 w-28 h-28 bg-logoCream rounded-full flex items-center justify-center"
                 initial={{ scale: 0, rotate: -90 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ duration: 1, delay: 0.6 }}
               >
-                <div className="text-center text-black font-heading font-bold">
+                <div className="text-center text-logoBlack font-heading font-bold">
                   <div className="text-xl">100+</div>
                   <div className="text-sm">Services</div>
                 </div>
               </motion.div>
 
               <motion.div 
-                className="absolute bottom-8 left-16 w-20 h-20 bg-neonyellow rounded-full flex items-center justify-center"
+                className="absolute bottom-8 left-16 w-20 h-20 bg-logoGold rounded-full flex items-center justify-center"
                 initial={{ scale: 0, rotate: 90 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ duration: 1, delay: 0.8 }}
               >
-                <Star className="h-8 w-8 text-black" />
+                <Star className="h-8 w-8 text-logoBlack" />
               </motion.div>
             </div>
           </div>
@@ -265,7 +265,7 @@ export default function HomePage() {
                         {freelancer.skills}
                       </p>
                       <div className="flex items-center justify-center gap-2 mb-4">
-                        <span className="font-paragraph text-lg font-semibold text-brightpink">
+                        <span className="font-paragraph text-lg font-semibold text-logoGold">
                           ${freelancer.hourlyRate}/hr
                         </span>
                       </div>
@@ -319,7 +319,7 @@ export default function HomePage() {
                 icon: Users,
                 title: "Browse & Select",
                 description: "Explore our categories and find the perfect freelancer for your project needs.",
-                color: "brightpink"
+                color: "logoGold"
               },
               {
                 icon: Calendar,
@@ -331,7 +331,7 @@ export default function HomePage() {
                 icon: MapPin,
                 title: "Track & Connect",
                 description: "Get real-time ETA updates and connect directly with your chosen freelancer.",
-                color: "palemint"
+                color: "logoCream"
               }
             ].map((step, index) => (
               <motion.div
@@ -343,11 +343,11 @@ export default function HomePage() {
                 viewport={{ once: true }}
               >
                 <div className={`w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center ${
-                  step.color === 'brightpink' ? 'bg-brightpink' :
-                  step.color === 'electricblue' ? 'bg-electricblue' : 'bg-palemint'
+                  step.color === 'logoGold' ? 'bg-logoGold' :
+                  step.color === 'electricblue' ? 'bg-electricblue' : 'bg-logoCream'
                 }`}>
                   <step.icon className={`h-8 w-8 ${
-                    step.color === 'palemint' ? 'text-black' : 'text-white'
+                    step.color === 'logoCream' || step.color === 'logoGold' ? 'text-logoBlack' : 'text-white'
                   }`} />
                 </div>
                 <h3 className="font-heading text-xl font-semibold mb-4">
@@ -381,7 +381,7 @@ export default function HomePage() {
               <Button 
                 asChild 
                 size="lg" 
-                className="bg-neonyellow text-black hover:bg-neonyellow/90 text-lg px-8 py-6"
+                className="bg-logoGold text-logoBlack hover:bg-logoGold/90 text-lg px-8 py-6"
               >
                 <Link to="/services">
                   Start Browsing Services
