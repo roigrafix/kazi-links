@@ -280,7 +280,7 @@ export default function BookingPage() {
   return (
     <div className="min-h-screen bg-primary text-primary-foreground">
       {/* Header */}
-      <section className="py-12 bg-secondary text-secondary-foreground">
+      <section className="py-12 bg-secondary">
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -288,10 +288,10 @@ export default function BookingPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="font-heading text-4xl lg:text-5xl font-bold mb-4">
+            <h1 className="font-heading text-4xl lg:text-5xl font-bold mb-4 text-logoBlack">
               Book Your Service
             </h1>
-            <p className="font-paragraph text-xl text-secondary-foreground/70">
+            <p className="font-paragraph text-xl text-logoBlack/70">
               Complete your booking in just a few simple steps
             </p>
           </motion.div>
@@ -303,14 +303,14 @@ export default function BookingPage() {
                 <div key={step} className="flex items-center">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                     currentStep >= step 
-                      ? 'bg-brightpink text-white' 
-                      : 'bg-secondary-foreground/20 text-secondary-foreground/60'
+                      ? 'bg-logoGold text-logoBlack' 
+                      : 'bg-logoBlack/20 text-logoBlack/60'
                   }`}>
                     {step}
                   </div>
                   {step < 3 && (
                     <div className={`w-12 h-1 mx-2 ${
-                      currentStep > step ? 'bg-brightpink' : 'bg-secondary-foreground/20'
+                      currentStep > step ? 'bg-logoGold' : 'bg-logoBlack/20'
                     }`} />
                   )}
                 </div>
@@ -330,7 +330,7 @@ export default function BookingPage() {
           >
             {/* Step 1: Service & Freelancer Selection */}
             {currentStep === 1 && (
-              <Card className="bg-secondary text-secondary-foreground">
+              <Card className="bg-secondary text-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <User className="h-5 w-5" />
@@ -340,7 +340,7 @@ export default function BookingPage() {
                 <CardContent className="space-y-6">
                   {/* Service Selection */}
                   <div>
-                    <Label htmlFor="service" className="text-primary">Choose a Service</Label>
+                    <Label htmlFor="service" className="text-gray-800">Choose a Service</Label>
                     <Select value={selectedService?._id || ''} onValueChange={handleServiceChange}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a service" />
@@ -366,8 +366,8 @@ export default function BookingPage() {
                           className="w-16 h-16 rounded-lg object-cover"
                         />
                         <div className="flex-1">
-                          <h3 className="font-semibold">{selectedService.serviceName}</h3>
-                          <p className="text-sm text-secondary-foreground/70 mb-2">
+                          <h3 className="font-semibold text-gray-800">{selectedService.serviceName}</h3>
+                          <p className="text-sm text-gray-600 mb-2">
                             {selectedService.description}
                           </p>
                           <div className="flex items-center gap-4 text-sm">
@@ -388,7 +388,7 @@ export default function BookingPage() {
                   {/* Freelancer Selection */}
                   {availableFreelancers.length > 0 && (
                     <div>
-                      <Label htmlFor="freelancer" className="text-secondary-foreground">Choose a Freelancer</Label>
+                      <Label htmlFor="freelancer" className="text-gray-800">Choose a Freelancer</Label>
                       <Select value={selectedFreelancer?._id || ''} onValueChange={handleFreelancerChange}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a freelancer" />
@@ -415,8 +415,8 @@ export default function BookingPage() {
                           className="w-12 h-12 rounded-full object-cover"
                         />
                         <div className="flex-1">
-                          <h3 className="font-semibold">{selectedFreelancer.fullName}</h3>
-                          <p className="text-sm text-secondary-foreground/70 mb-2">
+                          <h3 className="font-semibold text-gray-800">{selectedFreelancer.fullName}</h3>
+                          <p className="text-sm text-gray-600 mb-2">
                             {selectedFreelancer.skills}
                           </p>
                           <div className="flex items-center gap-2 text-sm">
@@ -435,7 +435,7 @@ export default function BookingPage() {
 
             {/* Step 2: Date, Time & Location */}
             {currentStep === 2 && (
-              <Card className="bg-secondary text-secondary-foreground">
+              <Card className="bg-secondary text-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CalendarIcon className="h-5 w-5" />
@@ -524,7 +524,7 @@ export default function BookingPage() {
                         <MapPin className="h-4 w-4 text-neonyellow" />
                         <span className="font-semibold">Transportation Cost</span>
                       </div>
-                      <p className="text-sm text-secondary-foreground/70 mb-2">
+                      <p className="text-sm text-gray-600 mb-2">
                         Additional cost for freelancer travel to your location
                       </p>
                       <span className="text-lg font-bold text-neonyellow">
@@ -538,7 +538,7 @@ export default function BookingPage() {
 
             {/* Step 3: Contact & Payment */}
             {currentStep === 3 && (
-              <Card className="bg-secondary text-secondary-foreground">
+              <Card className="bg-secondary text-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CreditCard className="h-5 w-5" />
@@ -624,7 +624,7 @@ export default function BookingPage() {
                         <CreditCard className="h-5 w-5 text-electricblue" />
                         <span>Credit/Debit Card (Secure Payment)</span>
                       </div>
-                      <p className="text-sm text-secondary-foreground/70 mt-2">
+                      <p className="text-sm text-gray-600 mt-2">
                         Your payment will be processed securely. You'll be charged after the service is completed.
                       </p>
                     </div>
