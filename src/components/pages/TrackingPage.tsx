@@ -234,7 +234,7 @@ export default function TrackingPage() {
                                       with {booking.freelancerName}
                                     </p>
                                   </div>
-                                  <Badge className={`${getStatusColor(booking.bookingStatus || '')} text-white`}>
+                                  <Badge className={`${getStatusColor(booking.bookingStatus || '')} text-[#3B3B3B]`}>
                                     {booking.bookingStatus}
                                   </Badge>
                                 </div>

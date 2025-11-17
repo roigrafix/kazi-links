@@ -110,7 +110,7 @@ export default function ServiceDetailPage() {
                   className="w-full h-96 object-cover"
                 />
                 <div className="absolute top-4 left-4">
-                  <Badge className="bg-brightpink text-white">
+                  <Badge className="bg-brightpink text-[#3B3B3B]">
                     {service.categoryName}
                   </Badge>
                 </div>
@@ -324,7 +324,7 @@ export default function ServiceDetailPage() {
                 className="text-center"
               >
                 <div className="w-16 h-16 mx-auto mb-4 bg-brightpink rounded-full flex items-center justify-center">
-                  <feature.icon className="h-8 w-8 text-white" />
+                  <feature.icon className="h-8 w-8 text-[#3B3B3B]" />
                 </div>
                 <h3 className="font-heading text-xl font-semibold mb-3">
                   {feature.title}

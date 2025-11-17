@@ -245,7 +245,7 @@ export default function BookingPage() {
           className="text-center max-w-md mx-auto px-6"
         >
           <div className="w-20 h-20 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="h-10 w-10 text-white" />
+            <CheckCircle className="h-10 w-10 text-[#3B3B3B]" />
           </div>
           <h1 className="font-heading text-3xl font-bold mb-4">Booking Confirmed!</h1>
           <p className="font-paragraph text-lg text-primary-foreground/80 mb-6">

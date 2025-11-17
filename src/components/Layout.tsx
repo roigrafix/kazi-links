@@ -152,7 +152,7 @@ export default function Layout() {
                     <Users className="h-5 w-5 text-logoBlack" />
                   </div>
                   <div className="w-10 h-10 bg-electricblue rounded-full flex items-center justify-center">
-                    <Briefcase className="h-5 w-5 text-white" />
+                    <Briefcase className="h-5 w-5 text-[#3B3B3B]" />
                   </div>
                   <div className="w-10 h-10 bg-logoCream rounded-full flex items-center justify-center">
                     <MapPin className="h-5 w-5 text-logoBlack" />

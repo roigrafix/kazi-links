@@ -221,7 +221,7 @@ export default function ServicesPage() {
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute top-4 left-4">
-                          <span className="bg-brightpink text-white px-2 py-1 rounded-full text-xs font-medium">
+                          <span className="bg-brightpink text-[#3B3B3B] px-2 py-1 rounded-full text-xs font-medium">
                             {service.categoryName}
                           </span>
                         </div>

@@ -104,7 +104,7 @@ export default function HomePage() {
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ duration: 1, delay: 0.4 }}
               >
-                <div className="text-center text-white font-heading font-bold">
+                <div className="text-center text-[#3B3B3B] font-heading font-bold">
                   <div className="text-lg">24/7</div>
                   <div className="text-xs">Support</div>
                 </div>
@@ -347,7 +347,7 @@ export default function HomePage() {
                   step.color === 'electricblue' ? 'bg-electricblue' : 'bg-logoCream'
                 }`}>
                   <step.icon className={`h-8 w-8 ${
-                    step.color === 'logoCream' || step.color === 'logoGold' ? 'text-logoBlack' : 'text-white'
+                    step.color === 'logoCream' || step.color === 'logoGold' ? 'text-logoBlack' : 'text-[#3B3B3B]'
                   }`} />
                 </div>
                 <h3 className="font-heading text-xl font-semibold mb-4">

@@ -31,9 +31,9 @@ export default {
                 logoGold: '#F4D03F', // Primary golden yellow from logo
                 logoCream: '#F5F5DC', // Cream/beige from logo
                 logoBlack: '#1A1A1A', // Rich black from logo
-                foreground: '#ffffff',
+                foreground: '#3B3B3B',
                 destructive: '#DF3131',
-                destructiveforeground: '#FFFFFF',
+                destructiveforeground: '#3B3B3B',
                 background: '#1A1A1A', // Updated to logo black
                 secondary: '#F5F5DC', // Updated to cream
                 'secondary-foreground': '#1A1A1A', // Updated to logo black

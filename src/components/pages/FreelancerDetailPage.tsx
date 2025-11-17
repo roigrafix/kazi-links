@@ -190,7 +190,7 @@ export default function FreelancerDetailPage() {
                 <h2 className="font-heading text-2xl font-bold mb-4">Skills & Expertise</h2>
                 <div className="flex flex-wrap gap-2">
                   {skillsList.length > 0 ? skillsList.map((skill, index) => (
-                    <Badge key={index} variant="secondary" className="bg-electricblue text-white">
+                    <Badge key={index} variant="secondary" className="bg-electricblue text-[#3B3B3B]">
                       {skill}
                     </Badge>
                   )) : (
@@ -289,7 +289,7 @@ export default function FreelancerDetailPage() {
                           className="w-full h-32 object-cover"
                         />
                         <div className="absolute top-2 left-2">
-                          <Badge className="bg-brightpink text-white text-xs">
+                          <Badge className="bg-brightpink text-[#3B3B3B] text-xs">
                             {service.categoryName}
                           </Badge>
                         </div>
