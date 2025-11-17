@@ -19,8 +19,8 @@ export default {
                 '9xl': ['8rem', { lineHeight: '1', letterSpacing: '-0.02em', fontWeight: '900' }],
             },
             fontFamily: {
-                heading: "roboto",
-                paragraph: "roboto"
+                heading: ["montserrat", "sans-serif"],
+                paragraph: ["roboto"]
             },
             colors: {
                 // Updated color palette based on logo
