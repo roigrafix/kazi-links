@@ -480,7 +480,7 @@ export default function BookingPage() {
                   <div>
                     <Label>Select Time</Label>
                     <Select value={formData.bookingTime} onValueChange={(time) => setFormData(prev => ({ ...prev, bookingTime: time }))}>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-secondary-foreground">
                         <SelectValue placeholder="Select time slot" />
                       </SelectTrigger>
                       <SelectContent>
