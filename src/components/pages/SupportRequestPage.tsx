@@ -75,10 +75,10 @@ export default function SupportRequestPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <section className="bg-logoBlack text-logoCream py-16">
-        <div className="max-w-[100rem] mx-auto px-6">
+      <section className="bg-logoBlack text-white py-20">
+        <div className="max-w-[100rem] mx-auto px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -87,15 +87,15 @@ export default function SupportRequestPage() {
           >
             <Link 
               to="/services" 
-              className="inline-flex items-center gap-2 text-logoGold hover:text-logoCream transition-colors mb-6"
+              className="inline-flex items-center gap-3 text-logoGold hover:text-white transition-colors mb-8 text-lg font-medium"
             >
-              <ArrowLeftIcon className="w-4 h-4" />
+              <ArrowLeftIcon className="w-5 h-5" />
               Back to Services
             </Link>
-            <h1 className="text-5xl font-heading font-bold mb-4">
+            <h1 className="text-6xl font-heading font-bold mb-6 leading-tight">
               Support Request
             </h1>
-            <p className="text-xl font-paragraph max-w-3xl mx-auto">
+            <p className="text-2xl font-paragraph max-w-4xl mx-auto leading-relaxed text-gray-100">
               Need help? We're here to assist you with any questions, concerns, or requests you may have.
             </p>
           </motion.div>
@@ -103,18 +103,18 @@ export default function SupportRequestPage() {
       </section>
 
       {/* Request Type Selection */}
-      <section className="py-16">
-        <div className="max-w-[100rem] mx-auto px-6">
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-[100rem] mx-auto px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-12"
+            className="mb-16"
           >
-            <h2 className="text-3xl font-heading font-bold text-center mb-8 text-foreground">
+            <h2 className="text-4xl font-heading font-bold text-center mb-12 text-gray-900 leading-tight">
               What can we help you with?
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {requestTypes.map((type, index) => {
                 const IconComponent = type.icon;
                 return (
@@ -125,19 +125,21 @@ export default function SupportRequestPage() {
                     transition={{ duration: 0.6, delay: 0.1 * index }}
                   >
                     <Card 
-                      className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                      className={`cursor-pointer transition-all duration-300 hover:shadow-xl border-2 h-full ${
                         formData.requestType === type.value 
-                          ? 'ring-2 ring-logoGold bg-logoGold/5' 
-                          : 'hover:bg-secondary/50'
+                          ? 'ring-4 ring-logoGold border-logoGold bg-logoGold/5' 
+                          : 'border-gray-200 hover:border-logoGold/50 hover:bg-white'
                       }`}
                       onClick={() => handleInputChange('requestType', type.value)}
                     >
-                      <CardHeader className="text-center pb-4">
-                        <div className="mx-auto mb-4 w-12 h-12 bg-logoGold/10 rounded-full flex items-center justify-center">
-                          <IconComponent className="w-6 h-6 text-logoGold" />
+                      <CardHeader className="text-center pb-6 pt-8">
+                        <div className="mx-auto mb-6 w-16 h-16 bg-logoGold/15 rounded-full flex items-center justify-center">
+                          <IconComponent className="w-8 h-8 text-logoGold" />
                         </div>
-                        <CardTitle className="text-lg font-heading">{type.label}</CardTitle>
-                        <CardDescription className="font-paragraph">
+                        <CardTitle className="text-xl font-heading font-semibold mb-3 text-gray-900 leading-tight">
+                          {type.label}
+                        </CardTitle>
+                        <CardDescription className="font-paragraph text-base text-gray-700 leading-relaxed">
                           {type.description}
                         </CardDescription>
                       </CardHeader>
@@ -155,101 +157,113 @@ export default function SupportRequestPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Card className="max-w-4xl mx-auto">
-                <CardHeader>
-                  <CardTitle className="text-2xl font-heading">
+              <Card className="max-w-5xl mx-auto border-2 border-gray-200 shadow-lg bg-white">
+                <CardHeader className="pb-8 pt-10">
+                  <CardTitle className="text-3xl font-heading font-bold text-gray-900 mb-4">
                     Submit Your Request
                   </CardTitle>
-                  <CardDescription className="font-paragraph">
+                  <CardDescription className="font-paragraph text-lg text-gray-700 leading-relaxed">
                     Please provide as much detail as possible to help us assist you better.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                <CardContent className="px-10 pb-10">
+                  <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Contact Information */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="name" className="font-paragraph">Full Name *</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <Label htmlFor="name" className="font-paragraph text-base font-semibold text-gray-900">
+                          Full Name *
+                        </Label>
                         <Input
                           id="name"
                           value={formData.name}
                           onChange={(e) => handleInputChange('name', e.target.value)}
                           required
-                          className="font-paragraph"
+                          className="font-paragraph text-base h-12 border-2 border-gray-300 focus:border-logoGold"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="font-paragraph">Email Address *</Label>
+                      <div className="space-y-3">
+                        <Label htmlFor="email" className="font-paragraph text-base font-semibold text-gray-900">
+                          Email Address *
+                        </Label>
                         <Input
                           id="email"
                           type="email"
                           value={formData.email}
                           onChange={(e) => handleInputChange('email', e.target.value)}
                           required
-                          className="font-paragraph"
+                          className="font-paragraph text-base h-12 border-2 border-gray-300 focus:border-logoGold"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="font-paragraph">Phone Number</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <Label htmlFor="phone" className="font-paragraph text-base font-semibold text-gray-900">
+                          Phone Number
+                        </Label>
                         <Input
                           id="phone"
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => handleInputChange('phone', e.target.value)}
-                          className="font-paragraph"
+                          className="font-paragraph text-base h-12 border-2 border-gray-300 focus:border-logoGold"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="priority" className="font-paragraph">Priority Level</Label>
+                      <div className="space-y-3">
+                        <Label htmlFor="priority" className="font-paragraph text-base font-semibold text-gray-900">
+                          Priority Level
+                        </Label>
                         <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
-                          <SelectTrigger className="font-paragraph">
+                          <SelectTrigger className="font-paragraph text-base h-12 border-2 border-gray-300 focus:border-logoGold">
                             <SelectValue placeholder="Select priority" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="low">Low</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="high">High</SelectItem>
-                            <SelectItem value="urgent">Urgent</SelectItem>
+                            <SelectItem value="low" className="text-base">Low</SelectItem>
+                            <SelectItem value="medium" className="text-base">Medium</SelectItem>
+                            <SelectItem value="high" className="text-base">High</SelectItem>
+                            <SelectItem value="urgent" className="text-base">Urgent</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
                     {/* Request Details */}
-                    <div className="space-y-2">
-                      <Label htmlFor="subject" className="font-paragraph">Subject *</Label>
+                    <div className="space-y-3">
+                      <Label htmlFor="subject" className="font-paragraph text-base font-semibold text-gray-900">
+                        Subject *
+                      </Label>
                       <Input
                         id="subject"
                         value={formData.subject}
                         onChange={(e) => handleInputChange('subject', e.target.value)}
                         required
                         placeholder="Brief summary of your request"
-                        className="font-paragraph"
+                        className="font-paragraph text-base h-12 border-2 border-gray-300 focus:border-logoGold"
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="description" className="font-paragraph">Description *</Label>
+                    <div className="space-y-3">
+                      <Label htmlFor="description" className="font-paragraph text-base font-semibold text-gray-900">
+                        Description *
+                      </Label>
                       <Textarea
                         id="description"
                         value={formData.description}
                         onChange={(e) => handleInputChange('description', e.target.value)}
                         required
                         placeholder="Please provide detailed information about your request..."
-                        rows={6}
-                        className="font-paragraph"
+                        rows={8}
+                        className="font-paragraph text-base border-2 border-gray-300 focus:border-logoGold leading-relaxed"
                       />
                     </div>
 
                     {/* Submit Button */}
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-6">
                       <Button 
                         type="submit" 
                         size="lg"
-                        className="bg-logoGold hover:bg-logoGold/90 text-logoBlack font-paragraph font-medium"
+                        className="bg-logoGold hover:bg-logoGold/90 text-logoBlack font-paragraph font-semibold text-lg px-8 py-4 h-auto"
                       >
                         Submit Request
                       </Button>
@@ -263,41 +277,41 @@ export default function SupportRequestPage() {
       </section>
 
       {/* Contact Information */}
-      <section className="py-16 bg-secondary">
-        <div className="max-w-[100rem] mx-auto px-6">
+      <section className="py-20 bg-white">
+        <div className="max-w-[100rem] mx-auto px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h2 className="text-3xl font-heading font-bold mb-8 text-foreground">
+            <h2 className="text-4xl font-heading font-bold mb-12 text-gray-900 leading-tight">
               Other Ways to Reach Us
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <div className="text-center">
-                <div className="w-12 h-12 bg-logoGold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <HeadphonesIcon className="w-6 h-6 text-logoGold" />
+                <div className="w-16 h-16 bg-logoGold/15 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <HeadphonesIcon className="w-8 h-8 text-logoGold" />
                 </div>
-                <h3 className="text-xl font-heading font-semibold mb-2">Phone Support</h3>
-                <p className="font-paragraph text-foreground/80">1-800-SUPPORT</p>
-                <p className="font-paragraph text-sm text-foreground/60">Mon-Fri 9AM-6PM EST</p>
+                <h3 className="text-2xl font-heading font-semibold mb-4 text-gray-900">Phone Support</h3>
+                <p className="font-paragraph text-lg text-gray-800 font-medium mb-2">1-800-SUPPORT</p>
+                <p className="font-paragraph text-base text-gray-600">Mon-Fri 9AM-6PM EST</p>
               </div>
               <div className="text-center">
-                <div className="w-12 h-12 bg-logoGold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquareIcon className="w-6 h-6 text-logoGold" />
+                <div className="w-16 h-16 bg-logoGold/15 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <MessageSquareIcon className="w-8 h-8 text-logoGold" />
                 </div>
-                <h3 className="text-xl font-heading font-semibold mb-2">Live Chat</h3>
-                <p className="font-paragraph text-foreground/80">Available 24/7</p>
-                <p className="font-paragraph text-sm text-foreground/60">Instant assistance</p>
+                <h3 className="text-2xl font-heading font-semibold mb-4 text-gray-900">Live Chat</h3>
+                <p className="font-paragraph text-lg text-gray-800 font-medium mb-2">Available 24/7</p>
+                <p className="font-paragraph text-base text-gray-600">Instant assistance</p>
               </div>
               <div className="text-center">
-                <div className="w-12 h-12 bg-logoGold/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertTriangleIcon className="w-6 h-6 text-logoGold" />
+                <div className="w-16 h-16 bg-logoGold/15 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <AlertTriangleIcon className="w-8 h-8 text-logoGold" />
                 </div>
-                <h3 className="text-xl font-heading font-semibold mb-2">Emergency</h3>
-                <p className="font-paragraph text-foreground/80">1-800-URGENT</p>
-                <p className="font-paragraph text-sm text-foreground/60">24/7 emergency line</p>
+                <h3 className="text-2xl font-heading font-semibold mb-4 text-gray-900">Emergency</h3>
+                <p className="font-paragraph text-lg text-gray-800 font-medium mb-2">1-800-URGENT</p>
+                <p className="font-paragraph text-base text-gray-600">24/7 emergency line</p>
               </div>
             </div>
           </motion.div>
