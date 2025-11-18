@@ -78,8 +78,9 @@ export default function BookingPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch services with their referenced freelancers populated
         const [servicesData, freelancersData] = await Promise.all([
-          BaseCrudService.getAll<Services>('services'),
+          BaseCrudService.getAll<Services>('services', ['reference']),
           BaseCrudService.getAll<Freelancers>('freelancers')
         ]);
         
@@ -99,12 +100,20 @@ export default function BookingPage() {
               serviceName: service.serviceName || '',
               paymentAmount: service.price || 0
             }));
-            // Filter freelancers based on service category
-            const related = freelancersData.items.filter(f => 
-              f.skills?.toLowerCase().includes(service.categoryName?.toLowerCase() || '') ||
-              f.servicesOffered?.toLowerCase().includes(service.categoryName?.toLowerCase() || '')
-            );
-            setAvailableFreelancers(related);
+            
+            // Get all freelancers referenced for this specific service
+            const referencedFreelancers = servicesData.items
+              .filter(s => s.serviceName === service.serviceName && s.reference)
+              .map(s => s.reference as Freelancers)
+              .filter(Boolean); // Remove any null/undefined references
+            
+            // If we have referenced freelancers, show only those; otherwise show all freelancers
+            if (referencedFreelancers.length > 0) {
+              setAvailableFreelancers(referencedFreelancers);
+            } else {
+              // Fallback to all freelancers if no specific references found
+              setAvailableFreelancers(freelancersData.items);
+            }
           }
         } else if (freelancerId) {
           const freelancer = freelancersData.items.find(f => f._id === freelancerId);
@@ -139,12 +148,20 @@ export default function BookingPage() {
         paymentAmount: service.price || 0
       }));
       
-      // Filter freelancers based on service
-      const related = freelancers.filter(f => 
-        f.skills?.toLowerCase().includes(service.categoryName?.toLowerCase() || '') ||
-        f.servicesOffered?.toLowerCase().includes(service.categoryName?.toLowerCase() || '')
-      );
-      setAvailableFreelancers(related);
+      // Get all freelancers referenced for this specific service
+      const referencedFreelancers = services
+        .filter(s => s.serviceName === service.serviceName && s.reference)
+        .map(s => s.reference as Freelancers)
+        .filter(Boolean); // Remove any null/undefined references
+      
+      // If we have referenced freelancers, show only those; otherwise show all freelancers
+      if (referencedFreelancers.length > 0) {
+        setAvailableFreelancers(referencedFreelancers);
+      } else {
+        // Fallback to all freelancers if no specific references found
+        setAvailableFreelancers(freelancers);
+      }
+      
       setSelectedFreelancer(null);
       setFormData(prev => ({ ...prev, freelancerName: '' }));
     }
