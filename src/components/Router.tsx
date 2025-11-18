@@ -14,6 +14,7 @@ import LoginPage from '@/components/pages/LoginPage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
 import SupportRequestPage from '@/components/pages/SupportRequestPage';
 import ReviewPage from '@/components/pages/ReviewPage';
+import AdminDashboardPage from '@/components/pages/AdminDashboardPage';
 import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
 
 const router = createBrowserRouter([
@@ -66,6 +67,14 @@ const router = createBrowserRouter([
       {
         path: "review",
         element: <ReviewPage />,
+      },
+      {
+        path: "admin",
+        element: (
+          <AdminProtectedRoute messageToSignIn="Please sign in with an admin account to access the admin dashboard.">
+            <AdminDashboardPage />
+          </AdminProtectedRoute>
+        ),
       },
       {
         path: "freelancer-availability",

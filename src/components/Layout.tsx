@@ -28,8 +28,11 @@ export default function Layout() {
     { name: 'Freelancers', href: '/freelancers' },
     { name: 'Book Now', href: '/booking' },
     { name: 'Track Booking', href: '/tracking' },
-    // Only show Availability link to admin users
-    ...(isAdmin ? [{ name: 'Availability', href: '/freelancer-availability' }] : []),
+    // Only show admin links to admin users
+    ...(isAdmin ? [
+      { name: 'Admin Dashboard', href: '/admin' },
+      { name: 'Availability', href: '/freelancer-availability' }
+    ] : []),
     { name: 'Login', href: '/login' }
   ];
 
