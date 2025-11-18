@@ -241,7 +241,7 @@ export default function ServicesPage() {
                               {service.durationMinutes ? formatDuration(service.durationMinutes) : 'Duration varies'}
                             </div>
                             <div className="flex items-center gap-1 font-semibold text-electricblue">
-                              <DollarSign className="h-4 w-4" />
+
                               {service.price ? `₹${service.price}` : 'Price varies'}
                             </div>
                           </div>
