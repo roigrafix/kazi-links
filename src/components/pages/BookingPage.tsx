@@ -346,8 +346,12 @@ export default function BookingPage() {
                         <SelectValue placeholder="Select a service" />
                       </SelectTrigger>
                       <SelectContent>
-                        {services.map(service => (
-                          <SelectItem key={service._id} value={service._id}>
+                        {services.map((service, index) => (
+                          <SelectItem 
+                            key={service._id} 
+                            value={service._id}
+                            className={index === 0 ? "text-[#3B3B3B] focus:text-[#3B3B3B]" : ""}
+                          >
                             {service.serviceName} - ${service.price}
                           </SelectItem>
                         ))}
@@ -394,8 +398,12 @@ export default function BookingPage() {
                           <SelectValue placeholder="Select a freelancer" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableFreelancers.map(freelancer => (
-                            <SelectItem key={freelancer._id} value={freelancer._id}>
+                          {availableFreelancers.map((freelancer, index) => (
+                            <SelectItem 
+                              key={freelancer._id} 
+                              value={freelancer._id}
+                              className={index === 0 ? "text-[#3B3B3B] focus:text-[#3B3B3B]" : ""}
+                            >
                               {freelancer.fullName} - ${freelancer.hourlyRate}/hr
                             </SelectItem>
                           ))}
@@ -476,8 +484,12 @@ export default function BookingPage() {
                         <SelectValue placeholder="Select time slot" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeSlots.map(time => (
-                          <SelectItem key={time} value={time}>
+                        {timeSlots.map((time, index) => (
+                          <SelectItem 
+                            key={time} 
+                            value={time}
+                            className={index === 0 ? "text-[#3B3B3B] focus:text-[#3B3B3B]" : ""}
+                          >
                             {time}
                           </SelectItem>
                         ))}
