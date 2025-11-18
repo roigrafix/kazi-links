@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Image } from '@/components/ui/image';
-import { Search, DollarSign, Filter, Mail, Star } from 'lucide-react';
+import { Search, DollarSign, Filter, Mail, Star, MapPin } from 'lucide-react';
 
 export default function FreelancersPage() {
   const [freelancers, setFreelancers] = useState<Freelancers[]>([]);
@@ -265,6 +265,23 @@ export default function FreelancersPage() {
                           <p className="font-paragraph text-sm text-secondary-foreground/80 line-clamp-2">
                             {freelancer.servicesOffered}
                           </p>
+                        </div>
+                      )}
+                      
+                      {/* Location */}
+                      {(freelancer.serviceArea || freelancer.city) && (
+                        <div className="mb-4">
+                          <h4 className="font-paragraph text-sm font-medium mb-2 text-secondary-foreground/70">
+                            Service Area
+                          </h4>
+                          <div className="flex items-center gap-1 text-sm text-secondary-foreground/80">
+                            <MapPin className="h-3 w-3" />
+                            <span>
+                              {freelancer.serviceArea && freelancer.city 
+                                ? `${freelancer.serviceArea}, ${freelancer.city}`
+                                : freelancer.serviceArea || freelancer.city}
+                            </span>
+                          </div>
                         </div>
                       )}
                       

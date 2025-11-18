@@ -70,6 +70,12 @@ export interface Freelancers {
   customersReviews?: any;
   /** @wixFieldType text */
   customersReview?: string;
+  /** @wixFieldType text */
+  serviceArea?: string;
+  /** @wixFieldType text */
+  city?: string;
+  /** @wixFieldType text */
+  fullAddress?: string;
 }
 
 

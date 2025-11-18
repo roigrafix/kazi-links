@@ -259,7 +259,14 @@ export default function TrackingPage() {
                                   <div className="bg-white/5 rounded-lg p-3">
                                     <div className="flex items-start gap-2">
                                       <MapPin className="h-4 w-4 text-palemint mt-0.5" />
-                                      <span className="text-sm">{booking.serviceAddress}</span>
+                                      <div className="flex-1">
+                                        <span className="text-sm">{booking.serviceAddress}</span>
+                                        {booking.serviceLocationType === 'freelancer' && (
+                                          <div className="text-xs text-green-400 mt-1">
+                                            ✓ Freelancer's exact address (revealed after booking confirmation)
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                 )}

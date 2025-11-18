@@ -242,8 +242,16 @@ export default function BookingPage() {
       return;
     }
 
-    // Combine address fields into a single address string
-    const fullAddress = `${formData.houseFloorNo}, ${formData.street}, ${formData.area}, ${formData.city} ${formData.postalCode}`;
+    // Determine the service address based on location type
+    let serviceAddress = '';
+    if (formData.serviceLocationType === 'freelancer') {
+      // Use freelancer's full address (this will be revealed after booking)
+      serviceAddress = selectedFreelancer.fullAddress || 
+                      `${selectedFreelancer.serviceArea || ''}, ${selectedFreelancer.city || ''}`.trim();
+    } else {
+      // Use client's address
+      serviceAddress = `${formData.houseFloorNo}, ${formData.street}, ${formData.area}, ${formData.city} ${formData.postalCode}`;
+    }
 
     setIsSubmitting(true);
     try {
@@ -254,7 +262,7 @@ export default function BookingPage() {
         bookingDate: formData.bookingDate,
         bookingTime: formData.bookingTime,
         serviceLocationType: formData.serviceLocationType,
-        serviceAddress: fullAddress,
+        serviceAddress: serviceAddress,
         clientName: formData.clientName,
         clientEmail: formData.clientEmail,
         clientPhone: formData.clientPhone,
@@ -294,8 +302,9 @@ export default function BookingPage() {
         return selectedService && selectedFreelancer;
       case 2:
         return formData.bookingDate && formData.bookingTime && 
-               formData.houseFloorNo && formData.street && formData.area && 
-               formData.postalCode && formData.city;
+               (formData.serviceLocationType === 'freelancer' || 
+                (formData.houseFloorNo && formData.street && formData.area && 
+                 formData.postalCode && formData.city));
       case 3:
         return formData.clientName && formData.clientEmail && formData.clientPhone;
       default:
@@ -560,6 +569,14 @@ export default function BookingPage() {
                           <p className="text-sm text-gray-600 mb-2">
                             {selectedFreelancer.skills}
                           </p>
+                          {/* Show service area if available */}
+                          {(selectedFreelancer.serviceArea || selectedFreelancer.city) && (
+                            <p className="text-sm text-gray-600 mb-2">
+                              Service Area: {selectedFreelancer.serviceArea && selectedFreelancer.city 
+                                ? `${selectedFreelancer.serviceArea}, ${selectedFreelancer.city}`
+                                : selectedFreelancer.serviceArea || selectedFreelancer.city}
+                            </p>
+                          )}
                           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 text-sm">
                             <span className="text-brightpink font-semibold">
                               ₹{selectedFreelancer.hourlyRate}/hr
@@ -648,17 +665,27 @@ export default function BookingPage() {
                         <RadioGroupItem value="freelancer" id="freelancer" className="mt-1" />
                         <Label htmlFor="freelancer" className="text-sm leading-relaxed">
                           At freelancer's location
+                          {selectedFreelancer && (selectedFreelancer.serviceArea || selectedFreelancer.city) && (
+                            <span className="block text-xs text-gray-500 mt-1">
+                              Area: {selectedFreelancer.serviceArea && selectedFreelancer.city 
+                                ? `${selectedFreelancer.serviceArea}, ${selectedFreelancer.city}`
+                                : selectedFreelancer.serviceArea || selectedFreelancer.city}
+                              <br />
+                              <span className="text-orange-600">Exact address will be shared after booking confirmation</span>
+                            </span>
+                          )}
                         </Label>
                       </div>
                     </RadioGroup>
                   </div>
 
-                  {/* Address Fields */}
-                  <div>
-                    <Label className="text-gray-800 mb-3 block">
-                      {formData.serviceLocationType === 'client' ? 'Your Address' : 'Meeting Address'}
-                    </Label>
-                    <div className="space-y-4">
+                  {/* Address Fields - Only show for client location */}
+                  {formData.serviceLocationType === 'client' && (
+                    <div>
+                      <Label className="text-gray-800 mb-3 block">
+                        Your Address
+                      </Label>
+                      <div className="space-y-4">
                       {/* House/Floor No and Street */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -729,7 +756,30 @@ export default function BookingPage() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Freelancer Location Info - Only show when freelancer location is selected */}
+                  {formData.serviceLocationType === 'freelancer' && selectedFreelancer && (
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MapPin className="h-4 w-4 text-blue-600" />
+                        <span className="font-semibold text-gray-800">Service at Freelancer's Location</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Service will be provided at the freelancer's location
+                      </p>
+                      {(selectedFreelancer.serviceArea || selectedFreelancer.city) && (
+                        <p className="text-sm text-gray-700 mb-2">
+                          <strong>Area:</strong> {selectedFreelancer.serviceArea && selectedFreelancer.city 
+                            ? `${selectedFreelancer.serviceArea}, ${selectedFreelancer.city}`
+                            : selectedFreelancer.serviceArea || selectedFreelancer.city}
+                        </p>
+                      )}
+                      <p className="text-sm text-orange-600 font-medium">
+                        📍 Exact address will be shared after booking confirmation
+                      </p>
+                    </div>
+                  )}
 
                   {/* Transportation Cost */}
                   {formData.serviceLocationType === 'client' && (
