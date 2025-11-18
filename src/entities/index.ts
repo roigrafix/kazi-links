@@ -51,7 +51,13 @@ export interface Freelancers {
   _createdDate?: Date;
   _updatedDate?: Date;
   /** @wixFieldType text */
+  city?: string;
+  /** @wixFieldType text */
+  fullAddress?: string;
+  /** @wixFieldType text */
   fullName?: string;
+  /** @wixFieldType text */
+  serviceArea?: string;
   /** @wixFieldType image */
   profilePicture?: string;
   /** @wixFieldType text */
@@ -70,12 +76,6 @@ export interface Freelancers {
   customersReviews?: any;
   /** @wixFieldType text */
   customersReview?: string;
-  /** @wixFieldType text */
-  serviceArea?: string;
-  /** @wixFieldType text */
-  city?: string;
-  /** @wixFieldType text */
-  fullAddress?: string;
 }
 
 
