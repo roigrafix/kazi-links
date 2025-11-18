@@ -131,9 +131,9 @@ export default function FreelancersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Skills</SelectItem>
-                  {availableSkills.map(skill => (
-                    <SelectItem key={skill} value={skill}>
-                      {skill}
+                  {availableSkills.map((skill, index) => (
+                    <SelectItem key={skill || `skill-${index}`} value={skill || `skill-${index}`}>
+                      {skill || 'Unknown Skill'}
                     </SelectItem>
                   ))}
                 </SelectContent>

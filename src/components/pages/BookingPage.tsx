@@ -366,7 +366,7 @@ export default function BookingPage() {
                         {services.map((service, index) => (
                           <SelectItem 
                             key={service._id} 
-                            value={service._id}
+                            value={service._id || `service-${index}`}
                             className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
                           >
                             {service.serviceName} - ${service.price}
@@ -418,7 +418,7 @@ export default function BookingPage() {
                           {availableFreelancers.map((freelancer, index) => (
                             <SelectItem 
                               key={freelancer._id} 
-                              value={freelancer._id}
+                              value={freelancer._id || `freelancer-${index}`}
                               className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
                             >
                               {freelancer.fullName} - ${freelancer.hourlyRate}/hr
