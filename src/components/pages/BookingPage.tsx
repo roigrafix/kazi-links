@@ -387,7 +387,7 @@ export default function BookingPage() {
 
                   {/* Freelancer Selection */}
                   {availableFreelancers.length > 0 && (
-                    <div>
+                    <div className="shadow-none">
                       <Label htmlFor="freelancer" className="text-gray-800">Choose a Freelancer</Label>
                       <Select value={selectedFreelancer?._id || ''} onValueChange={handleFreelancerChange}>
                         <SelectTrigger>
