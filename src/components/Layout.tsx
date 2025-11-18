@@ -162,7 +162,7 @@ export default function Layout() {
                 </p>
                 <div className="flex items-center gap-4">
                   <a 
-                    href="https://instagram.com/kazilinks" 
+                    href="https://www.instagram.com/kazi_links?igsh=MWh2NWVucmwxbTM4Yw==" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="w-10 h-10 bg-logoGold rounded-full flex items-center justify-center hover:bg-logoGold/80 transition-colors"
