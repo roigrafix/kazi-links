@@ -135,12 +135,10 @@ export default function Layout() {
           )}
         </AnimatePresence>
       </header>
-
       {/* Main Content */}
       <main>
         <Outlet />
       </main>
-
       {/* Footer */}
       <footer className="bg-secondary text-secondary-foreground">
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">
@@ -257,9 +255,7 @@ export default function Layout() {
                   </div>
                   <div className="flex items-center gap-3">
                     <MapPin className="h-4 w-4 text-secondary-foreground/50" />
-                    <span className="font-paragraph text-secondary-foreground/70">
-                      San Francisco, CA
-                    </span>
+                    <span className="font-paragraph text-secondary-foreground/70">{"Bengaluru, IND"}</span>
                   </div>
                 </div>
                 
@@ -281,9 +277,7 @@ export default function Layout() {
           {/* Bottom Footer */}
           <div className="py-6 border-t border-secondary-foreground/10">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="font-paragraph text-sm text-secondary-foreground/70">
-                © 2024 KaziLinks. All rights reserved. Designed by Knox.
-              </p>
+              <p className="font-paragraph text-sm text-secondary-foreground/70">{"© 2025 KaziLinks. All rights reserved."}</p>
               <div className="flex items-center gap-6">
                 <Link
                   to="/privacy"
