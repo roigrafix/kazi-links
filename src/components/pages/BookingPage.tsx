@@ -358,7 +358,7 @@ export default function BookingPage() {
                   {/* Service Selection */}
                   <div>
                     <Label htmlFor="service" className="text-gray-800">Choose a Service</Label>
-                    <Select value={selectedService?._id || ''} onValueChange={handleServiceChange}>
+                    <Select value={selectedService?._id} onValueChange={handleServiceChange}>
                       <SelectTrigger className="text-primary">
                         <SelectValue placeholder="Select a service" />
                       </SelectTrigger>
@@ -410,7 +410,7 @@ export default function BookingPage() {
                   {availableFreelancers.length > 0 && (
                     <div className="shadow-none">
                       <Label htmlFor="freelancer" className="text-gray-800">Choose a Freelancer</Label>
-                      <Select value={selectedFreelancer?._id || ''} onValueChange={handleFreelancerChange}>
+                      <Select value={selectedFreelancer?._id} onValueChange={handleFreelancerChange}>
                         <SelectTrigger className="text-secondary-foreground">
                           <SelectValue placeholder="Select a freelancer" />
                         </SelectTrigger>

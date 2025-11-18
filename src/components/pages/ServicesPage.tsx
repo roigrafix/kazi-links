@@ -135,7 +135,7 @@ export default function ServicesPage() {
                 <SelectContent>
                   <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Categories</SelectItem>
                   {categories.map(category => (
-                    <SelectItem key={category._id} value={category.categoryName || ''}>
+                    <SelectItem key={category._id} value={category.categoryName || 'unknown'}>
                       {category.categoryName}
                     </SelectItem>
                   ))}

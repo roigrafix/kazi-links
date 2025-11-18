@@ -66,6 +66,10 @@ export interface Freelancers {
   hourlyRate?: number;
   /** @wixFieldType text */
   contactEmail?: string;
+  /** @wixFieldType array_document */
+  customersReviews?: any;
+  /** @wixFieldType text */
+  customersReview?: string;
 }
 
 
