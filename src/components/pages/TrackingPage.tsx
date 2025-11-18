@@ -9,8 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Shield } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Shield, MessageSquare, Settings } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
+import { notificationService, OTPDeliveryOptions } from '@/services/notificationService';
 
 export default function TrackingPage() {
   const [bookings, setBookings] = useState<Bookings[]>([]);
@@ -30,6 +32,18 @@ export default function TrackingPage() {
   const [isOTPSent, setIsOTPSent] = useState(false);
   const [otpError, setOtpError] = useState('');
   const [otpResendTimer, setOtpResendTimer] = useState(0);
+  const [deliveryMethod, setDeliveryMethod] = useState<'email' | 'sms'>('email');
+  const [showProviderConfig, setShowProviderConfig] = useState(false);
+  
+  // Provider configuration states
+  const [sendGridApiKey, setSendGridApiKey] = useState('');
+  const [twilioAccountSid, setTwilioAccountSid] = useState('');
+  const [twilioAuthToken, setTwilioAuthToken] = useState('');
+  const [twilioPhoneNumber, setTwilioPhoneNumber] = useState('');
+  
+  // Get available delivery methods
+  const availableMethods = notificationService.getAvailableMethods();
+  const providerStatus = notificationService.getProviderStatus();
 
   // Check if booking can be cancelled (12 hours before booking date)
   const canCancelBooking = (booking: Bookings): boolean => {
@@ -55,7 +69,24 @@ export default function TrackingPage() {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
-  // Simulate sending OTP via email/SMS
+  // Configure providers with user-provided credentials
+  const configureProviders = () => {
+    if (sendGridApiKey.trim()) {
+      notificationService.setSendGridApiKey(sendGridApiKey.trim());
+    }
+    
+    if (twilioAccountSid.trim() && twilioAuthToken.trim() && twilioPhoneNumber.trim()) {
+      notificationService.setTwilioCredentials(
+        twilioAccountSid.trim(),
+        twilioAuthToken.trim(),
+        twilioPhoneNumber.trim()
+      );
+    }
+    
+    setShowProviderConfig(false);
+  };
+
+  // Send OTP via configured provider
   const sendOTP = async (booking: Bookings): Promise<boolean> => {
     setIsOTPSending(true);
     setOtpError('');
@@ -65,18 +96,43 @@ export default function TrackingPage() {
       const newOTP = generateOTP();
       setGeneratedOTP(newOTP);
       
-      // Simulate API call to send OTP
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Determine recipient based on delivery method
+      const recipient = deliveryMethod === 'email' ? booking.clientEmail : booking.clientPhone;
       
-      // In a real app, you would send the OTP via email/SMS service
-      console.log(`OTP sent to ${booking.clientEmail}: ${newOTP}`);
+      if (!recipient) {
+        setOtpError(`${deliveryMethod === 'email' ? 'Email' : 'Phone number'} not available for this booking.`);
+        return false;
+      }
       
-      setIsOTPSent(true);
-      setOtpResendTimer(60); // 60 seconds cooldown
+      // Prepare OTP delivery options
+      const otpOptions: OTPDeliveryOptions = {
+        method: deliveryMethod,
+        recipient,
+        code: newOTP,
+        bookingDetails: {
+          serviceName: booking.serviceName || 'Service',
+          freelancerName: booking.freelancerName || 'Freelancer',
+          bookingDate: format(new Date(booking.bookingDate || new Date()), 'PPP'),
+          bookingTime: booking.bookingTime || 'Time not specified'
+        }
+      };
       
-      return true;
+      // Send OTP using the notification service
+      const result = await notificationService.sendOTP(otpOptions);
+      
+      if (result.success) {
+        setIsOTPSent(true);
+        setOtpResendTimer(60); // 60 seconds cooldown
+        console.log(`OTP sent via ${result.provider} to ${recipient}: ${newOTP} (Message ID: ${result.messageId})`);
+        return true;
+      } else {
+        setOtpError(`Failed to send OTP via ${result.provider}: ${result.error}`);
+        return false;
+      }
+      
     } catch (error) {
       setOtpError('Failed to send OTP. Please try again.');
+      console.error('OTP sending error:', error);
       return false;
     } finally {
       setIsOTPSending(false);
@@ -152,12 +208,24 @@ export default function TrackingPage() {
     setIsOTPSent(false);
     setOtpError('');
     setOtpResendTimer(0);
+    setDeliveryMethod('email');
   };
 
   // Handle cancel booking button click
   const handleCancelBookingClick = async (booking: Bookings) => {
     setSelectedBookingForCancel(booking);
     setShowOTPDialog(true);
+    
+    // Set default delivery method based on available options
+    const methods = notificationService.getAvailableMethods();
+    if (methods.length > 0) {
+      setDeliveryMethod(methods[0]);
+    } else {
+      // If no providers configured, show configuration dialog
+      setShowProviderConfig(true);
+      return;
+    }
+    
     // Automatically send OTP when dialog opens
     await sendOTP(booking);
   };
@@ -246,6 +314,35 @@ export default function TrackingPage() {
             <p className="font-paragraph text-xl text-secondary-foreground/70 max-w-2xl mx-auto">
               Enter your contact details to track your service booking and get real-time updates
             </p>
+          </motion.div>
+          
+          {/* Provider Configuration Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-center mt-8"
+          >
+            <Button
+              variant="outline"
+              onClick={() => setShowProviderConfig(true)}
+              className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Configure Notification Providers
+            </Button>
+            
+            {/* Provider Status Indicators */}
+            <div className="flex justify-center gap-4 mt-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${providerStatus.sendGrid.configured ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span>SendGrid {providerStatus.sendGrid.configured ? 'Ready' : 'Not Configured'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${providerStatus.twilio.configured ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span>Twilio {providerStatus.twilio.configured ? 'Ready' : 'Not Configured'}</span>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -626,13 +723,44 @@ export default function TrackingPage() {
               </div>
             )}
 
+            {/* Delivery Method Selection */}
+            {availableMethods.length > 1 && (
+              <div className="space-y-3">
+                <Label>Choose delivery method:</Label>
+                <RadioGroup
+                  value={deliveryMethod}
+                  onValueChange={(value: 'email' | 'sms') => setDeliveryMethod(value)}
+                  className="flex gap-6"
+                >
+                  {availableMethods.includes('email') && (
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="email" id="email-method" />
+                      <Label htmlFor="email-method" className="flex items-center gap-2 cursor-pointer">
+                        <Mail className="h-4 w-4" />
+                        Email ({selectedBookingForCancel?.clientEmail})
+                      </Label>
+                    </div>
+                  )}
+                  {availableMethods.includes('sms') && (
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="sms" id="sms-method" />
+                      <Label htmlFor="sms-method" className="flex items-center gap-2 cursor-pointer">
+                        <MessageSquare className="h-4 w-4" />
+                        SMS ({selectedBookingForCancel?.clientPhone})
+                      </Label>
+                    </div>
+                  )}
+                </RadioGroup>
+              </div>
+            )}
+
             {/* OTP Input Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label htmlFor="otp">Enter Verification Code</Label>
                 {isOTPSent && (
                   <span className="text-xs text-green-600">
-                    ✓ Code sent to {selectedBookingForCancel?.clientEmail}
+                    ✓ Code sent via {deliveryMethod} to {deliveryMethod === 'email' ? selectedBookingForCancel?.clientEmail : selectedBookingForCancel?.clientPhone}
                   </span>
                 )}
               </div>
@@ -693,10 +821,10 @@ export default function TrackingPage() {
             {!isOTPSent ? (
               <Button
                 onClick={() => selectedBookingForCancel && sendOTP(selectedBookingForCancel)}
-                disabled={isOTPSending}
+                disabled={isOTPSending || availableMethods.length === 0}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {isOTPSending ? 'Sending...' : 'Send Verification Code'}
+                {isOTPSending ? 'Sending...' : `Send Code via ${deliveryMethod.toUpperCase()}`}
               </Button>
             ) : (
               <Button
@@ -707,6 +835,125 @@ export default function TrackingPage() {
                 {cancellingBookingId === selectedBookingForCancel?._id ? 'Cancelling...' : 'Verify & Cancel Booking'}
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Provider Configuration Dialog */}
+      <Dialog open={showProviderConfig} onOpenChange={setShowProviderConfig}>
+        <DialogContent className="bg-secondary text-secondary-foreground max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Configure Notification Providers
+            </DialogTitle>
+            <DialogDescription className="text-secondary-foreground/70">
+              Set up SendGrid and Twilio credentials to enable real OTP delivery for booking cancellations.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* SendGrid Configuration */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Mail className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold">SendGrid (Email Delivery)</h3>
+                <Badge variant={providerStatus.sendGrid.configured ? "default" : "secondary"}>
+                  {providerStatus.sendGrid.configured ? "Configured" : "Not Configured"}
+                </Badge>
+              </div>
+              
+              <div>
+                <Label htmlFor="sendgrid-key">SendGrid API Key</Label>
+                <Input
+                  id="sendgrid-key"
+                  type="password"
+                  placeholder="SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  value={sendGridApiKey}
+                  onChange={(e) => setSendGridApiKey(e.target.value)}
+                />
+                <p className="text-xs text-secondary-foreground/70 mt-1">
+                  Get your API key from SendGrid dashboard → Settings → API Keys
+                </p>
+              </div>
+            </div>
+
+            {/* Twilio Configuration */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-green-600" />
+                <h3 className="font-semibold">Twilio (SMS Delivery)</h3>
+                <Badge variant={providerStatus.twilio.configured ? "default" : "secondary"}>
+                  {providerStatus.twilio.configured ? "Configured" : "Not Configured"}
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="twilio-sid">Account SID</Label>
+                  <Input
+                    id="twilio-sid"
+                    type="password"
+                    placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    value={twilioAccountSid}
+                    onChange={(e) => setTwilioAccountSid(e.target.value)}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="twilio-token">Auth Token</Label>
+                  <Input
+                    id="twilio-token"
+                    type="password"
+                    placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    value={twilioAuthToken}
+                    onChange={(e) => setTwilioAuthToken(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="twilio-phone">Twilio Phone Number</Label>
+                <Input
+                  id="twilio-phone"
+                  placeholder="+1234567890"
+                  value={twilioPhoneNumber}
+                  onChange={(e) => setTwilioPhoneNumber(e.target.value)}
+                />
+                <p className="text-xs text-secondary-foreground/70 mt-1">
+                  Your verified Twilio phone number (include country code)
+                </p>
+              </div>
+            </div>
+
+            {/* Important Notes */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium text-blue-800 mb-2">Important Notes:</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Credentials are stored locally in your browser session</li>
+                <li>• For production use, store credentials securely on your server</li>
+                <li>• SendGrid requires a verified sender email address</li>
+                <li>• Twilio requires a verified phone number for SMS delivery</li>
+                <li>• Both services may have usage limits and costs</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowProviderConfig(false)}
+              className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10"
+            >
+              Cancel
+            </Button>
+            
+            <Button
+              onClick={configureProviders}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Save Configuration
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
