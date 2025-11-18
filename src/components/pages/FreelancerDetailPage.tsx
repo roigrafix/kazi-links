@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BaseCrudService } from '@/integrations';
-import { Freelancers, Services } from '@/entities';
+import { Freelancers, Services, ClientReviews } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ export default function FreelancerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [freelancer, setFreelancer] = useState<Freelancers | null>(null);
   const [relatedServices, setRelatedServices] = useState<Services[]>([]);
+  const [reviews, setReviews] = useState<ClientReviews[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -36,6 +37,18 @@ export default function FreelancerDetailPage() {
         }).slice(0, 4);
         
         setRelatedServices(related);
+
+        // Fetch reviews for this freelancer
+        const reviewsData = await BaseCrudService.getAll<ClientReviews>('clientreviews');
+        const freelancerReviews = reviewsData.items.filter(review => 
+          review.freelancerId === freelancerData._id
+        ).sort((a, b) => {
+          const dateA = new Date(a.reviewDate || a._createdDate || 0);
+          const dateB = new Date(b.reviewDate || b._createdDate || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+        
+        setReviews(freelancerReviews);
       } catch (error) {
         console.error('Error fetching freelancer details:', error);
       } finally {
@@ -132,8 +145,15 @@ export default function FreelancerDetailPage() {
                   <div className="flex items-center justify-center gap-4 mb-6">
                     <div className="flex items-center gap-1">
                       <Star className="h-5 w-5 text-logoGold fill-current" />
-                      <span className="font-semibold">4.8</span>
-                      <span className="text-sm text-secondary-foreground/70">(24 reviews)</span>
+                      <span className="font-semibold">
+                        {reviews.length > 0 
+                          ? (reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / reviews.length).toFixed(1)
+                          : '4.8'
+                        }
+                      </span>
+                      <span className="text-sm text-secondary-foreground/70">
+                        ({reviews.length} review{reviews.length !== 1 ? 's' : ''})
+                      </span>
                     </div>
                   </div>
 
@@ -243,7 +263,12 @@ export default function FreelancerDetailPage() {
                     <div className="text-sm text-secondary-foreground/70">Avg Response</div>
                   </div>
                   <div className="bg-white/5 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-logoGold mb-1">4.8</div>
+                    <div className="text-2xl font-bold text-logoGold mb-1">
+                      {reviews.length > 0 
+                        ? (reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / reviews.length).toFixed(1)
+                        : '4.8'
+                      }
+                    </div>
                     <div className="text-sm text-secondary-foreground/70">Rating</div>
                   </div>
                 </div>
@@ -348,63 +373,77 @@ export default function FreelancerDetailPage() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                name: "Sarah Johnson",
-                rating: 5,
-                comment: "Exceptional work quality and great communication throughout the project. Highly recommended!",
-                project: "Website Design"
-              },
-              {
-                name: "Mike Chen",
-                rating: 5,
-                comment: "Delivered exactly what we needed on time and within budget. Will definitely work together again.",
-                project: "Mobile App Development"
-              },
-              {
-                name: "Emily Davis",
-                rating: 4,
-                comment: "Professional service with attention to detail. Very satisfied with the final result.",
-                project: "Logo Design"
-              }
-            ].map((review, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                viewport={{ once: true }}
-              >
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-1 mb-3">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < review.rating ? 'text-logoGold fill-current' : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    
-                    <p className="font-paragraph text-secondary-foreground/80 mb-4">
-                      "{review.comment}"
-                    </p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-semibold">{review.name}</div>
-                        <div className="text-sm text-secondary-foreground/70">{review.project}</div>
+          {reviews.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reviews.map((review, index) => (
+                <motion.div
+                  key={review._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-1 mb-3">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < (review.rating || 0) ? 'text-logoGold fill-current' : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
                       </div>
-                      <User className="h-8 w-8 text-secondary-foreground/30" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                      
+                      {review.reviewTitle && (
+                        <h4 className="font-heading text-lg font-semibold mb-2">
+                          {review.reviewTitle}
+                        </h4>
+                      )}
+                      
+                      <p className="font-paragraph text-secondary-foreground/80 mb-4">
+                        "{review.reviewContent}"
+                      </p>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold">{review.clientName}</div>
+                          <div className="text-sm text-secondary-foreground/70">
+                            {review.reviewDate 
+                              ? new Date(review.reviewDate).toLocaleDateString()
+                              : review._createdDate 
+                                ? new Date(review._createdDate).toLocaleDateString()
+                                : 'Recent'
+                            }
+                          </div>
+                        </div>
+                        <User className="h-8 w-8 text-secondary-foreground/30" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center py-12"
+            >
+              <div className="w-24 h-24 mx-auto mb-6 bg-white/5 rounded-full flex items-center justify-center">
+                <Star className="h-12 w-12 text-secondary-foreground/30" />
+              </div>
+              <h3 className="font-heading text-xl font-semibold mb-2">
+                No Reviews Yet
+              </h3>
+              <p className="font-paragraph text-secondary-foreground/70">
+                Be the first to leave a review for {freelancer.fullName}
+              </p>
+            </motion.div>
+          )}
         </div>
       </section>
     </div>

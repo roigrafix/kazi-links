@@ -43,6 +43,27 @@ export interface Bookings {
 
 
 /**
+ * Collection ID: clientreviews
+ * Interface for ClientReviews
+ */
+export interface ClientReviews {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType text */
+  clientName?: string;
+  /** @wixFieldType number */
+  rating?: number;
+  /** @wixFieldType text */
+  reviewContent?: string;
+  /** @wixFieldType datetime */
+  reviewDate?: Date | string;
+  /** @wixFieldType text */
+  reviewTitle?: string;
+}
+
+
+/**
  * Collection ID: freelancers
  * Interface for Freelancers
  */
@@ -132,4 +153,29 @@ export interface Services {
   isBookable?: boolean;
   /** @wixFieldType reference */
   reference?: Freelancers;
+}
+
+
+/**
+ * Collection ID: clientreviews
+ * Interface for ClientReviews
+ */
+export interface ClientReviews {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType text */
+  clientName?: string;
+  /** @wixFieldType number */
+  rating?: number;
+  /** @wixFieldType text */
+  reviewContent?: string;
+  /** @wixFieldType datetime */
+  reviewDate?: Date | string;
+  /** @wixFieldType text */
+  reviewTitle?: string;
+  /** @wixFieldType text */
+  freelancerId?: string;
+  /** @wixFieldType text */
+  bookingId?: string;
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { BaseCrudService } from '@/integrations';
 import { Bookings } from '@/entities';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Shield, MessageSquare, Settings } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Shield, MessageSquare, Settings, Star } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
 import { notificationService, OTPDeliveryOptions } from '@/services/notificationService';
 
@@ -539,6 +540,22 @@ export default function TrackingPage() {
                                     >
                                       <X className="h-4 w-4 mr-2" />
                                       {cancellingBookingId === booking._id ? 'Cancelling...' : 'Cancel Booking'}
+                                    </Button>
+                                  </div>
+                                )}
+
+                                {/* Write Review Button - Only show for completed bookings */}
+                                {booking.bookingStatus === 'completed' && (
+                                  <div className="mt-4">
+                                    <Button 
+                                      asChild
+                                      size="sm"
+                                      className="bg-logoGold text-logoBlack hover:bg-logoGold/90"
+                                    >
+                                      <Link to={`/review?booking=${booking._id}`}>
+                                        <Star className="h-4 w-4 mr-2" />
+                                        Write Review
+                                      </Link>
                                     </Button>
                                   </div>
                                 )}
