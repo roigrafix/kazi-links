@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Image } from '@/components/ui/image';
-import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail } from 'lucide-react';
+import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail, Instagram, Twitter, Linkedin } from 'lucide-react';
 import { useMember } from '@/integrations';
 
 export default function Layout() {
@@ -161,15 +161,30 @@ export default function Layout() {
                   Your trusted platform for professional collaborations.
                 </p>
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-logoGold rounded-full flex items-center justify-center">
-                    <Users className="h-5 w-5 text-logoBlack" />
-                  </div>
-                  <div className="w-10 h-10 bg-electricblue rounded-full flex items-center justify-center">
-                    <Briefcase className="h-5 w-5 text-[#3B3B3B]" />
-                  </div>
-                  <div className="w-10 h-10 bg-logoCream rounded-full flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-logoBlack" />
-                  </div>
+                  <a 
+                    href="https://instagram.com/kazilinks" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-logoGold rounded-full flex items-center justify-center hover:bg-logoGold/80 transition-colors"
+                  >
+                    <Instagram className="h-5 w-5 text-logoBlack" />
+                  </a>
+                  <a 
+                    href="https://twitter.com/kazilinks" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-electricblue rounded-full flex items-center justify-center hover:bg-electricblue/80 transition-colors"
+                  >
+                    <Twitter className="h-5 w-5 text-white" />
+                  </a>
+                  <a 
+                    href="https://linkedin.com/company/kazilinks" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-logoCream rounded-full flex items-center justify-center hover:bg-logoCream/80 transition-colors"
+                  >
+                    <Linkedin className="h-5 w-5 text-logoBlack" />
+                  </a>
                 </div>
               </div>
 
