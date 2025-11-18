@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X } from 'lucide-react';
+import { format, differenceInHours } from 'date-fns';
 
 export default function TrackingPage() {
   const [bookings, setBookings] = useState<Bookings[]>([]);
@@ -17,6 +18,60 @@ export default function TrackingPage() {
   const [filteredBookings, setFilteredBookings] = useState<Bookings[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
+
+  // Check if booking can be cancelled (12 hours before booking date)
+  const canCancelBooking = (booking: Bookings): boolean => {
+    if (!booking.bookingDate || booking.bookingStatus === 'cancelled') {
+      return false;
+    }
+    
+    const bookingDateTime = new Date(booking.bookingDate);
+    // If booking has a time, add it to the date
+    if (booking.bookingTime) {
+      const [hours, minutes] = booking.bookingTime.split(':').map(Number);
+      bookingDateTime.setHours(hours, minutes);
+    }
+    
+    const now = new Date();
+    const hoursUntilBooking = differenceInHours(bookingDateTime, now);
+    
+    return hoursUntilBooking >= 12;
+  };
+
+  const handleCancelBooking = async (bookingId: string) => {
+    setCancellingBookingId(bookingId);
+    try {
+      await BaseCrudService.update('bookings', {
+        _id: bookingId,
+        bookingStatus: 'cancelled'
+      });
+      
+      // Update local state
+      setFilteredBookings(prev => 
+        prev.map(booking => 
+          booking._id === bookingId 
+            ? { ...booking, bookingStatus: 'cancelled' }
+            : booking
+        )
+      );
+      
+      // Also update the main bookings array
+      setBookings(prev => 
+        prev.map(booking => 
+          booking._id === bookingId 
+            ? { ...booking, bookingStatus: 'cancelled' }
+            : booking
+        )
+      );
+      
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      alert('Failed to cancel booking. Please try again.');
+    } finally {
+      setCancellingBookingId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -285,6 +340,66 @@ export default function TrackingPage() {
                                     </Badge>
                                   </div>
                                 </div>
+
+                                {/* Cancel Booking Button */}
+                                {canCancelBooking(booking) && (
+                                  <div className="mt-4">
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button 
+                                          variant="destructive" 
+                                          size="sm"
+                                          className="bg-red-600 hover:bg-red-700 text-white"
+                                        >
+                                          <X className="h-4 w-4 mr-2" />
+                                          Cancel Booking
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent className="bg-secondary text-secondary-foreground">
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+                                          <AlertDialogDescription className="text-secondary-foreground/70">
+                                            Are you sure you want to cancel this booking? This action cannot be undone.
+                                            <br /><br />
+                                            <strong>Service:</strong> {booking.serviceName}<br />
+                                            <strong>Date:</strong> {formatDate(booking.bookingDate)} at {booking.bookingTime}<br />
+                                            <strong>Freelancer:</strong> {booking.freelancerName}
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10">
+                                            Keep Booking
+                                          </AlertDialogCancel>
+                                          <AlertDialogAction 
+                                            onClick={() => handleCancelBooking(booking._id)}
+                                            disabled={cancellingBookingId === booking._id}
+                                            className="bg-red-600 hover:bg-red-700 text-white"
+                                          >
+                                            {cancellingBookingId === booking._id ? 'Cancelling...' : 'Yes, Cancel Booking'}
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </div>
+                                )}
+
+                                {/* Cancellation Policy Info */}
+                                {booking.bookingStatus !== 'cancelled' && (
+                                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                                    <div className="flex items-start gap-2">
+                                      <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
+                                      <div className="text-sm">
+                                        <p className="font-medium text-blue-800 mb-1">Cancellation Policy</p>
+                                        <p className="text-blue-700">
+                                          {canCancelBooking(booking) 
+                                            ? "You can cancel this booking up to 12 hours before the scheduled time."
+                                            : "Cancellation is no longer available (less than 12 hours before booking)."
+                                          }
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
 
                               {/* ETA Status */}
