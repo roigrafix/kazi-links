@@ -297,7 +297,7 @@ export default function ServicesPage() {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link to="/booking">
+                <Link to="/support">
                   Request Custom Service
                 </Link>
               </Button>

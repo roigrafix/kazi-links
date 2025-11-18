@@ -12,6 +12,7 @@ import BookingPage from '@/components/pages/BookingPage';
 import TrackingPage from '@/components/pages/TrackingPage';
 import LoginPage from '@/components/pages/LoginPage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
+import SupportRequestPage from '@/components/pages/SupportRequestPage';
 import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
 
 const router = createBrowserRouter([
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <LoginPage />,
+      },
+      {
+        path: "support",
+        element: <SupportRequestPage />,
       },
       {
         path: "freelancer-availability",
