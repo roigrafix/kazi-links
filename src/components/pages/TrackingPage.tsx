@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Shield } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
 
 export default function TrackingPage() {
@@ -19,6 +20,16 @@ export default function TrackingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
+  
+  // OTP states
+  const [showOTPDialog, setShowOTPDialog] = useState(false);
+  const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<Bookings | null>(null);
+  const [otpCode, setOtpCode] = useState('');
+  const [generatedOTP, setGeneratedOTP] = useState('');
+  const [isOTPSending, setIsOTPSending] = useState(false);
+  const [isOTPSent, setIsOTPSent] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [otpResendTimer, setOtpResendTimer] = useState(0);
 
   // Check if booking can be cancelled (12 hours before booking date)
   const canCancelBooking = (booking: Bookings): boolean => {
@@ -39,18 +50,74 @@ export default function TrackingPage() {
     return hoursUntilBooking >= 12;
   };
 
-  const handleCancelBooking = async (bookingId: string) => {
-    setCancellingBookingId(bookingId);
+  // Generate a 6-digit OTP
+  const generateOTP = (): string => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  // Simulate sending OTP via email/SMS
+  const sendOTP = async (booking: Bookings): Promise<boolean> => {
+    setIsOTPSending(true);
+    setOtpError('');
+    
+    try {
+      // Generate new OTP
+      const newOTP = generateOTP();
+      setGeneratedOTP(newOTP);
+      
+      // Simulate API call to send OTP
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In a real app, you would send the OTP via email/SMS service
+      console.log(`OTP sent to ${booking.clientEmail}: ${newOTP}`);
+      
+      setIsOTPSent(true);
+      setOtpResendTimer(60); // 60 seconds cooldown
+      
+      return true;
+    } catch (error) {
+      setOtpError('Failed to send OTP. Please try again.');
+      return false;
+    } finally {
+      setIsOTPSending(false);
+    }
+  };
+
+  // Handle OTP resend timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (otpResendTimer > 0) {
+      interval = setInterval(() => {
+        setOtpResendTimer(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [otpResendTimer]);
+
+  // Verify OTP and proceed with cancellation
+  const verifyOTPAndCancel = async () => {
+    if (!selectedBookingForCancel) return;
+    
+    setOtpError('');
+    
+    // Verify OTP
+    if (otpCode.trim() !== generatedOTP) {
+      setOtpError('Invalid OTP. Please check and try again.');
+      return;
+    }
+    
+    // Proceed with cancellation
+    setCancellingBookingId(selectedBookingForCancel._id);
     try {
       await BaseCrudService.update('bookings', {
-        _id: bookingId,
+        _id: selectedBookingForCancel._id,
         bookingStatus: 'cancelled'
       });
       
       // Update local state
       setFilteredBookings(prev => 
         prev.map(booking => 
-          booking._id === bookingId 
+          booking._id === selectedBookingForCancel._id 
             ? { ...booking, bookingStatus: 'cancelled' }
             : booking
         )
@@ -59,18 +126,40 @@ export default function TrackingPage() {
       // Also update the main bookings array
       setBookings(prev => 
         prev.map(booking => 
-          booking._id === bookingId 
+          booking._id === selectedBookingForCancel._id 
             ? { ...booking, bookingStatus: 'cancelled' }
             : booking
         )
       );
       
+      // Close OTP dialog and reset states
+      setShowOTPDialog(false);
+      resetOTPStates();
+      
     } catch (error) {
       console.error('Error cancelling booking:', error);
-      alert('Failed to cancel booking. Please try again.');
+      setOtpError('Failed to cancel booking. Please try again.');
     } finally {
       setCancellingBookingId(null);
     }
+  };
+
+  // Reset OTP related states
+  const resetOTPStates = () => {
+    setSelectedBookingForCancel(null);
+    setOtpCode('');
+    setGeneratedOTP('');
+    setIsOTPSent(false);
+    setOtpError('');
+    setOtpResendTimer(0);
+  };
+
+  // Handle cancel booking button click
+  const handleCancelBookingClick = async (booking: Bookings) => {
+    setSelectedBookingForCancel(booking);
+    setShowOTPDialog(true);
+    // Automatically send OTP when dialog opens
+    await sendOTP(booking);
   };
 
   useEffect(() => {
@@ -344,42 +433,16 @@ export default function TrackingPage() {
                                 {/* Cancel Booking Button */}
                                 {canCancelBooking(booking) && (
                                   <div className="mt-4">
-                                    <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                        <Button 
-                                          variant="destructive" 
-                                          size="sm"
-                                          className="bg-red-600 hover:bg-red-700 text-white"
-                                        >
-                                          <X className="h-4 w-4 mr-2" />
-                                          Cancel Booking
-                                        </Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent className="bg-secondary text-secondary-foreground">
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-                                          <AlertDialogDescription className="text-secondary-foreground/70">
-                                            Are you sure you want to cancel this booking? This action cannot be undone.
-                                            <br /><br />
-                                            <strong>Service:</strong> {booking.serviceName}<br />
-                                            <strong>Date:</strong> {formatDate(booking.bookingDate)} at {booking.bookingTime}<br />
-                                            <strong>Freelancer:</strong> {booking.freelancerName}
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10">
-                                            Keep Booking
-                                          </AlertDialogCancel>
-                                          <AlertDialogAction 
-                                            onClick={() => handleCancelBooking(booking._id)}
-                                            disabled={cancellingBookingId === booking._id}
-                                            className="bg-red-600 hover:bg-red-700 text-white"
-                                          >
-                                            {cancellingBookingId === booking._id ? 'Cancelling...' : 'Yes, Cancel Booking'}
-                                          </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
+                                    <Button 
+                                      variant="destructive" 
+                                      size="sm"
+                                      className="bg-red-600 hover:bg-red-700 text-white"
+                                      onClick={() => handleCancelBookingClick(booking)}
+                                      disabled={cancellingBookingId === booking._id}
+                                    >
+                                      <X className="h-4 w-4 mr-2" />
+                                      {cancellingBookingId === booking._id ? 'Cancelling...' : 'Cancel Booking'}
+                                    </Button>
                                   </div>
                                 )}
 
@@ -531,6 +594,122 @@ export default function TrackingPage() {
           </div>
         </section>
       )}
+
+      {/* OTP Verification Dialog */}
+      <Dialog open={showOTPDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowOTPDialog(false);
+          resetOTPStates();
+        }
+      }}>
+        <DialogContent className="bg-secondary text-secondary-foreground max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-blue-600" />
+              Security Verification
+            </DialogTitle>
+            <DialogDescription className="text-secondary-foreground/70">
+              For your security, we need to verify your identity before cancelling this booking.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Booking Details */}
+            {selectedBookingForCancel && (
+              <div className="bg-white/5 rounded-lg p-3">
+                <h4 className="font-medium mb-2">Booking to Cancel:</h4>
+                <div className="text-sm space-y-1">
+                  <p><strong>Service:</strong> {selectedBookingForCancel.serviceName}</p>
+                  <p><strong>Date:</strong> {formatDate(selectedBookingForCancel.bookingDate)} at {selectedBookingForCancel.bookingTime}</p>
+                  <p><strong>Freelancer:</strong> {selectedBookingForCancel.freelancerName}</p>
+                </div>
+              </div>
+            )}
+
+            {/* OTP Input Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="otp">Enter Verification Code</Label>
+                {isOTPSent && (
+                  <span className="text-xs text-green-600">
+                    ✓ Code sent to {selectedBookingForCancel?.clientEmail}
+                  </span>
+                )}
+              </div>
+              
+              <Input
+                id="otp"
+                type="text"
+                placeholder="Enter 6-digit code"
+                value={otpCode}
+                onChange={(e) => {
+                  setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                  setOtpError('');
+                }}
+                maxLength={6}
+                className="text-center text-lg tracking-widest"
+                disabled={!isOTPSent}
+              />
+
+              {/* OTP Error */}
+              {otpError && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                  {otpError}
+                </div>
+              )}
+
+              {/* Resend OTP */}
+              {isOTPSent && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-secondary-foreground/70">
+                    Didn't receive the code?
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => selectedBookingForCancel && sendOTP(selectedBookingForCancel)}
+                    disabled={otpResendTimer > 0 || isOTPSending}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    {otpResendTimer > 0 ? `Resend in ${otpResendTimer}s` : 'Resend Code'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowOTPDialog(false);
+                resetOTPStates();
+              }}
+              className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10"
+            >
+              Cancel
+            </Button>
+            
+            {!isOTPSent ? (
+              <Button
+                onClick={() => selectedBookingForCancel && sendOTP(selectedBookingForCancel)}
+                disabled={isOTPSending}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isOTPSending ? 'Sending...' : 'Send Verification Code'}
+              </Button>
+            ) : (
+              <Button
+                onClick={verifyOTPAndCancel}
+                disabled={otpCode.length !== 6 || cancellingBookingId === selectedBookingForCancel?._id}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {cancellingBookingId === selectedBookingForCancel?._id ? 'Cancelling...' : 'Verify & Cancel Booking'}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
