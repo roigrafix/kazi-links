@@ -137,14 +137,16 @@ export default function FreelancerDetailPage() {
                     </div>
                   </div>
 
-                  <div className="bg-brightpink/10 rounded-lg p-4 mb-6">
-                    <div className="flex items-center justify-center gap-2">
-                      <DollarSign className="h-5 w-5 text-logoGold" />
-                      <span className="font-heading text-2xl font-bold text-logoGold">
-                        ₹{freelancer.hourlyRate || 'Rate varies'}/hr
-                      </span>
+                  {freelancer.hourlyRate && (
+                    <div className="bg-brightpink/10 rounded-lg p-4 mb-6">
+                      <div className="flex items-center justify-center gap-2">
+                        <DollarSign className="h-5 w-5 text-logoGold" />
+                        <span className="font-heading text-2xl font-bold text-logoGold">
+                          ₹{freelancer.hourlyRate}/hr
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Action Buttons */}
                   <div className="space-y-3">
