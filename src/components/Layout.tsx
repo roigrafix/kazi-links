@@ -15,6 +15,7 @@ export default function Layout() {
     { name: 'Freelancers', href: '/freelancers' },
     { name: 'Book Now', href: '/booking' },
     { name: 'Track Booking', href: '/tracking' },
+    { name: 'Availability', href: '/freelancer-availability' },
     { name: 'Login', href: '/login' }
   ];
 

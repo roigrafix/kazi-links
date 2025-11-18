@@ -77,6 +77,87 @@ export default function BookingPage() {
     transportationCost: 0
   });
 
+  // Generate available time slots based on freelancer availability and existing bookings
+  const getAvailableTimeSlots = async (freelancer: Freelancers, date: Date): Promise<string[]> => {
+    if (!freelancer || !date) return [];
+
+    // Check if the day is available
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const availableDays = freelancer.availableDays?.split(',').map(day => day.trim()) || [];
+    
+    if (availableDays.length > 0 && !availableDays.includes(dayName)) {
+      return []; // Freelancer not available on this day
+    }
+
+    // Check if the date is blocked
+    const blockedDates = freelancer.blockedDates?.split(',').map(date => date.trim()) || [];
+    const dateString = date.toISOString().split('T')[0];
+    
+    if (blockedDates.includes(dateString)) {
+      return []; // Date is blocked
+    }
+
+    // Generate time slots based on working hours
+    let startHour = 9; // Default start
+    let endHour = 20; // Default end
+
+    if (freelancer.workingHoursStart) {
+      const startTime = freelancer.workingHoursStart.toString();
+      startHour = parseInt(startTime.split(':')[0]);
+    }
+
+    if (freelancer.workingHoursEnd) {
+      const endTime = freelancer.workingHoursEnd.toString();
+      endHour = parseInt(endTime.split(':')[0]);
+    }
+
+    // Generate hourly slots
+    const allSlots = [];
+    for (let hour = startHour; hour < endHour; hour++) {
+      allSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+
+    // Filter out booked slots
+    try {
+      const { items: existingBookings } = await BaseCrudService.getAll<Bookings>('bookings');
+      
+      const bookedSlots = existingBookings
+        .filter(booking => {
+          if (booking.freelancerName !== freelancer.fullName) return false;
+          const bookingDate = new Date(booking.bookingDate || '');
+          return bookingDate.toDateString() === date.toDateString() && 
+                 booking.bookingStatus !== 'cancelled';
+        })
+        .map(booking => booking.bookingTime);
+
+      return allSlots.filter(slot => !bookedSlots.includes(slot));
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      return allSlots;
+    }
+  };
+
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+
+  // Update available time slots when freelancer or date changes
+  useEffect(() => {
+    const updateTimeSlots = async () => {
+      if (selectedFreelancer && formData.bookingDate) {
+        const slots = await getAvailableTimeSlots(selectedFreelancer, formData.bookingDate);
+        setAvailableTimeSlots(slots);
+        
+        // Clear selected time if it's no longer available
+        if (formData.bookingTime && !slots.includes(formData.bookingTime)) {
+          setFormData(prev => ({ ...prev, bookingTime: '' }));
+        }
+      } else {
+        setAvailableTimeSlots([]);
+      }
+    };
+
+    updateTimeSlots();
+  }, [selectedFreelancer, formData.bookingDate]);
+
   const timeSlots = [
     '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', 
     '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
@@ -237,8 +318,82 @@ export default function BookingPage() {
     setFormData(prev => ({ ...prev, transportationCost: transportCost }));
   }, [formData.serviceLocationType, selectedService]);
 
+  // Check for booking conflicts
+  const checkBookingConflict = async (freelancerId: string, date: Date, time: string): Promise<boolean> => {
+    try {
+      const { items: existingBookings } = await BaseCrudService.getAll<Bookings>('bookings');
+      
+      // Check if there's already a booking for this freelancer at the same date and time
+      const conflict = existingBookings.some(booking => {
+        if (booking.freelancerName !== selectedFreelancer?.fullName) return false;
+        
+        const bookingDate = new Date(booking.bookingDate || '');
+        const isSameDate = bookingDate.toDateString() === date.toDateString();
+        const isSameTime = booking.bookingTime === time;
+        
+        return isSameDate && isSameTime && booking.bookingStatus !== 'cancelled';
+      });
+      
+      return conflict;
+    } catch (error) {
+      console.error('Error checking booking conflicts:', error);
+      return false;
+    }
+  };
+
+  // Check if freelancer is available on a specific date and time
+  const isFreelancerAvailable = (freelancer: Freelancers, date: Date, time: string): boolean => {
+    // Check if the day is in available days
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const availableDays = freelancer.availableDays?.split(',').map(day => day.trim()) || [];
+    
+    if (availableDays.length > 0 && !availableDays.includes(dayName)) {
+      return false;
+    }
+
+    // Check if the date is in blocked dates
+    const blockedDates = freelancer.blockedDates?.split(',').map(date => date.trim()) || [];
+    const dateString = date.toISOString().split('T')[0];
+    
+    if (blockedDates.includes(dateString)) {
+      return false;
+    }
+
+    // Check working hours (simplified check - you can enhance this)
+    if (freelancer.workingHoursStart && freelancer.workingHoursEnd) {
+      // This is a basic check - you might want to implement more sophisticated time comparison
+      const timeHour = parseInt(time.split(':')[0]);
+      const startHour = freelancer.workingHoursStart ? parseInt(freelancer.workingHoursStart.toString().split(':')[0]) : 0;
+      const endHour = freelancer.workingHoursEnd ? parseInt(freelancer.workingHoursEnd.toString().split(':')[0]) : 24;
+      
+      if (timeHour < startHour || timeHour >= endHour) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = async () => {
     if (!selectedService || !selectedFreelancer || !formData.bookingDate) {
+      return;
+    }
+
+    // Check for booking conflicts
+    const hasConflict = await checkBookingConflict(
+      selectedFreelancer._id, 
+      formData.bookingDate, 
+      formData.bookingTime
+    );
+
+    if (hasConflict) {
+      alert('This time slot is already booked. Please select a different time.');
+      return;
+    }
+
+    // Check freelancer availability
+    if (!isFreelancerAvailable(selectedFreelancer, formData.bookingDate, formData.bookingTime)) {
+      alert('The freelancer is not available at this time. Please select a different time slot.');
       return;
     }
 
@@ -634,15 +789,24 @@ export default function BookingPage() {
                         <SelectValue placeholder="Select time slot" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeSlots.map((time, index) => (
-                          <SelectItem 
-                            key={time} 
-                            value={time}
-                            className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
-                          >
-                            {time}
+                        {availableTimeSlots.length > 0 ? (
+                          availableTimeSlots.map((time, index) => (
+                            <SelectItem 
+                              key={time} 
+                              value={time}
+                              className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
+                            >
+                              {time}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="all" disabled>
+                            {selectedFreelancer && formData.bookingDate 
+                              ? "No available time slots" 
+                              : "Select freelancer and date first"
+                            }
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

@@ -11,6 +11,7 @@ import FreelancerDetailPage from '@/components/pages/FreelancerDetailPage';
 import BookingPage from '@/components/pages/BookingPage';
 import TrackingPage from '@/components/pages/TrackingPage';
 import LoginPage from '@/components/pages/LoginPage';
+import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
 
 const router = createBrowserRouter([
   {
@@ -54,6 +55,10 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <LoginPage />,
+      },
+      {
+        path: "freelancer-availability",
+        element: <FreelancerAvailabilityPage />,
       },
       {
         path: "*",

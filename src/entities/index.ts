@@ -76,6 +76,14 @@ export interface Freelancers {
   customersReviews?: any;
   /** @wixFieldType text */
   customersReview?: string;
+  /** @wixFieldType text */
+  availableDays?: string;
+  /** @wixFieldType time */
+  workingHoursStart?: any;
+  /** @wixFieldType time */
+  workingHoursEnd?: any;
+  /** @wixFieldType text */
+  blockedDates?: string;
 }
 
 
