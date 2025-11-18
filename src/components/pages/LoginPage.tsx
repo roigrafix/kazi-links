@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMember } from '@/integrations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,44 +7,263 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Mail, Phone, Lock, Shield, ArrowRight } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Mail, Phone, Lock, Shield, ArrowRight, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { firebaseAuth, FirebaseUser } from '@/services/firebaseAuth';
 
 export default function LoginPage() {
   const { isAuthenticated, isLoading, actions } = useMember();
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
     password: '',
+    confirmPassword: '',
     otp: ''
   });
   const [showOTP, setShowOTP] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [verificationId, setVerificationId] = useState('');
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  
+  // Loading and error states
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [otpTimer, setOtpTimer] = useState(0);
+
+  // Firebase auth state listener
+  useEffect(() => {
+    const unsubscribe = firebaseAuth.onAuthStateChanged((user) => {
+      setFirebaseUser(user);
+      if (user) {
+        // User is signed in with Firebase, you might want to sync with Wix
+        setSuccess(`Welcome ${user.displayName || user.email || user.phoneNumber}!`);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // OTP timer countdown
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [otpTimer]);
 
   // Redirect if already authenticated
-  if (isAuthenticated) {
+  if (isAuthenticated || firebaseUser) {
     window.location.href = '/';
     return null;
   }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    setError(''); // Clear error when user types
   };
 
-  const handleLogin = () => {
-    // For demo purposes, show OTP field first
+  const validateForm = (): boolean => {
+    if (loginMethod === 'email') {
+      if (!formData.email || !formData.email.includes('@')) {
+        setError('Please enter a valid email address');
+        return false;
+      }
+    } else {
+      if (!formData.phone || formData.phone.length < 10) {
+        setError('Please enter a valid phone number');
+        return false;
+      }
+    }
+
+    if (!showOTP && (!formData.password || formData.password.length < 6)) {
+      setError('Password must be at least 6 characters long');
+      return false;
+    }
+
+    if (authMode === 'signup' && !showOTP) {
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        return false;
+      }
+    }
+
+    if (showOTP && (!formData.otp || formData.otp.length !== 6)) {
+      setError('Please enter the 6-digit verification code');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleEmailAuth = async () => {
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      let result;
+      
+      if (authMode === 'signin') {
+        result = await firebaseAuth.signInWithEmailAndPassword(formData.email, formData.password);
+      } else {
+        result = await firebaseAuth.createUserWithEmailAndPassword(formData.email, formData.password);
+      }
+
+      if (result.success) {
+        if (result.requiresVerification) {
+          setSuccess('Account created! Please check your email for verification.');
+        } else {
+          setSuccess('Successfully signed in!');
+        }
+      } else {
+        setError(result.error?.message || 'Authentication failed');
+      }
+    } catch (error) {
+      setError('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePhoneAuth = async () => {
     if (!showOTP) {
-      setShowOTP(true);
+      // Send verification code
+      if (!formData.phone) {
+        setError('Please enter a phone number');
+        return;
+      }
+
+      setIsSendingCode(true);
+      setError('');
+
+      try {
+        const result = await firebaseAuth.sendPhoneVerificationCode(formData.phone);
+        
+        if (result.success) {
+          setVerificationId(result.verificationId || '');
+          setShowOTP(true);
+          setOtpTimer(60);
+          setSuccess('Verification code sent to your phone!');
+        } else {
+          setError(result.error?.message || 'Failed to send verification code');
+        }
+      } catch (error) {
+        setError('Failed to send verification code');
+      } finally {
+        setIsSendingCode(false);
+      }
+    } else {
+      // Verify code
+      if (!validateForm()) return;
+
+      setIsSubmitting(true);
+      setError('');
+
+      try {
+        const result = await firebaseAuth.verifyPhoneNumber(verificationId, formData.otp);
+        
+        if (result.success) {
+          setSuccess('Phone number verified successfully!');
+        } else {
+          setError(result.error?.message || 'Verification failed');
+        }
+      } catch (error) {
+        setError('Verification failed');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (loginMethod === 'email') {
+      await handleEmailAuth();
+    } else {
+      await handlePhoneAuth();
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (otpTimer > 0) return;
+
+    setIsSendingCode(true);
+    setError('');
+
+    try {
+      const result = await firebaseAuth.sendPhoneVerificationCode(formData.phone);
+      
+      if (result.success) {
+        setVerificationId(result.verificationId || '');
+        setOtpTimer(60);
+        setSuccess('New verification code sent!');
+      } else {
+        setError(result.error?.message || 'Failed to resend code');
+      }
+    } catch (error) {
+      setError('Failed to resend code');
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setError('Please enter your email address first');
       return;
     }
-    
-    // Redirect to Wix authentication
-    actions.login();
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const result = await firebaseAuth.sendPasswordResetEmail(formData.email);
+      
+      if (result.success) {
+        setSuccess('Password reset email sent! Check your inbox.');
+      } else {
+        setError(result.error?.message || 'Failed to send reset email');
+      }
+    } catch (error) {
+      setError('Failed to send reset email');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
-    // All social logins redirect to Wix authentication
+    // For now, fallback to Wix authentication for social logins
+    // In a real implementation, you would use Firebase social auth
     actions.login();
+  };
+
+  const resetForm = () => {
+    setFormData({
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: '',
+      otp: ''
+    });
+    setShowOTP(false);
+    setError('');
+    setSuccess('');
+    setVerificationId('');
+    setOtpTimer(0);
+  };
+
+  const switchAuthMode = () => {
+    setAuthMode(authMode === 'signin' ? 'signup' : 'signin');
+    resetForm();
   };
 
   if (isLoading) {
@@ -71,15 +290,43 @@ export default function LoginPage() {
               transition={{ delay: 0.2, duration: 0.3 }}
             >
               <CardTitle className="text-3xl font-heading text-logoBlack">
-                Welcome Back
+                {authMode === 'signin' ? 'Welcome Back' : 'Create Account'}
               </CardTitle>
               <CardDescription className="text-logoBlack/70 font-paragraph">
-                Sign in to access your account and book services
+                {authMode === 'signin' 
+                  ? 'Sign in to access your account and book services'
+                  : 'Join us to start booking amazing services'
+                }
               </CardDescription>
             </motion.div>
           </CardHeader>
 
           <CardContent className="space-y-6">
+            {/* Error and Success Messages */}
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            {success && (
+              <Alert className="border-green-200 bg-green-50">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">{success}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Firebase User Status */}
+            {firebaseUser && (
+              <Alert className="border-blue-200 bg-blue-50">
+                <CheckCircle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                  Signed in as {firebaseUser.displayName || firebaseUser.email || firebaseUser.phoneNumber}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <Tabs value={loginMethod} onValueChange={(value) => setLoginMethod(value as 'email' | 'phone')} className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-logoCream/50">
                 <TabsTrigger value="email" className="data-[state=active]:bg-logoGold data-[state=active]:text-logoBlack">
@@ -107,6 +354,52 @@ export default function LoginPage() {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-logoBlack font-paragraph">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-logoBlack/50 w-4 h-4" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      className="pl-10 pr-10 border-logoGold/30 focus:border-logoGold focus:ring-logoGold/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-logoBlack/50 hover:text-logoBlack"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {authMode === 'signup' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-logoBlack font-paragraph">Confirm Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-logoBlack/50 w-4 h-4" />
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm your password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                        className="pl-10 pr-10 border-logoGold/30 focus:border-logoGold focus:ring-logoGold/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-logoBlack/50 hover:text-logoBlack"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="phone" className="space-y-4 mt-6">
@@ -117,37 +410,27 @@ export default function LoginPage() {
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="Enter your phone number"
+                      placeholder="+1 (555) 123-4567"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       className="pl-10 border-logoGold/30 focus:border-logoGold focus:ring-logoGold/20"
+                      disabled={showOTP}
                     />
                   </div>
+                  <p className="text-xs text-logoBlack/60 font-paragraph">
+                    Include country code (e.g., +1 for US)
+                  </p>
                 </div>
               </TabsContent>
             </Tabs>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-logoBlack font-paragraph">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-logoBlack/50 w-4 h-4" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="pl-10 border-logoGold/30 focus:border-logoGold focus:ring-logoGold/20"
-                />
-              </div>
-            </div>
-
-            {showOTP && (
+            {/* OTP Verification for Phone */}
+            {showOTP && loginMethod === 'phone' && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 transition={{ duration: 0.3 }}
-                className="space-y-2"
+                className="space-y-3"
               >
                 <Label htmlFor="otp" className="text-logoBlack font-paragraph">Verification Code</Label>
                 <div className="relative">
@@ -157,25 +440,61 @@ export default function LoginPage() {
                     type="text"
                     placeholder="Enter 6-digit code"
                     value={formData.otp}
-                    onChange={(e) => handleInputChange('otp', e.target.value)}
-                    className="pl-10 border-logoGold/30 focus:border-logoGold focus:ring-logoGold/20"
+                    onChange={(e) => handleInputChange('otp', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="pl-10 border-logoGold/30 focus:border-logoGold focus:ring-logoGold/20 text-center text-lg tracking-widest"
                     maxLength={6}
                   />
                 </div>
-                <p className="text-sm text-logoBlack/60 font-paragraph">
-                  We've sent a verification code to your {loginMethod}
-                </p>
+                <div className="flex items-center justify-between text-sm">
+                  <p className="text-logoBlack/60 font-paragraph">
+                    Code sent to {formData.phone}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleResendCode}
+                    disabled={otpTimer > 0 || isSendingCode}
+                    className="text-logoGold hover:text-logoGold/80"
+                  >
+                    {otpTimer > 0 ? `Resend in ${otpTimer}s` : isSendingCode ? 'Sending...' : 'Resend Code'}
+                  </Button>
+                </div>
               </motion.div>
             )}
 
+            {/* Main Action Button */}
             <Button
-              onClick={handleLogin}
+              onClick={handleSubmit}
+              disabled={isSubmitting || isSendingCode}
               className="w-full bg-logoGold hover:bg-logoGold/90 text-logoBlack font-paragraph font-medium h-12 text-base"
             >
-              {showOTP ? 'Verify & Sign In' : 'Continue'}
-              <ArrowRight className="w-4 h-4 ml-2" />
+              {isSubmitting || isSendingCode ? (
+                <LoadingSpinner />
+              ) : (
+                <>
+                  {loginMethod === 'phone' && !showOTP ? 'Send Verification Code' :
+                   loginMethod === 'phone' && showOTP ? 'Verify & Sign In' :
+                   authMode === 'signin' ? 'Sign In' : 'Create Account'}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
             </Button>
 
+            {/* Forgot Password (Email only) */}
+            {loginMethod === 'email' && authMode === 'signin' && (
+              <div className="text-center">
+                <Button
+                  variant="ghost"
+                  onClick={handleForgotPassword}
+                  disabled={isSubmitting}
+                  className="text-logoGold hover:text-logoGold/80 font-paragraph"
+                >
+                  Forgot your password?
+                </Button>
+              </div>
+            )}
+
+            {/* Social Login */}
             <div className="relative">
               <Separator className="bg-logoGold/20" />
               <span className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-sm text-logoBlack/60 font-paragraph">
@@ -209,17 +528,15 @@ export default function LoginPage() {
               </Button>
             </div>
 
+            {/* Auth Mode Switch */}
             <div className="text-center space-y-2">
-              <button className="text-sm text-logoGold hover:text-logoGold/80 font-paragraph underline">
-                Forgot your password?
-              </button>
               <p className="text-sm text-logoBlack/60 font-paragraph">
-                Don't have an account?{' '}
+                {authMode === 'signin' ? "Don't have an account?" : "Already have an account?"}{' '}
                 <button 
-                  onClick={actions.login}
+                  onClick={switchAuthMode}
                   className="text-logoGold hover:text-logoGold/80 font-medium underline"
                 >
-                  Sign up
+                  {authMode === 'signin' ? 'Sign up' : 'Sign in'}
                 </button>
               </p>
             </div>
@@ -233,8 +550,12 @@ export default function LoginPage() {
           className="text-center mt-6"
         >
           <p className="text-sm text-logoBlack/50 font-paragraph">
-            Secure authentication powered by Wix
+            Secure authentication powered by Firebase
           </p>
+          <div className="flex justify-center items-center gap-2 mt-2 text-xs text-logoBlack/40">
+            <div className={`w-2 h-2 rounded-full ${firebaseAuth.isReady() ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            <span>Firebase {firebaseAuth.isReady() ? 'Connected' : 'Connecting...'}</span>
+          </div>
         </motion.div>
       </motion.div>
     </div>
