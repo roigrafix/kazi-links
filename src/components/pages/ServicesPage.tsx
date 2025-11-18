@@ -246,14 +246,25 @@ export default function ServicesPage() {
                             </div>
                           </div>
                           
-                          <Button 
-                            asChild 
-                            className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                          >
-                            <Link to={`/services/${service._id}`}>
-                              View Details
-                            </Link>
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              asChild 
+                              variant="outline"
+                              className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                            >
+                              <Link to={`/services/${service._id}`}>
+                                View Details
+                              </Link>
+                            </Button>
+                            <Button 
+                              asChild 
+                              className="flex-1 bg-logoGold text-logoBlack hover:bg-logoGold/90"
+                            >
+                              <Link to={`/booking?service=${service._id}`}>
+                                Book Now
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
