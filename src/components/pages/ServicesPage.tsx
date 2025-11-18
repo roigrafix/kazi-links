@@ -149,11 +149,11 @@ export default function ServicesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Prices</SelectItem>
-                  <SelectItem value="0-50">$0 - $50</SelectItem>
-                  <SelectItem value="50-100">$50 - $100</SelectItem>
-                  <SelectItem value="100-200">$100 - $200</SelectItem>
-                  <SelectItem value="200-500">$200 - $500</SelectItem>
-                  <SelectItem value="500">$500+</SelectItem>
+                  <SelectItem value="0-50">₹0 - ₹50</SelectItem>
+                  <SelectItem value="50-100">₹50 - ₹100</SelectItem>
+                  <SelectItem value="100-200">₹100 - ₹200</SelectItem>
+                  <SelectItem value="200-500">₹200 - ₹500</SelectItem>
+                  <SelectItem value="500">₹500+</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -242,7 +242,7 @@ export default function ServicesPage() {
                             </div>
                             <div className="flex items-center gap-1 font-semibold text-electricblue">
                               <DollarSign className="h-4 w-4" />
-                              {service.price ? `$${service.price}` : 'Price varies'}
+                              {service.price ? `₹${service.price}` : 'Price varies'}
                             </div>
                           </div>
                           

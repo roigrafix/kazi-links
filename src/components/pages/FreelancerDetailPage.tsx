@@ -141,7 +141,7 @@ export default function FreelancerDetailPage() {
                     <div className="flex items-center justify-center gap-2">
                       <DollarSign className="h-5 w-5 text-logoGold" />
                       <span className="font-heading text-2xl font-bold text-logoGold">
-                        ${freelancer.hourlyRate || 'Rate varies'}/hr
+                        ₹{freelancer.hourlyRate || 'Rate varies'}/hr
                       </span>
                     </div>
                   </div>
@@ -306,7 +306,7 @@ export default function FreelancerDetailPage() {
                         </div>
                         <div className="flex items-center gap-1 font-semibold text-electricblue">
                           <DollarSign className="h-3 w-3" />
-                          {service.price ? `$${service.price}` : 'Varies'}
+                          {service.price ? `₹${service.price}` : 'Varies'}
                         </div>
                       </div>
                       

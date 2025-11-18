@@ -369,7 +369,7 @@ export default function BookingPage() {
                             value={service._id || `service-${index}`}
                             className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
                           >
-                            {service.serviceName} - ${service.price}
+                            {service.serviceName} - ₹{service.price}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -394,7 +394,7 @@ export default function BookingPage() {
                           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 text-sm">
                             <span className="flex items-center gap-1">
                               <DollarSign className="h-3 w-3" />
-                              ${selectedService.price}
+                              ₹{selectedService.price}
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
@@ -421,7 +421,7 @@ export default function BookingPage() {
                               value={freelancer._id || `freelancer-${index}`}
                               className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
                             >
-                              {freelancer.fullName} - ${freelancer.hourlyRate}/hr
+                              {freelancer.fullName} - ₹{freelancer.hourlyRate}/hr
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -446,7 +446,7 @@ export default function BookingPage() {
                           </p>
                           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 text-sm">
                             <span className="text-brightpink font-semibold">
-                              ${selectedFreelancer.hourlyRate}/hr
+                              ₹{selectedFreelancer.hourlyRate}/hr
                             </span>
                             <span className="text-neonyellow">★ 4.8</span>
                           </div>
@@ -626,7 +626,7 @@ export default function BookingPage() {
                         Additional cost for freelancer travel to your location
                       </p>
                       <span className="text-lg font-bold text-neonyellow">
-                        +${formData.transportationCost}
+                        +₹{formData.transportationCost}
                       </span>
                     </div>
                   )}

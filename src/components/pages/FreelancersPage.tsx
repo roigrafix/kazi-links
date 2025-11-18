@@ -146,11 +146,11 @@ export default function FreelancersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Rates</SelectItem>
-                  <SelectItem value="0-25">$0 - $25/hr</SelectItem>
-                  <SelectItem value="25-50">$25 - $50/hr</SelectItem>
-                  <SelectItem value="50-100">$50 - $100/hr</SelectItem>
-                  <SelectItem value="100-200">$100 - $200/hr</SelectItem>
-                  <SelectItem value="200">$200+/hr</SelectItem>
+                  <SelectItem value="0-25">₹0 - ₹25/hr</SelectItem>
+                  <SelectItem value="25-50">₹25 - ₹50/hr</SelectItem>
+                  <SelectItem value="50-100">₹50 - ₹100/hr</SelectItem>
+                  <SelectItem value="100-200">₹100 - ₹200/hr</SelectItem>
+                  <SelectItem value="200">₹200+/hr</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -277,7 +277,7 @@ export default function FreelancersPage() {
                           </div>
                           <div className="flex items-center gap-1 font-semibold text-logoGold">
                             <DollarSign className="h-4 w-4" />
-                            <span>{freelancer.hourlyRate || 'Rate varies'}/hr</span>
+                            <span>₹{freelancer.hourlyRate || 'Rate varies'}/hr</span>
                           </div>
                         </div>
                         
