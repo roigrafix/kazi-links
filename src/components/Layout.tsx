@@ -4,10 +4,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Image } from '@/components/ui/image';
 import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail } from 'lucide-react';
+import { useMember } from '@/integrations';
 
 export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { member, isAuthenticated } = useMember();
+
+  // Default admin emails - you can modify this list
+  const adminEmails = [
+    'admin@example.com',
+    'admin@freelanceplatform.com',
+    'manager@example.com'
+  ];
+
+  // Check if user is admin
+  const userEmail = member?.loginEmail?.toLowerCase();
+  const isAdmin = userEmail && adminEmails.some(email => email.toLowerCase() === userEmail);
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -15,7 +28,8 @@ export default function Layout() {
     { name: 'Freelancers', href: '/freelancers' },
     { name: 'Book Now', href: '/booking' },
     { name: 'Track Booking', href: '/tracking' },
-    { name: 'Availability', href: '/freelancer-availability' },
+    // Only show Availability link to admin users
+    ...(isAdmin ? [{ name: 'Availability', href: '/freelancer-availability' }] : []),
     { name: 'Login', href: '/login' }
   ];
 

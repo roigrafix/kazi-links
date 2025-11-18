@@ -12,6 +12,7 @@ import BookingPage from '@/components/pages/BookingPage';
 import TrackingPage from '@/components/pages/TrackingPage';
 import LoginPage from '@/components/pages/LoginPage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
+import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
 
 const router = createBrowserRouter([
   {
@@ -58,7 +59,11 @@ const router = createBrowserRouter([
       },
       {
         path: "freelancer-availability",
-        element: <FreelancerAvailabilityPage />,
+        element: (
+          <AdminProtectedRoute messageToSignIn="Please sign in with an admin account to manage freelancer availability.">
+            <FreelancerAvailabilityPage />
+          </AdminProtectedRoute>
+        ),
       },
       {
         path: "*",
