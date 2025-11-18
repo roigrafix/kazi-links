@@ -864,18 +864,18 @@ export default function BookingPage() {
                       </div>
                       <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span>Service Cost:</span>
-                        <span className="font-medium">${formData.paymentAmount}</span>
+                        <span className="font-medium">₹{formData.paymentAmount}</span>
                       </div>
                       {formData.transportationCost > 0 && (
                         <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                           <span>Transportation:</span>
-                          <span className="font-medium">+${formData.transportationCost}</span>
+                          <span className="font-medium">+₹{formData.transportationCost}</span>
                         </div>
                       )}
                       <div className="border-t pt-3 flex flex-col sm:flex-row sm:justify-between gap-1 font-semibold text-lg">
                         <span>Total:</span>
                         <span className="text-brightpink">
-                          ${formData.paymentAmount + formData.transportationCost}
+                          ₹{formData.paymentAmount + formData.transportationCost}
                         </span>
                       </div>
                     </div>
