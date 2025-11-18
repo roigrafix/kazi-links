@@ -393,7 +393,6 @@ export default function BookingPage() {
                           </p>
                           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 text-sm">
                             <span className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" />
                               ₹{selectedService.price}
                             </span>
                             <span className="flex items-center gap-1">
