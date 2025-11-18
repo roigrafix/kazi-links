@@ -23,6 +23,12 @@ interface BookingFormData {
   bookingTime: string;
   serviceLocationType: string;
   serviceAddress: string;
+  // Segmented address fields
+  houseFloorNo: string;
+  street: string;
+  area: string;
+  postalCode: string;
+  city: string;
   clientName: string;
   clientEmail: string;
   clientPhone: string;
@@ -51,6 +57,12 @@ export default function BookingPage() {
     bookingTime: '',
     serviceLocationType: 'client',
     serviceAddress: '',
+    // Initialize segmented address fields
+    houseFloorNo: '',
+    street: '',
+    area: '',
+    postalCode: '',
+    city: '',
     clientName: '',
     clientEmail: '',
     clientPhone: '',
@@ -168,6 +180,9 @@ export default function BookingPage() {
       return;
     }
 
+    // Combine address fields into a single address string
+    const fullAddress = `${formData.houseFloorNo}, ${formData.street}, ${formData.area}, ${formData.city} ${formData.postalCode}`;
+
     setIsSubmitting(true);
     try {
       const bookingData: Partial<Bookings> = {
@@ -177,7 +192,7 @@ export default function BookingPage() {
         bookingDate: formData.bookingDate,
         bookingTime: formData.bookingTime,
         serviceLocationType: formData.serviceLocationType,
-        serviceAddress: formData.serviceAddress,
+        serviceAddress: fullAddress,
         clientName: formData.clientName,
         clientEmail: formData.clientEmail,
         clientPhone: formData.clientPhone,
@@ -216,7 +231,9 @@ export default function BookingPage() {
       case 1:
         return selectedService && selectedFreelancer;
       case 2:
-        return formData.bookingDate && formData.bookingTime && formData.serviceAddress;
+        return formData.bookingDate && formData.bookingTime && 
+               formData.houseFloorNo && formData.street && formData.area && 
+               formData.postalCode && formData.city;
       case 3:
         return formData.clientName && formData.clientEmail && formData.clientPhone;
       default:
@@ -520,17 +537,82 @@ export default function BookingPage() {
                     </RadioGroup>
                   </div>
 
-                  {/* Address */}
+                  {/* Address Fields */}
                   <div>
-                    <Label htmlFor="address">
+                    <Label className="text-gray-800 mb-3 block">
                       {formData.serviceLocationType === 'client' ? 'Your Address' : 'Meeting Address'}
                     </Label>
-                    <Textarea
-                      id="address"
-                      placeholder="Enter the full address..."
-                      value={formData.serviceAddress}
-                      onChange={(e) => setFormData(prev => ({ ...prev, serviceAddress: e.target.value }))}
-                    />
+                    <div className="space-y-4">
+                      {/* House/Floor No and Street */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="houseFloorNo" className="text-sm text-gray-700">
+                            House/Floor No. *
+                          </Label>
+                          <Input
+                            id="houseFloorNo"
+                            placeholder="e.g., 123, 2nd Floor"
+                            value={formData.houseFloorNo}
+                            onChange={(e) => setFormData(prev => ({ ...prev, houseFloorNo: e.target.value }))}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="street" className="text-sm text-gray-700">
+                            Street *
+                          </Label>
+                          <Input
+                            id="street"
+                            placeholder="e.g., Main Street"
+                            value={formData.street}
+                            onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Area */}
+                      <div>
+                        <Label htmlFor="area" className="text-sm text-gray-700">
+                          Area/Neighborhood *
+                        </Label>
+                        <Input
+                          id="area"
+                          placeholder="e.g., Downtown, Business District"
+                          value={formData.area}
+                          onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
+                          className="mt-1"
+                        />
+                      </div>
+
+                      {/* Postal Code and City */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="postalCode" className="text-sm text-gray-700">
+                            Postal Code *
+                          </Label>
+                          <Input
+                            id="postalCode"
+                            placeholder="e.g., 12345"
+                            value={formData.postalCode}
+                            onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="city" className="text-sm text-gray-700">
+                            City *
+                          </Label>
+                          <Input
+                            id="city"
+                            placeholder="e.g., New York"
+                            value={formData.city}
+                            onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Transportation Cost */}
