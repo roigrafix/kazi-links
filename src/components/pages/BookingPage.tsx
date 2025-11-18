@@ -350,7 +350,7 @@ export default function BookingPage() {
                           <SelectItem 
                             key={service._id} 
                             value={service._id}
-                            className={index === 0 ? "text-[#3B3B3B] focus:text-[#3B3B3B]" : ""}
+                            className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
                           >
                             {service.serviceName} - ${service.price}
                           </SelectItem>
@@ -402,7 +402,7 @@ export default function BookingPage() {
                             <SelectItem 
                               key={freelancer._id} 
                               value={freelancer._id}
-                              className={index === 0 ? "text-[#3B3B3B] focus:text-[#3B3B3B]" : ""}
+                              className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
                             >
                               {freelancer.fullName} - ${freelancer.hourlyRate}/hr
                             </SelectItem>
@@ -488,7 +488,7 @@ export default function BookingPage() {
                           <SelectItem 
                             key={time} 
                             value={time}
-                            className={index === 0 ? "text-[#3B3B3B] focus:text-[#3B3B3B]" : ""}
+                            className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
                           >
                             {time}
                           </SelectItem>

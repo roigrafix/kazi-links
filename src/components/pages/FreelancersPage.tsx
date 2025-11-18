@@ -130,7 +130,7 @@ export default function FreelancersPage() {
                   <SelectValue placeholder="All Skills" className="text-[#3b3b3b]" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all" className="text-[#3B3B3B] focus:text-[#3B3B3B]">All Skills</SelectItem>
+                  <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Skills</SelectItem>
                   {availableSkills.map(skill => (
                     <SelectItem key={skill} value={skill}>
                       {skill}
@@ -145,7 +145,7 @@ export default function FreelancersPage() {
                   <SelectValue placeholder="Hourly Rate" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all" className="text-[#3B3B3B] focus:text-[#3B3B3B]">All Rates</SelectItem>
+                  <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Rates</SelectItem>
                   <SelectItem value="0-25">$0 - $25/hr</SelectItem>
                   <SelectItem value="25-50">$25 - $50/hr</SelectItem>
                   <SelectItem value="50-100">$50 - $100/hr</SelectItem>

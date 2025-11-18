@@ -133,7 +133,7 @@ export default function ServicesPage() {
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all" className="text-[#3B3B3B] focus:text-[#3B3B3B]">All Categories</SelectItem>
+                  <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Categories</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category._id} value={category.categoryName || ''}>
                       {category.categoryName}
@@ -148,7 +148,7 @@ export default function ServicesPage() {
                   <SelectValue placeholder="Price Range" className="text-[#3b3b3b]" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all" className="text-[#3B3B3B] focus:text-[#3B3B3B]">All Prices</SelectItem>
+                  <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Prices</SelectItem>
                   <SelectItem value="0-50">$0 - $50</SelectItem>
                   <SelectItem value="50-100">$50 - $100</SelectItem>
                   <SelectItem value="100-200">$100 - $200</SelectItem>
