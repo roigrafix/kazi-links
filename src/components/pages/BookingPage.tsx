@@ -33,7 +33,6 @@ interface BookingFormData {
   clientEmail: string;
   clientPhone: string;
   paymentAmount: number;
-  transportationCost: number;
 }
 
 export default function BookingPage() {
@@ -73,8 +72,7 @@ export default function BookingPage() {
     clientName: '',
     clientEmail: '',
     clientPhone: '',
-    paymentAmount: 0,
-    transportationCost: 0
+    paymentAmount: 0
   });
 
   // Generate available time slots based on freelancer availability and existing bookings
@@ -304,20 +302,6 @@ export default function BookingPage() {
     }
   };
 
-  const calculateTransportationCost = () => {
-    if (formData.serviceLocationType === 'freelancer') {
-      return 0;
-    }
-    // Simple calculation based on service type and location
-    const baseCost = selectedService?.price ? selectedService.price * 0.1 : 10;
-    return Math.round(baseCost);
-  };
-
-  useEffect(() => {
-    const transportCost = calculateTransportationCost();
-    setFormData(prev => ({ ...prev, transportationCost: transportCost }));
-  }, [formData.serviceLocationType, selectedService]);
-
   // Check for booking conflicts
   const checkBookingConflict = async (freelancerId: string, date: Date, time: string): Promise<boolean> => {
     try {
@@ -421,8 +405,8 @@ export default function BookingPage() {
         clientName: formData.clientName,
         clientEmail: formData.clientEmail,
         clientPhone: formData.clientPhone,
-        paymentAmount: formData.paymentAmount + formData.transportationCost,
-        transportationCost: formData.transportationCost,
+        paymentAmount: formData.paymentAmount,
+        transportationCost: 0, // Transportation cost will be sent via email
         bookingStatus: 'confirmed',
         paymentStatus: 'paid',
         etaStatus: 'scheduled'
@@ -822,7 +806,7 @@ export default function BookingPage() {
                       <div className="flex items-start space-x-2">
                         <RadioGroupItem value="client" id="client" className="mt-1" />
                         <Label htmlFor="client" className="text-sm leading-relaxed">
-                          At my location (additional transport cost applies)
+                          At my location (transport cost will be sent via email)
                         </Label>
                       </div>
                       <div className="flex items-start space-x-2">
@@ -945,22 +929,6 @@ export default function BookingPage() {
                       </p>
                     </div>
                   )}
-
-                  {/* Transportation Cost */}
-                  {formData.serviceLocationType === 'client' && (
-                    <div className="bg-neonyellow/10 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="h-4 w-4 text-neonyellow" />
-                        <span className="font-semibold">Transportation Cost</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        Additional cost for freelancer travel to your location
-                      </p>
-                      <span className="text-lg font-bold text-neonyellow">
-                        +₹{formData.transportationCost}
-                      </span>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             )}
@@ -1030,16 +998,15 @@ export default function BookingPage() {
                         <span>Service Cost:</span>
                         <span className="font-medium">₹{formData.paymentAmount}</span>
                       </div>
-                      {formData.transportationCost > 0 && (
-                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                          <span>Transportation:</span>
-                          <span className="font-medium">+₹{formData.transportationCost}</span>
+                      {formData.serviceLocationType === 'client' && (
+                        <div className="text-sm text-gray-600 italic">
+                          * Transportation cost will be sent via email on booking date
                         </div>
                       )}
                       <div className="border-t pt-3 flex flex-col sm:flex-row sm:justify-between gap-1 font-semibold text-lg">
                         <span>Total:</span>
                         <span className="text-brightpink">
-                          ₹{formData.paymentAmount + formData.transportationCost}
+                          ₹{formData.paymentAmount}
                         </span>
                       </div>
                     </div>

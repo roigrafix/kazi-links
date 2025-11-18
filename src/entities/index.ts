@@ -53,6 +53,14 @@ export interface Freelancers {
   /** @wixFieldType text */
   city?: string;
   /** @wixFieldType text */
+  blockedDates?: string;
+  /** @wixFieldType time */
+  workingHoursEnd?: any;
+  /** @wixFieldType time */
+  workingHoursStart?: any;
+  /** @wixFieldType text */
+  availableDays?: string;
+  /** @wixFieldType text */
   fullAddress?: string;
   /** @wixFieldType text */
   fullName?: string;
@@ -76,14 +84,6 @@ export interface Freelancers {
   customersReviews?: any;
   /** @wixFieldType text */
   customersReview?: string;
-  /** @wixFieldType text */
-  availableDays?: string;
-  /** @wixFieldType time */
-  workingHoursStart?: any;
-  /** @wixFieldType time */
-  workingHoursEnd?: any;
-  /** @wixFieldType text */
-  blockedDates?: string;
 }
 
 
