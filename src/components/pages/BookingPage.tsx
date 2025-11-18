@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BaseCrudService } from '@/integrations';
-import { Services, Freelancers, Bookings } from '@/entities';
+import { Services, Freelancers, Bookings, ServiceCategories } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Image } from '@/components/ui/image';
-import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle } from 'lucide-react';
+import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface BookingFormData {
@@ -41,10 +41,17 @@ export default function BookingPage() {
   const navigate = useNavigate();
   
   const [services, setServices] = useState<Services[]>([]);
+  const [categories, setCategories] = useState<ServiceCategories[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Services[]>([]);
   const [freelancers, setFreelancers] = useState<Freelancers[]>([]);
   const [availableFreelancers, setAvailableFreelancers] = useState<Freelancers[]>([]);
   const [selectedService, setSelectedService] = useState<Services | null>(null);
   const [selectedFreelancer, setSelectedFreelancer] = useState<Freelancers | null>(null);
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [priceRange, setPriceRange] = useState<string>('all');
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,13 +86,17 @@ export default function BookingPage() {
     const fetchData = async () => {
       try {
         // Fetch services with their referenced freelancers populated
-        const [servicesData, freelancersData] = await Promise.all([
+        const [servicesData, freelancersData, categoriesData] = await Promise.all([
           BaseCrudService.getAll<Services>('services', ['reference']),
-          BaseCrudService.getAll<Freelancers>('freelancers')
+          BaseCrudService.getAll<Freelancers>('freelancers'),
+          BaseCrudService.getAll<ServiceCategories>('servicecategories')
         ]);
         
-        setServices(servicesData.items.filter(service => service.isBookable));
+        const bookableServices = servicesData.items.filter(service => service.isBookable);
+        setServices(bookableServices);
+        setFilteredServices(bookableServices);
         setFreelancers(freelancersData.items);
+        setCategories(categoriesData.items.filter(cat => cat.isActive));
 
         // Pre-select service or freelancer from URL params
         const serviceId = searchParams.get('service');
@@ -138,8 +149,42 @@ export default function BookingPage() {
     fetchData();
   }, [searchParams]);
 
+  // Filter services based on search term, category, and price range
+  useEffect(() => {
+    let filtered = services;
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(service =>
+        service.serviceName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        service.categoryName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(service => service.categoryName === selectedCategory);
+    }
+
+    // Filter by price range
+    if (priceRange !== 'all') {
+      const [min, max] = priceRange.split('-').map(Number);
+      filtered = filtered.filter(service => {
+        const price = service.price || 0;
+        if (max) {
+          return price >= min && price <= max;
+        } else {
+          return price >= min;
+        }
+      });
+    }
+
+    setFilteredServices(filtered);
+  }, [services, searchTerm, selectedCategory, priceRange]);
+
   const handleServiceChange = (serviceId: string) => {
-    const service = services.find(s => s._id === serviceId);
+    const service = filteredServices.find(s => s._id === serviceId);
     if (service) {
       setSelectedService(service);
       setFormData(prev => ({ 
@@ -372,6 +417,61 @@ export default function BookingPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Service Filters */}
+                  <div className="bg-white/5 rounded-lg p-4 space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
+                      <Filter className="h-4 w-4" />
+                      Filter Services:
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Search */}
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Input
+                          placeholder="Search services..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+
+                      {/* Category Filter */}
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="text-primary">
+                          <SelectValue placeholder="All Categories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Categories</SelectItem>
+                          {categories.map(category => (
+                            <SelectItem key={category._id} value={category.categoryName || 'unknown'}>
+                              {category.categoryName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Price Range Filter */}
+                      <Select value={priceRange} onValueChange={setPriceRange}>
+                        <SelectTrigger className="text-primary">
+                          <SelectValue placeholder="Price Range" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Prices</SelectItem>
+                          <SelectItem value="0-50">₹0 - ₹50</SelectItem>
+                          <SelectItem value="50-100">₹50 - ₹100</SelectItem>
+                          <SelectItem value="100-200">₹100 - ₹200</SelectItem>
+                          <SelectItem value="200-500">₹200 - ₹500</SelectItem>
+                          <SelectItem value="500">₹500+</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="text-sm text-gray-600">
+                      {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} available
+                    </div>
+                  </div>
+
                   {/* Service Selection */}
                   <div>
                     <Label htmlFor="service" className="text-gray-800">Choose a Service</Label>
@@ -380,7 +480,7 @@ export default function BookingPage() {
                         <SelectValue placeholder="Select a service" />
                       </SelectTrigger>
                       <SelectContent>
-                        {services.map((service, index) => (
+                        {filteredServices.map((service, index) => (
                           <SelectItem 
                             key={service._id} 
                             value={service._id || `service-${index}`}
