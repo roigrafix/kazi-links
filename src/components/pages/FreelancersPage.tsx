@@ -103,7 +103,6 @@ export default function FreelancersPage() {
           </motion.div>
         </div>
       </section>
-
       {/* Filters */}
       <section className="py-8 bg-secondary text-secondary-foreground border-b">
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">
@@ -127,8 +126,8 @@ export default function FreelancersPage() {
 
               {/* Skill Filter */}
               <Select value={skillFilter} onValueChange={setSkillFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="All Skills" />
+                <SelectTrigger className="w-full sm:w-48 text-secondary-foreground">
+                  <SelectValue placeholder="All Skills" className="text-[#3b3b3b]" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" className="text-[#3B3B3B] focus:text-[#3B3B3B]">All Skills</SelectItem>
@@ -142,7 +141,7 @@ export default function FreelancersPage() {
 
               {/* Rate Range Filter */}
               <Select value={rateRange} onValueChange={setRateRange}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-full sm:w-48 text-secondary-foreground">
                   <SelectValue placeholder="Hourly Rate" />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,7 +161,6 @@ export default function FreelancersPage() {
           </div>
         </div>
       </section>
-
       {/* Freelancers Grid */}
       <section className="py-12 bg-primary">
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">
@@ -314,7 +312,6 @@ export default function FreelancersPage() {
           )}
         </div>
       </section>
-
       {/* CTA Section */}
       <section className="py-16 bg-secondary text-secondary-foreground">
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem] text-center">

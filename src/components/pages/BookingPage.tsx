@@ -342,7 +342,7 @@ export default function BookingPage() {
                   <div>
                     <Label htmlFor="service" className="text-gray-800">Choose a Service</Label>
                     <Select value={selectedService?._id || ''} onValueChange={handleServiceChange}>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-primary">
                         <SelectValue placeholder="Select a service" />
                       </SelectTrigger>
                       <SelectContent>
@@ -394,7 +394,7 @@ export default function BookingPage() {
                     <div className="shadow-none">
                       <Label htmlFor="freelancer" className="text-gray-800">Choose a Freelancer</Label>
                       <Select value={selectedFreelancer?._id || ''} onValueChange={handleFreelancerChange}>
-                        <SelectTrigger>
+                        <SelectTrigger className="text-secondary-foreground">
                           <SelectValue placeholder="Select a freelancer" />
                         </SelectTrigger>
                         <SelectContent>

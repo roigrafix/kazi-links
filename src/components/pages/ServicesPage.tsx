@@ -106,7 +106,6 @@ export default function ServicesPage() {
           </motion.div>
         </div>
       </section>
-
       {/* Filters */}
       <section className="py-8 bg-secondary text-secondary-foreground border-b">
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">
@@ -130,7 +129,7 @@ export default function ServicesPage() {
 
               {/* Category Filter */}
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-full sm:w-48 text-primary">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
@@ -145,8 +144,8 @@ export default function ServicesPage() {
 
               {/* Price Range Filter */}
               <Select value={priceRange} onValueChange={setPriceRange}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Price Range" />
+                <SelectTrigger className="w-full sm:w-48 text-primary">
+                  <SelectValue placeholder="Price Range" className="text-[#3b3b3b]" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" className="text-[#3B3B3B] focus:text-[#3B3B3B]">All Prices</SelectItem>
@@ -165,7 +164,6 @@ export default function ServicesPage() {
           </div>
         </div>
       </section>
-
       {/* Services Grid */}
       <section className="py-12 bg-primary">
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">
@@ -266,7 +264,6 @@ export default function ServicesPage() {
           )}
         </div>
       </section>
-
       {/* CTA Section */}
       <section className="py-16 bg-secondary text-secondary-foreground">
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem] text-center">
