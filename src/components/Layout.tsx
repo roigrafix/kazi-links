@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Image } from '@/components/ui/image';
-import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail, Instagram, Twitter, Linkedin } from 'lucide-react';
+import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail, Instagram, Twitter, Linkedin, MessageCircle } from 'lucide-react';
 import { useMember } from '@/integrations';
 
 export default function Layout() {
@@ -266,7 +266,7 @@ export default function Layout() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-secondary-foreground/50" />
+                    <MessageCircle className="h-4 w-4 text-secondary-foreground/50" />
                     <span className="font-paragraph text-secondary-foreground/70">{"+91 966-395-2491"}</span>
                   </div>
                   <div className="flex items-center gap-3">
