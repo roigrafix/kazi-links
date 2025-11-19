@@ -109,6 +109,8 @@ export interface Freelancers {
   customersReviews?: any;
   /** @wixFieldType text */
   customersReview?: string;
+  /** @wixFieldType reference */
+  reference?: ClientReviews;
 }
 
 
