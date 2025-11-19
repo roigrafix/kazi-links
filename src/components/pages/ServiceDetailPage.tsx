@@ -141,7 +141,7 @@ export default function ServiceDetailPage() {
                     <span className="font-paragraph text-sm text-secondary-foreground/70">Price</span>
                   </div>
                   <span className="font-heading text-2xl font-bold text-electricblue">
-                    ${service.price || 'Varies'}
+                    ₹{service.price || 'Varies'}
                   </span>
                 </div>
 
@@ -249,7 +249,7 @@ export default function ServiceDetailPage() {
                       
                       <div className="flex items-center justify-center gap-2 mb-4">
                         <span className="font-paragraph text-lg font-semibold text-brightpink">
-                          ${freelancer.hourlyRate}/hr
+                          ₹{freelancer.hourlyRate}/hr
                         </span>
                       </div>
                       

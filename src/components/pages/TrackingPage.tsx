@@ -517,7 +517,7 @@ export default function TrackingPage() {
                                   <div className="flex items-center gap-1">
                                     <span className="text-secondary-foreground/70">Total:</span>
                                     <span className="font-semibold text-brightpink">
-                                      ₹{booking.paymentAmount ? (booking.paymentAmount * 83).toFixed(2) : '0.00'}
+                                      ₹{booking.paymentAmount}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-1">

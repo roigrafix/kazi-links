@@ -266,7 +266,7 @@ export default function HomePage() {
                       </p>
                       <div className="flex items-center justify-center gap-2 mb-4">
                         <span className="font-paragraph text-lg font-semibold text-logoGold">
-                          ${freelancer.hourlyRate}/hr
+                          ₹{freelancer.hourlyRate}/hr
                         </span>
                       </div>
                       <Button 
