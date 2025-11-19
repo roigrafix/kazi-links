@@ -39,8 +39,8 @@ export default defineConfig({
     },
     tailwind(),
     wix({
-      enableHtmlEmbeds: isBuild,
-      enableAuthRoutes: true
+      htmlEmbeds: isBuild,
+      auth: true
     }),
     isBuild ? monitoring() : undefined,
     react({ babel: { plugins: [sourceAttrsPlugin, dynamicDataPlugin] } }),
