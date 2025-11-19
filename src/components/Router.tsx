@@ -18,6 +18,7 @@ import ReviewPage from '@/components/pages/ReviewPage';
 import AdminDashboardPage from '@/components/pages/AdminDashboardPage';
 import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
 import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
+import { FreelancerProtectedRoute } from '@/components/ui/freelancer-protected-route';
 
 const router = createBrowserRouter([
   {
@@ -77,9 +78,9 @@ const router = createBrowserRouter([
       {
         path: "freelancer-dashboard",
         element: (
-          <MemberProtectedRoute messageToSignIn="Please sign in to access your freelancer dashboard">
+          <FreelancerProtectedRoute messageToSignIn="Please sign in to access your freelancer dashboard">
             <FreelancerDashboardPage />
-          </MemberProtectedRoute>
+          </FreelancerProtectedRoute>
         ),
       },
       {
