@@ -181,11 +181,11 @@ export default function FreelancerDashboardPage() {
 
   if (!freelancerProfile) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Profile Not Found</CardTitle>
-            <CardDescription>
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Card className="w-full max-w-md bg-white border-0 shadow-lg">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-2xl font-heading font-bold text-gray-900">Profile Not Found</CardTitle>
+            <CardDescription className="text-base text-gray-600 mt-3 leading-relaxed">
               No freelancer profile found for your account. Please contact support to set up your profile.
             </CardDescription>
           </CardHeader>
@@ -200,69 +200,77 @@ export default function FreelancerDashboardPage() {
     <div className="min-h-screen bg-background">
       <div className="max-w-[120rem] mx-auto p-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Avatar className="h-16 w-16">
+        <div className="mb-10">
+          <div className="flex items-center gap-6 mb-8">
+            <Avatar className="h-20 w-20 border-2 border-logoGold/20">
               <AvatarImage src={freelancerProfile.profilePicture} />
-              <AvatarFallback>
+              <AvatarFallback className="bg-logoGold text-logoBlack text-xl font-bold">
                 {freelancerProfile.fullName?.split(' ').map(n => n[0]).join('') || 'FL'}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h1 className="text-3xl font-heading font-bold text-foreground">
+            <div className="space-y-2">
+              <h1 className="text-4xl font-heading font-bold text-white leading-tight">
                 Welcome back, {freelancerProfile.fullName}
               </h1>
-              <p className="text-lg text-foreground/70">
+              <p className="text-xl font-paragraph text-white/80 leading-relaxed">
                 Manage your profile and track your progress
               </p>
             </div>
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Briefcase className="h-8 w-8 text-logoGold" />
-                  <div>
-                    <p className="text-sm text-foreground/70">Total Bookings</p>
-                    <p className="text-2xl font-bold text-foreground">{stats.totalBookings}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-logoGold/10 rounded-lg">
+                    <Briefcase className="h-8 w-8 text-logoGold" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Bookings</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats.totalBookings}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="h-8 w-8 text-electricblue" />
-                  <div>
-                    <p className="text-sm text-foreground/70">Completed</p>
-                    <p className="text-2xl font-bold text-foreground">{stats.completedBookings}</p>
+            <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <TrendingUp className="h-8 w-8 text-green-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Completed</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats.completedBookings}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-8 w-8 text-neonyellow" />
-                  <div>
-                    <p className="text-sm text-foreground/70">Pending</p>
-                    <p className="text-2xl font-bold text-foreground">{stats.pendingBookings}</p>
+            <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-orange-100 rounded-lg">
+                    <Clock className="h-8 w-8 text-orange-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Pending</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats.pendingBookings}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Star className="h-8 w-8 text-brightpink" />
-                  <div>
-                    <p className="text-sm text-foreground/70">Total Earnings</p>
-                    <p className="text-2xl font-bold text-foreground">₹{stats.totalEarnings.toLocaleString()}</p>
+            <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <Star className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Earnings</p>
+                    <p className="text-3xl font-bold text-gray-900">₹{stats.totalEarnings.toLocaleString()}</p>
                   </div>
                 </div>
               </CardContent>
@@ -272,316 +280,372 @@ export default function FreelancerDashboardPage() {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="availability">Availability</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 h-14 bg-white border border-gray-200 rounded-lg p-1">
+            <TabsTrigger 
+              value="overview" 
+              className="text-base font-medium data-[state=active]:bg-logoGold data-[state=active]:text-logoBlack data-[state=active]:shadow-sm"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="profile" 
+              className="text-base font-medium data-[state=active]:bg-logoGold data-[state=active]:text-logoBlack data-[state=active]:shadow-sm"
+            >
+              Profile
+            </TabsTrigger>
+            <TabsTrigger 
+              value="availability" 
+              className="text-base font-medium data-[state=active]:bg-logoGold data-[state=active]:text-logoBlack data-[state=active]:shadow-sm"
+            >
+              Availability
+            </TabsTrigger>
+            <TabsTrigger 
+              value="bookings" 
+              className="text-base font-medium data-[state=active]:bg-logoGold data-[state=active]:text-logoBlack data-[state=active]:shadow-sm"
+            >
+              Bookings
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TabsContent value="overview" className="space-y-8 mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Profile Summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
+              <Card className="bg-white border-0 shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-bold text-gray-900">
+                    <div className="p-2 bg-logoGold/10 rounded-lg">
+                      <User className="h-6 w-6 text-logoGold" />
+                    </div>
                     Profile Summary
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-foreground/70" />
-                    <span className="text-sm">{freelancerProfile.city}, {freelancerProfile.serviceArea}</span>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-gray-500" />
+                    <span className="text-base font-medium text-gray-700">
+                      {freelancerProfile.city}, {freelancerProfile.serviceArea}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-foreground/70" />
-                    <span className="text-sm">{freelancerProfile.contactEmail}</span>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-gray-500" />
+                    <span className="text-base font-medium text-gray-700">{freelancerProfile.contactEmail}</span>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2">Skills:</p>
-                    <div className="flex flex-wrap gap-1">
+                  <div className="space-y-3">
+                    <p className="text-base font-semibold text-gray-900">Skills:</p>
+                    <div className="flex flex-wrap gap-2">
                       {freelancerProfile.skills?.split(',').map((skill, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                        <Badge key={index} variant="secondary" className="text-sm px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
                           {skill.trim()}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">Hourly Rate:</p>
-                    <p className="text-lg font-bold text-logoGold">₹{freelancerProfile.hourlyRate}/hour</p>
+                  <div className="space-y-2">
+                    <p className="text-base font-semibold text-gray-900">Hourly Rate:</p>
+                    <p className="text-2xl font-bold text-logoGold">₹{freelancerProfile.hourlyRate}/hour</p>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Recent Bookings */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
+              <Card className="bg-white border-0 shadow-lg">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-3 text-xl font-heading font-bold text-gray-900">
+                    <div className="p-2 bg-logoGold/10 rounded-lg">
+                      <Calendar className="h-6 w-6 text-logoGold" />
+                    </div>
                     Recent Bookings
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {bookings.slice(0, 5).map((booking) => (
-                      <div key={booking._id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{booking.serviceName}</p>
-                          <p className="text-xs text-foreground/70">{booking.clientName}</p>
+                      <div key={booking._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className="space-y-1">
+                          <p className="font-semibold text-base text-gray-900">{booking.serviceName}</p>
+                          <p className="text-sm text-gray-600">{booking.clientName}</p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right space-y-2">
                           <Badge 
                             variant={booking.bookingStatus === 'completed' ? 'default' : 'secondary'}
-                            className="text-xs"
+                            className="text-sm px-3 py-1"
                           >
                             {booking.bookingStatus}
                           </Badge>
-                          <p className="text-xs text-foreground/70 mt-1">
+                          <p className="text-base font-bold text-gray-900">
                             ₹{booking.paymentAmount}
                           </p>
                         </div>
                       </div>
                     ))}
+                    {bookings.length === 0 && (
+                      <div className="text-center py-8">
+                        <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-base text-gray-600 font-medium">No recent bookings</p>
+                        <p className="text-sm text-gray-500 mt-1">Your recent bookings will appear here</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
-          <TabsContent value="profile" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Update Profile Information</CardTitle>
-                <CardDescription>
+          <TabsContent value="profile" className="space-y-8 mt-8">
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-2xl font-heading font-bold text-gray-900">Update Profile Information</CardTitle>
+                <CardDescription className="text-base text-gray-600 mt-2">
                   Keep your profile up to date to attract more clients
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="fullName">Full Name</Label>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="text-base font-semibold text-gray-900">Full Name</Label>
                     <Input
                       id="fullName"
                       value={profileForm.fullName}
                       onChange={(e) => setProfileForm(prev => ({ ...prev, fullName: e.target.value }))}
+                      className="h-12 text-base border-gray-300 focus:border-logoGold focus:ring-logoGold"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="contactEmail">Contact Email</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail" className="text-base font-semibold text-gray-900">Contact Email</Label>
                     <Input
                       id="contactEmail"
                       type="email"
                       value={profileForm.contactEmail}
                       onChange={(e) => setProfileForm(prev => ({ ...prev, contactEmail: e.target.value }))}
+                      className="h-12 text-base border-gray-300 focus:border-logoGold focus:ring-logoGold"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="city">City</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="city" className="text-base font-semibold text-gray-900">City</Label>
                     <Input
                       id="city"
                       value={profileForm.city}
                       onChange={(e) => setProfileForm(prev => ({ ...prev, city: e.target.value }))}
+                      className="h-12 text-base border-gray-300 focus:border-logoGold focus:ring-logoGold"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="serviceArea">Service Area</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="serviceArea" className="text-base font-semibold text-gray-900">Service Area</Label>
                     <Input
                       id="serviceArea"
                       value={profileForm.serviceArea}
                       onChange={(e) => setProfileForm(prev => ({ ...prev, serviceArea: e.target.value }))}
+                      className="h-12 text-base border-gray-300 focus:border-logoGold focus:ring-logoGold"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="hourlyRate">Hourly Rate (₹)</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="hourlyRate" className="text-base font-semibold text-gray-900">Hourly Rate (₹)</Label>
                     <Input
                       id="hourlyRate"
                       type="number"
                       value={profileForm.hourlyRate}
                       onChange={(e) => setProfileForm(prev => ({ ...prev, hourlyRate: Number(e.target.value) }))}
+                      className="h-12 text-base border-gray-300 focus:border-logoGold focus:ring-logoGold"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="fullAddress">Full Address</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="fullAddress" className="text-base font-semibold text-gray-900">Full Address</Label>
                   <Textarea
                     id="fullAddress"
                     value={profileForm.fullAddress}
                     onChange={(e) => setProfileForm(prev => ({ ...prev, fullAddress: e.target.value }))}
-                    rows={2}
+                    rows={3}
+                    className="text-base border-gray-300 focus:border-logoGold focus:ring-logoGold resize-none"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="bio">Bio</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="bio" className="text-base font-semibold text-gray-900">Bio</Label>
                   <Textarea
                     id="bio"
                     value={profileForm.bio}
                     onChange={(e) => setProfileForm(prev => ({ ...prev, bio: e.target.value }))}
-                    rows={3}
+                    rows={4}
                     placeholder="Tell clients about yourself..."
+                    className="text-base border-gray-300 focus:border-logoGold focus:ring-logoGold resize-none"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="skills">Skills (comma-separated)</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="skills" className="text-base font-semibold text-gray-900">Skills (comma-separated)</Label>
                   <Textarea
                     id="skills"
                     value={profileForm.skills}
                     onChange={(e) => setProfileForm(prev => ({ ...prev, skills: e.target.value }))}
-                    rows={2}
+                    rows={3}
                     placeholder="e.g., Photography, Video Editing, Graphic Design"
+                    className="text-base border-gray-300 focus:border-logoGold focus:ring-logoGold resize-none"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="servicesOffered">Services Offered</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="servicesOffered" className="text-base font-semibold text-gray-900">Services Offered</Label>
                   <Textarea
                     id="servicesOffered"
                     value={profileForm.servicesOffered}
                     onChange={(e) => setProfileForm(prev => ({ ...prev, servicesOffered: e.target.value }))}
-                    rows={3}
+                    rows={4}
                     placeholder="Describe the services you offer..."
+                    className="text-base border-gray-300 focus:border-logoGold focus:ring-logoGold resize-none"
                   />
                 </div>
 
-                <Button onClick={handleProfileUpdate} disabled={saving} className="w-full">
+                <Button 
+                  onClick={handleProfileUpdate} 
+                  disabled={saving} 
+                  className="w-full h-12 text-base font-semibold bg-logoGold text-logoBlack hover:bg-logoGold/90 disabled:opacity-50"
+                >
                   {saving ? <LoadingSpinner /> : 'Update Profile'}
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="availability" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Manage Availability</CardTitle>
-                <CardDescription>
+          <TabsContent value="availability" className="space-y-8 mt-8">
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-2xl font-heading font-bold text-gray-900">Manage Availability</CardTitle>
+                <CardDescription className="text-base text-gray-600 mt-2">
                   Set your working hours and availability to help clients book you
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="workingHoursStart">Working Hours Start</Label>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="workingHoursStart" className="text-base font-semibold text-gray-900">Working Hours Start</Label>
                     <Input
                       id="workingHoursStart"
                       type="time"
                       value={availabilityForm.workingHoursStart}
                       onChange={(e) => setAvailabilityForm(prev => ({ ...prev, workingHoursStart: e.target.value }))}
+                      className="h-12 text-base border-gray-300 focus:border-logoGold focus:ring-logoGold"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="workingHoursEnd">Working Hours End</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="workingHoursEnd" className="text-base font-semibold text-gray-900">Working Hours End</Label>
                     <Input
                       id="workingHoursEnd"
                       type="time"
                       value={availabilityForm.workingHoursEnd}
                       onChange={(e) => setAvailabilityForm(prev => ({ ...prev, workingHoursEnd: e.target.value }))}
+                      className="h-12 text-base border-gray-300 focus:border-logoGold focus:ring-logoGold"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="availableDays">Available Days (comma-separated)</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="availableDays" className="text-base font-semibold text-gray-900">Available Days (comma-separated)</Label>
                   <Input
                     id="availableDays"
                     value={availabilityForm.availableDays}
                     onChange={(e) => setAvailabilityForm(prev => ({ ...prev, availableDays: e.target.value }))}
                     placeholder="e.g., Monday, Tuesday, Wednesday, Thursday, Friday"
+                    className="h-12 text-base border-gray-300 focus:border-logoGold focus:ring-logoGold"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="blockedDates">Blocked/Unavailable Dates</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="blockedDates" className="text-base font-semibold text-gray-900">Blocked/Unavailable Dates</Label>
                   <Textarea
                     id="blockedDates"
                     value={availabilityForm.blockedDates}
                     onChange={(e) => setAvailabilityForm(prev => ({ ...prev, blockedDates: e.target.value }))}
-                    rows={2}
+                    rows={3}
                     placeholder="List dates when you're not available (e.g., 2024-12-25, 2024-01-01)"
+                    className="text-base border-gray-300 focus:border-logoGold focus:ring-logoGold resize-none"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="availabilityDescription">Availability Description</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="availabilityDescription" className="text-base font-semibold text-gray-900">Availability Description</Label>
                   <Textarea
                     id="availabilityDescription"
                     value={availabilityForm.availabilityDescription}
                     onChange={(e) => setAvailabilityForm(prev => ({ ...prev, availabilityDescription: e.target.value }))}
-                    rows={3}
+                    rows={4}
                     placeholder="Describe your availability in detail..."
+                    className="text-base border-gray-300 focus:border-logoGold focus:ring-logoGold resize-none"
                   />
                 </div>
 
-                <Button onClick={handleAvailabilityUpdate} disabled={saving} className="w-full">
+                <Button 
+                  onClick={handleAvailabilityUpdate} 
+                  disabled={saving} 
+                  className="w-full h-12 text-base font-semibold bg-logoGold text-logoBlack hover:bg-logoGold/90 disabled:opacity-50"
+                >
                   {saving ? <LoadingSpinner /> : 'Update Availability'}
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="bookings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Bookings</CardTitle>
-                <CardDescription>
+          <TabsContent value="bookings" className="space-y-8 mt-8">
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-2xl font-heading font-bold text-gray-900">Your Bookings</CardTitle>
+                <CardDescription className="text-base text-gray-600 mt-2">
                   Track all your bookings and their status
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {bookings.map((booking) => (
-                    <div key={booking._id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="font-medium text-lg">{booking.serviceName}</h3>
-                          <p className="text-sm text-foreground/70">Client: {booking.clientName}</p>
+                    <div key={booking._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="space-y-1">
+                          <h3 className="font-bold text-xl text-gray-900">{booking.serviceName}</h3>
+                          <p className="text-base text-gray-600">Client: {booking.clientName}</p>
                         </div>
                         <Badge 
                           variant={booking.bookingStatus === 'completed' ? 'default' : 'secondary'}
+                          className="text-sm px-3 py-1"
                         >
                           {booking.bookingStatus}
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <p className="text-foreground/70">Date</p>
-                          <p className="font-medium">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Date</p>
+                          <p className="text-base font-medium text-gray-900">
                             {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : 'TBD'}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-foreground/70">Location</p>
-                          <p className="font-medium">{booking.serviceCity}, {booking.serviceState}</p>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Location</p>
+                          <p className="text-base font-medium text-gray-900">{booking.serviceCity}, {booking.serviceState}</p>
                         </div>
-                        <div>
-                          <p className="text-foreground/70">Payment</p>
-                          <p className="font-medium">₹{booking.paymentAmount}</p>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Payment</p>
+                          <p className="text-base font-bold text-gray-900">₹{booking.paymentAmount}</p>
                         </div>
-                        <div>
-                          <p className="text-foreground/70">Status</p>
-                          <p className="font-medium">{booking.paymentStatus}</p>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Status</p>
+                          <p className="text-base font-medium text-gray-900">{booking.paymentStatus}</p>
                         </div>
                       </div>
 
                       {booking.serviceAddress && (
-                        <div className="mt-3 pt-3 border-t">
-                          <p className="text-sm text-foreground/70">Address:</p>
-                          <p className="text-sm">{booking.serviceAddress}</p>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Address:</p>
+                          <p className="text-base text-gray-700">{booking.serviceAddress}</p>
                         </div>
                       )}
                     </div>
                   ))}
 
                   {bookings.length === 0 && (
-                    <div className="text-center py-8">
-                      <Calendar className="h-12 w-12 text-foreground/30 mx-auto mb-4" />
-                      <p className="text-foreground/70">No bookings yet</p>
-                      <p className="text-sm text-foreground/50">Your bookings will appear here once clients start booking your services</p>
+                    <div className="text-center py-12">
+                      <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-lg font-medium text-gray-600 mb-2">No bookings yet</p>
+                      <p className="text-base text-gray-500">Your bookings will appear here once clients start booking your services</p>
                     </div>
                   )}
                 </div>
