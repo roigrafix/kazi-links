@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BaseCrudService } from '@/integrations';
-import { Services, Freelancers, Bookings, ServiceCategories } from '@/entities';
+import { Services, Freelancers, Bookings, ServiceCategories, IndianLocations } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,10 @@ interface BookingFormData {
   clientEmail: string;
   clientPhone: string;
   paymentAmount: number;
+  // Location fields
+  serviceState: string;
+  serviceCity: string;
+  clientLocation: string;
 }
 
 export default function BookingPage() {
@@ -46,11 +50,15 @@ export default function BookingPage() {
   const [availableFreelancers, setAvailableFreelancers] = useState<Freelancers[]>([]);
   const [selectedService, setSelectedService] = useState<Services | null>(null);
   const [selectedFreelancer, setSelectedFreelancer] = useState<Freelancers | null>(null);
+  const [locations, setLocations] = useState<IndianLocations[]>([]);
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [priceRange, setPriceRange] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('all');
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,7 +80,11 @@ export default function BookingPage() {
     clientName: '',
     clientEmail: '',
     clientPhone: '',
-    paymentAmount: 0
+    paymentAmount: 0,
+    // Location fields
+    serviceState: '',
+    serviceCity: '',
+    clientLocation: ''
   });
 
   // Generate available time slots based on freelancer availability and existing bookings
@@ -165,10 +177,11 @@ export default function BookingPage() {
     const fetchData = async () => {
       try {
         // Fetch services with their referenced freelancers populated
-        const [servicesData, freelancersData, categoriesData] = await Promise.all([
+        const [servicesData, freelancersData, categoriesData, locationsData] = await Promise.all([
           BaseCrudService.getAll<Services>('services', ['reference']),
           BaseCrudService.getAll<Freelancers>('freelancers'),
-          BaseCrudService.getAll<ServiceCategories>('servicecategories')
+          BaseCrudService.getAll<ServiceCategories>('servicecategories'),
+          BaseCrudService.getAll<IndianLocations>('indianlocations')
         ]);
         
         const bookableServices = servicesData.items.filter(service => service.isBookable);
@@ -176,6 +189,17 @@ export default function BookingPage() {
         setFilteredServices(bookableServices);
         setFreelancers(freelancersData.items);
         setCategories(categoriesData.items.filter(cat => cat.isActive));
+        setLocations(locationsData.items);
+
+        // Extract unique states and cities from locations
+        const states = new Set<string>();
+        const cities = new Set<string>();
+        locationsData.items.forEach(location => {
+          if (location.stateName) states.add(location.stateName);
+          if (location.cityName) cities.add(location.cityName);
+        });
+        setAvailableStates(Array.from(states));
+        setAvailableCities(Array.from(cities));
 
         // Pre-select service or freelancer from URL params
         const serviceId = searchParams.get('service');
@@ -228,7 +252,7 @@ export default function BookingPage() {
     fetchData();
   }, [searchParams]);
 
-  // Filter services based on search term, category, and price range
+  // Filter services based on search term, category, price range, and location
   useEffect(() => {
     let filtered = services;
 
@@ -259,8 +283,30 @@ export default function BookingPage() {
       });
     }
 
+    // Filter by location (if freelancers are available for the selected location)
+    if (locationFilter !== 'all') {
+      filtered = filtered.filter(service => {
+        // Check if any freelancer for this service serves the selected location
+        const referencedFreelancers = services
+          .filter(s => s.serviceName === service.serviceName && s.reference)
+          .map(s => s.reference as Freelancers)
+          .filter(Boolean);
+        
+        if (referencedFreelancers.length > 0) {
+          return referencedFreelancers.some(freelancer =>
+            freelancer.serviceStates?.toLowerCase().includes(locationFilter.toLowerCase()) ||
+            freelancer.serviceCities?.toLowerCase().includes(locationFilter.toLowerCase()) ||
+            freelancer.preferredStates?.toLowerCase().includes(locationFilter.toLowerCase()) ||
+            freelancer.preferredCities?.toLowerCase().includes(locationFilter.toLowerCase()) ||
+            freelancer.city?.toLowerCase().includes(locationFilter.toLowerCase())
+          );
+        }
+        return true; // If no specific freelancers, show the service
+      });
+    }
+
     setFilteredServices(filtered);
-  }, [services, searchTerm, selectedCategory, priceRange]);
+  }, [services, searchTerm, selectedCategory, priceRange, locationFilter]);
 
   const handleServiceChange = (serviceId: string) => {
     const service = filteredServices.find(s => s._id === serviceId);
@@ -409,7 +455,11 @@ export default function BookingPage() {
         transportationCost: 0, // Transportation cost will be sent via email
         bookingStatus: 'confirmed',
         paymentStatus: 'paid',
-        etaStatus: 'scheduled'
+        etaStatus: 'scheduled',
+        // Location fields
+        serviceState: formData.serviceState,
+        serviceCity: formData.serviceCity,
+        clientLocation: formData.clientLocation
       };
 
       await BaseCrudService.create('bookings', bookingData as any);
@@ -572,7 +622,7 @@ export default function BookingPage() {
                       Filter Services:
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       {/* Search */}
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -583,6 +633,26 @@ export default function BookingPage() {
                           className="pl-10"
                         />
                       </div>
+
+                      {/* Location Filter */}
+                      <Select value={locationFilter} onValueChange={setLocationFilter}>
+                        <SelectTrigger className="text-primary">
+                          <SelectValue placeholder="Select Location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Locations</SelectItem>
+                          {availableStates.map(state => (
+                            <SelectItem key={state} value={state}>
+                              {state}
+                            </SelectItem>
+                          ))}
+                          {availableCities.map(city => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
                       {/* Category Filter */}
                       <Select value={selectedCategory} onValueChange={setSelectedCategory}>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BaseCrudService } from '@/integrations';
-import { Freelancers } from '@/entities';
+import { Freelancers, IndianLocations } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,20 +16,30 @@ export default function FreelancersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [skillFilter, setSkillFilter] = useState<string>('all');
   const [rateRange, setRateRange] = useState<string>('all');
+  const [stateFilter, setStateFilter] = useState<string>('all');
+  const [cityFilter, setCityFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
 
   // Extract unique skills for filter
   const [availableSkills, setAvailableSkills] = useState<string[]>([]);
+  const [locations, setLocations] = useState<IndianLocations[]>([]);
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
 
   useEffect(() => {
-    const fetchFreelancers = async () => {
+    const fetchData = async () => {
       try {
-        const { items } = await BaseCrudService.getAll<Freelancers>('freelancers');
-        setFreelancers(items);
+        const [freelancersData, locationsData] = await Promise.all([
+          BaseCrudService.getAll<Freelancers>('freelancers'),
+          BaseCrudService.getAll<IndianLocations>('indianlocations')
+        ]);
+        
+        setFreelancers(freelancersData.items);
+        setLocations(locationsData.items);
         
         // Extract unique skills
         const skills = new Set<string>();
-        items.forEach(freelancer => {
+        freelancersData.items.forEach(freelancer => {
           if (freelancer.skills) {
             freelancer.skills.split(',').forEach(skill => {
               skills.add(skill.trim());
@@ -37,14 +47,24 @@ export default function FreelancersPage() {
           }
         });
         setAvailableSkills(Array.from(skills).slice(0, 10)); // Limit to 10 skills
+
+        // Extract unique states and cities from locations
+        const states = new Set<string>();
+        const cities = new Set<string>();
+        locationsData.items.forEach(location => {
+          if (location.stateName) states.add(location.stateName);
+          if (location.cityName) cities.add(location.cityName);
+        });
+        setAvailableStates(Array.from(states));
+        setAvailableCities(Array.from(cities));
       } catch (error) {
-        console.error('Error fetching freelancers:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchFreelancers();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -80,8 +100,25 @@ export default function FreelancersPage() {
       });
     }
 
+    // Filter by state
+    if (stateFilter !== 'all') {
+      filtered = filtered.filter(freelancer =>
+        freelancer.serviceStates?.toLowerCase().includes(stateFilter.toLowerCase()) ||
+        freelancer.preferredStates?.toLowerCase().includes(stateFilter.toLowerCase())
+      );
+    }
+
+    // Filter by city
+    if (cityFilter !== 'all') {
+      filtered = filtered.filter(freelancer =>
+        freelancer.serviceCities?.toLowerCase().includes(cityFilter.toLowerCase()) ||
+        freelancer.preferredCities?.toLowerCase().includes(cityFilter.toLowerCase()) ||
+        freelancer.city?.toLowerCase().includes(cityFilter.toLowerCase())
+      );
+    }
+
     setFilteredFreelancers(filtered);
-  }, [freelancers, searchTerm, skillFilter, rateRange]);
+  }, [freelancers, searchTerm, skillFilter, rateRange, stateFilter, cityFilter]);
 
   return (
     <div className="min-h-screen bg-primary text-primary-foreground">
@@ -123,6 +160,36 @@ export default function FreelancersPage() {
                   className="pl-10"
                 />
               </div>
+
+              {/* State Filter */}
+              <Select value={stateFilter} onValueChange={setStateFilter}>
+                <SelectTrigger className="w-full sm:w-48 text-secondary-foreground">
+                  <SelectValue placeholder="Select State" className="text-[#3b3b3b]" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All States</SelectItem>
+                  {availableStates.map((state, index) => (
+                    <SelectItem key={state || `state-${index}`} value={state || `state-${index}`}>
+                      {state || 'Unknown State'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* City Filter */}
+              <Select value={cityFilter} onValueChange={setCityFilter}>
+                <SelectTrigger className="w-full sm:w-48 text-secondary-foreground">
+                  <SelectValue placeholder="Select City" className="text-[#3b3b3b]" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Cities</SelectItem>
+                  {availableCities.map((city, index) => (
+                    <SelectItem key={city || `city-${index}`} value={city || `city-${index}`}>
+                      {city || 'Unknown City'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {/* Skill Filter */}
               <Select value={skillFilter} onValueChange={setSkillFilter}>
@@ -191,6 +258,8 @@ export default function FreelancersPage() {
                   setSearchTerm('');
                   setSkillFilter('all');
                   setRateRange('all');
+                  setStateFilter('all');
+                  setCityFilter('all');
                 }}
                 className="bg-logoGold text-logoBlack hover:bg-logoGold/90"
               >
