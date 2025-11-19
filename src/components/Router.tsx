@@ -12,6 +12,7 @@ import BookingPage from '@/components/pages/BookingPage';
 import TrackingPage from '@/components/pages/TrackingPage';
 import LoginPage from '@/components/pages/LoginPage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
+import FreelancerDashboardPage from '@/components/pages/FreelancerDashboardPage';
 import SupportRequestPage from '@/components/pages/SupportRequestPage';
 import ReviewPage from '@/components/pages/ReviewPage';
 import AdminDashboardPage from '@/components/pages/AdminDashboardPage';
@@ -72,6 +73,14 @@ const router = createBrowserRouter([
       {
         path: "review",
         element: <ReviewPage />,
+      },
+      {
+        path: "freelancer-dashboard",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Please sign in to access your freelancer dashboard">
+            <FreelancerDashboardPage />
+          </MemberProtectedRoute>
+        ),
       },
       {
         path: "admin",

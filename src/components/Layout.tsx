@@ -28,6 +28,10 @@ export default function Layout() {
     { name: 'Freelancers', href: '/freelancers' },
     { name: 'Book Now', href: '/booking' },
     { name: 'Track Booking', href: '/tracking' },
+    // Show freelancer dashboard to authenticated users
+    ...(isAuthenticated ? [
+      { name: 'Freelancer Dashboard', href: '/freelancer-dashboard' }
+    ] : []),
     // Only show admin links to admin users
     ...(isAdmin ? [
       { name: 'Admin Dashboard', href: '/admin' },
