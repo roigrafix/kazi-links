@@ -753,6 +753,85 @@ export default function BookingPage() {
                     </div>
                   </div>
 
+                  {/* Location Selection */}
+                  <div>
+                    <Label className="text-gray-800 mb-3 block">
+                      Your Location (to find nearby freelancers)
+                    </Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="serviceState" className="text-sm text-gray-700">
+                          State *
+                        </Label>
+                        <Select 
+                          value={formData.serviceState} 
+                          onValueChange={(value) => {
+                            setFormData(prev => ({ ...prev, serviceState: value, serviceCity: '' }));
+                            // Filter freelancers based on selected state
+                            filterFreelancersByLocation(value, '');
+                          }}
+                        >
+                          <SelectTrigger className="text-secondary-foreground mt-1">
+                            <SelectValue placeholder="Select your state" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableStates.map(state => (
+                              <SelectItem key={state} value={state}>
+                                {state}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="serviceCity" className="text-sm text-gray-700">
+                          City *
+                        </Label>
+                        <Select 
+                          value={formData.serviceCity} 
+                          onValueChange={(value) => {
+                            setFormData(prev => ({ ...prev, serviceCity: value }));
+                            // Filter freelancers based on selected city
+                            filterFreelancersByLocation(formData.serviceState, value);
+                          }}
+                          disabled={!formData.serviceState}
+                        >
+                          <SelectTrigger className="text-secondary-foreground mt-1">
+                            <SelectValue placeholder={formData.serviceState ? "Select your city" : "Select state first"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableCities
+                              .filter(city => {
+                                // Filter cities based on selected state if available
+                                if (!formData.serviceState) return true;
+                                const cityLocation = locations.find(loc => 
+                                  loc.cityName === city && loc.stateName === formData.serviceState
+                                );
+                                return cityLocation !== undefined;
+                              })
+                              .map(city => (
+                                <SelectItem key={city} value={city}>
+                                  {city}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Location Status */}
+                    {formData.serviceState && formData.serviceCity && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-800">
+                            Location selected: {formData.serviceCity}, {formData.serviceState}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Service Selection */}
                   <div>
                     <Label htmlFor="service" className="text-gray-800">Choose a Service</Label>
