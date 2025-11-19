@@ -16,6 +16,7 @@ import SupportRequestPage from '@/components/pages/SupportRequestPage';
 import ReviewPage from '@/components/pages/ReviewPage';
 import AdminDashboardPage from '@/components/pages/AdminDashboardPage';
 import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
+import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
 
 const router = createBrowserRouter([
   {
@@ -54,7 +55,11 @@ const router = createBrowserRouter([
       },
       {
         path: "tracking",
-        element: <TrackingPage />,
+        element: (
+          <MemberProtectedRoute messageToSignIn="Please sign in to track your bookings">
+            <TrackingPage />
+          </MemberProtectedRoute>
+        ),
       },
       {
         path: "login",
