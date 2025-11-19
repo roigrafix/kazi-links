@@ -12,7 +12,13 @@ export interface Bookings {
   _createdDate?: Date;
   _updatedDate?: Date;
   /** @wixFieldType text */
+  clientLocation?: string;
+  /** @wixFieldType text */
   serviceName?: string;
+  /** @wixFieldType text */
+  serviceCity?: string;
+  /** @wixFieldType text */
+  serviceState?: string;
   /** @wixFieldType text */
   freelancerName?: string;
   /** @wixFieldType date */
@@ -39,12 +45,6 @@ export interface Bookings {
   clientEmail?: string;
   /** @wixFieldType text */
   clientPhone?: string;
-  /** @wixFieldType text */
-  serviceState?: string;
-  /** @wixFieldType text */
-  serviceCity?: string;
-  /** @wixFieldType text */
-  clientLocation?: string;
 }
 
 
@@ -84,6 +84,14 @@ export interface Freelancers {
   /** @wixFieldType text */
   city?: string;
   /** @wixFieldType text */
+  serviceCities?: string;
+  /** @wixFieldType text */
+  serviceStates?: string;
+  /** @wixFieldType text */
+  preferredCities?: string;
+  /** @wixFieldType text */
+  preferredStates?: string;
+  /** @wixFieldType text */
   blockedDates?: string;
   /** @wixFieldType time */
   workingHoursEnd?: any;
@@ -117,14 +125,6 @@ export interface Freelancers {
   customersReview?: string;
   /** @wixFieldType reference */
   reference?: ClientReviews;
-  /** @wixFieldType text */
-  preferredStates?: string;
-  /** @wixFieldType text */
-  preferredCities?: string;
-  /** @wixFieldType text */
-  serviceStates?: string;
-  /** @wixFieldType text */
-  serviceCities?: string;
 }
 
 
@@ -194,25 +194,4 @@ export interface Services {
   isBookable?: boolean;
   /** @wixFieldType reference */
   reference?: Freelancers;
-}
-
-
-/**
- * Collection ID: indianlocations
- * Interface for IndianLocations
- */
-export interface IndianLocations {
-  _id: string;
-  _createdDate?: Date;
-  _updatedDate?: Date;
-  /** @wixFieldType text */
-  stateName?: string;
-  /** @wixFieldType text */
-  cityName?: string;
-  /** @wixFieldType text */
-  stateCode?: string;
-  /** @wixFieldType text */
-  cityCode?: string;
-  /** @wixFieldType text */
-  region?: string;
 }

@@ -324,12 +324,17 @@ export default function BookingPage() {
         .map(s => s.reference as Freelancers)
         .filter(Boolean); // Remove any null/undefined references
       
-      // If we have referenced freelancers, show only those; otherwise show all freelancers
-      if (referencedFreelancers.length > 0) {
-        setAvailableFreelancers(referencedFreelancers);
+      // Apply location filtering if location is already selected
+      if (formData.serviceState || formData.serviceCity) {
+        filterFreelancersByLocation(formData.serviceState, formData.serviceCity);
       } else {
-        // Fallback to all freelancers if no specific references found
-        setAvailableFreelancers(freelancers);
+        // If we have referenced freelancers, show only those; otherwise show all freelancers
+        if (referencedFreelancers.length > 0) {
+          setAvailableFreelancers(referencedFreelancers);
+        } else {
+          // Fallback to all freelancers if no specific references found
+          setAvailableFreelancers(freelancers);
+        }
       }
       
       setSelectedFreelancer(null);
@@ -471,6 +476,64 @@ export default function BookingPage() {
     }
   };
 
+  const filterFreelancersByLocation = (state: string, city: string) => {
+    if (!state && !city) {
+      // If no location selected, show all freelancers
+      if (selectedService) {
+        const referencedFreelancers = services
+          .filter(s => s.serviceName === selectedService.serviceName && s.reference)
+          .map(s => s.reference as Freelancers)
+          .filter(Boolean);
+        
+        if (referencedFreelancers.length > 0) {
+          setAvailableFreelancers(referencedFreelancers);
+        } else {
+          setAvailableFreelancers(freelancers);
+        }
+      } else {
+        setAvailableFreelancers(freelancers);
+      }
+      return;
+    }
+
+    // Get the base freelancers list (either service-specific or all)
+    let baseFreelancers = freelancers;
+    if (selectedService) {
+      const referencedFreelancers = services
+        .filter(s => s.serviceName === selectedService.serviceName && s.reference)
+        .map(s => s.reference as Freelancers)
+        .filter(Boolean);
+      
+      if (referencedFreelancers.length > 0) {
+        baseFreelancers = referencedFreelancers;
+      }
+    }
+
+    // Filter freelancers based on location
+    const filteredFreelancers = baseFreelancers.filter(freelancer => {
+      const matchesState = state ? (
+        freelancer.serviceStates?.toLowerCase().includes(state.toLowerCase()) ||
+        freelancer.preferredStates?.toLowerCase().includes(state.toLowerCase())
+      ) : true;
+
+      const matchesCity = city ? (
+        freelancer.serviceCities?.toLowerCase().includes(city.toLowerCase()) ||
+        freelancer.preferredCities?.toLowerCase().includes(city.toLowerCase()) ||
+        freelancer.city?.toLowerCase().includes(city.toLowerCase())
+      ) : true;
+
+      return matchesState && matchesCity;
+    });
+
+    setAvailableFreelancers(filteredFreelancers);
+    
+    // Clear selected freelancer if they're not in the filtered list
+    if (selectedFreelancer && !filteredFreelancers.find(f => f._id === selectedFreelancer._id)) {
+      setSelectedFreelancer(null);
+      setFormData(prev => ({ ...prev, freelancerName: '' }));
+    }
+  };
+
   const nextStep = () => {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
@@ -488,7 +551,7 @@ export default function BookingPage() {
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
-        return selectedService && selectedFreelancer;
+        return selectedService && selectedFreelancer && formData.serviceState && formData.serviceCity;
       case 2:
         return formData.bookingDate && formData.bookingTime && 
                (formData.serviceLocationType === 'freelancer' || 
@@ -741,25 +804,58 @@ export default function BookingPage() {
                   )}
 
                   {/* Freelancer Selection */}
-                  {availableFreelancers.length > 0 && (
+                  {selectedService && (
                     <div className="shadow-none">
                       <Label htmlFor="freelancer" className="text-gray-800">Choose a Freelancer</Label>
-                      <Select value={selectedFreelancer?._id} onValueChange={handleFreelancerChange}>
-                        <SelectTrigger className="text-secondary-foreground">
-                          <SelectValue placeholder="Select a freelancer" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableFreelancers.map((freelancer, index) => (
-                            <SelectItem 
-                              key={freelancer._id} 
-                              value={freelancer._id || `freelancer-${index}`}
-                              className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
+                      {availableFreelancers.length > 0 ? (
+                        <Select value={selectedFreelancer?._id} onValueChange={handleFreelancerChange}>
+                          <SelectTrigger className="text-secondary-foreground">
+                            <SelectValue placeholder="Select a freelancer" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableFreelancers.map((freelancer, index) => (
+                              <SelectItem 
+                                key={freelancer._id} 
+                                value={freelancer._id || `freelancer-${index}`}
+                                className={index === 0 ? "text-[#FFFFFF] focus:text-[#FFFFFF]" : ""}
+                              >
+                                {freelancer.fullName} - ₹{freelancer.hourlyRate}/hr
+                                {(freelancer.serviceArea || freelancer.city) && (
+                                  <span className="text-xs text-gray-500 ml-2">
+                                    ({freelancer.serviceArea || freelancer.city})
+                                  </span>
+                                )}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-2">
+                          <div className="flex items-center gap-2 mb-2">
+                            <MapPin className="h-4 w-4 text-yellow-600" />
+                            <span className="font-medium text-yellow-800">No freelancers available in your area</span>
+                          </div>
+                          <p className="text-sm text-yellow-700 mb-3">
+                            {formData.serviceState || formData.serviceCity 
+                              ? `No freelancers found for "${selectedService.serviceName}" in ${formData.serviceCity ? `${formData.serviceCity}, ` : ''}${formData.serviceState}. Try selecting a different location or browse all available freelancers.`
+                              : 'Please select your location to find nearby freelancers.'
+                            }
+                          </p>
+                          {(formData.serviceState || formData.serviceCity) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, serviceState: '', serviceCity: '' }));
+                                filterFreelancersByLocation('', '');
+                              }}
+                              className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
                             >
-                              {freelancer.fullName} - ₹{freelancer.hourlyRate}/hr
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                              Show All Freelancers
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1050,6 +1146,15 @@ export default function BookingPage() {
                   <div className="bg-white/5 rounded-lg p-4 sm:p-6">
                     <h3 className="font-semibold mb-4">Booking Summary</h3>
                     <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                        <span>Service Location:</span>
+                        <span className="font-medium">
+                          {formData.serviceCity && formData.serviceState 
+                            ? `${formData.serviceCity}, ${formData.serviceState}`
+                            : 'Location not specified'
+                          }
+                        </span>
+                      </div>
                       <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span>Service:</span>
                         <span className="font-medium">{formData.serviceName}</span>
