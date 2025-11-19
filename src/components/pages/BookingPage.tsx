@@ -919,19 +919,7 @@ export default function BookingPage() {
                               : 'Please select your location to find nearby freelancers.'
                             }
                           </p>
-                          {(formData.serviceState || formData.serviceCity) && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setFormData(prev => ({ ...prev, serviceState: '', serviceCity: '' }));
-                                filterFreelancersByLocation('', '');
-                              }}
-                              className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
-                            >
-                              Show All Freelancers
-                            </Button>
-                          )}
+
                         </div>
                       )}
                     </div>
