@@ -58,7 +58,7 @@ export default function BookingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [priceRange, setPriceRange] = useState<string>('all');
-  const [locationFilter, setLocationFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('');
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -284,7 +284,7 @@ export default function BookingPage() {
     }
 
     // Filter by location (if freelancers are available for the selected location)
-    if (locationFilter !== 'all') {
+    if (locationFilter && locationFilter.trim() !== '') {
       filtered = filtered.filter(service => {
         // Check if any freelancer for this service serves the selected location
         const referencedFreelancers = services
@@ -703,7 +703,6 @@ export default function BookingPage() {
                           <SelectValue placeholder="Select Location" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all" className="text-[#FFFFFF] focus:text-[#FFFFFF]">All Locations</SelectItem>
                           {availableStates.map(state => (
                             <SelectItem key={state} value={state}>
                               {state}
