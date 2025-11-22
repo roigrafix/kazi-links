@@ -330,7 +330,7 @@ export default function TrackingPage() {
     }
   };
 
-  const getETAStatus = (etaStatus: string) => {
+  const getETAStatus = (etaStatus: string | undefined) => {
     switch (etaStatus?.toLowerCase()) {
       case 'scheduled':
         return { icon: Calendar, text: 'Scheduled', color: 'text-blue-400' };
@@ -343,7 +343,8 @@ export default function TrackingPage() {
       case 'completed':
         return { icon: CheckCircle, text: 'Completed', color: 'text-green-400' };
       default:
-        return { icon: AlertCircle, text: 'Unknown', color: 'text-gray-400' };
+        // Default to 'Scheduled' if no status is set
+        return { icon: Calendar, text: 'Scheduled', color: 'text-blue-400' };
     }
   };
 
