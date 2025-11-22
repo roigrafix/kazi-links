@@ -11,6 +11,7 @@ import FreelancerDetailPage from '@/components/pages/FreelancerDetailPage';
 import BookingPage from '@/components/pages/BookingPage';
 import TrackingPage from '@/components/pages/TrackingPage';
 import LoginPage from '@/components/pages/LoginPage';
+import ProfilePage from '@/components/pages/ProfilePage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
 import FreelancerDashboardPage from '@/components/pages/FreelancerDashboardPage';
 import SupportRequestPage from '@/components/pages/SupportRequestPage';
@@ -66,6 +67,14 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <LoginPage />,
+      },
+      {
+        path: "profile",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Please sign in to view your profile">
+            <ProfilePage />
+          </MemberProtectedRoute>
+        ),
       },
       {
         path: "support",

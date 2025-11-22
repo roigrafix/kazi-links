@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMember } from '@/integrations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { motion } from 'framer-motion';
 import { firebaseAuth, FirebaseUser } from '@/services/firebaseAuth';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const { isAuthenticated, isLoading, actions } = useMember();
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
@@ -61,10 +63,11 @@ export default function LoginPage() {
   }, [otpTimer]);
 
   // Redirect if already authenticated
-  if (isAuthenticated || firebaseUser) {
-    window.location.href = '/';
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated || firebaseUser) {
+      navigate('/profile');
+    }
+  }, [isAuthenticated, firebaseUser, navigate]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
