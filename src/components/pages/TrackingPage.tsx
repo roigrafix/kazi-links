@@ -275,6 +275,11 @@ export default function TrackingPage() {
     };
 
     fetchUserBookings();
+    
+    // Set up real-time polling to fetch updated bookings every 5 seconds
+    const pollInterval = setInterval(fetchUserBookings, 5000);
+    
+    return () => clearInterval(pollInterval);
   }, [member?.loginEmail]);
 
 
@@ -319,7 +324,7 @@ export default function TrackingPage() {
 
   // Render booking card component
   const renderBookingCard = (booking: Bookings, index: number) => {
-    const etaInfo = getETAStatus(booking.etaStatus || 'scheduled');
+    const etaInfo = getETAStatus(booking.liveStatus);
     const ETAIcon = etaInfo.icon;
     
     return (
@@ -459,13 +464,13 @@ export default function TrackingPage() {
                         {etaInfo.text}
                       </p>
                       
-                      {booking.etaStatus === 'on-the-way' && (
+                      {booking.liveStatus && ['on the way', '10mins', '5mins', '2mins'].includes(booking.liveStatus.toLowerCase()) && (
                         <div className="mt-3">
                           <p className="text-xs text-secondary-foreground/70 mb-1">
-                            Estimated arrival
+                            Real-time update
                           </p>
                           <p className="font-semibold text-logoGold">
-                            15-20 minutes
+                            {booking.liveStatus}
                           </p>
                         </div>
                       )}

@@ -14,6 +14,8 @@ export interface Bookings {
   /** @wixFieldType text */
   clientLocation?: string;
   /** @wixFieldType text */
+  liveStatus?: string;
+  /** @wixFieldType text */
   serviceName?: string;
   /** @wixFieldType text */
   serviceCity?: string;
@@ -45,8 +47,6 @@ export interface Bookings {
   clientEmail?: string;
   /** @wixFieldType text */
   clientPhone?: string;
-  /** @wixFieldType text */
-  liveStatus?: string;
 }
 
 
