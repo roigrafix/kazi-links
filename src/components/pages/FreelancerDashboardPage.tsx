@@ -11,9 +11,28 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, User, Briefcase, TrendingUp, Star, MapPin, Phone, Mail } from 'lucide-react';
+import { Calendar, Clock, User, Briefcase, TrendingUp, Star, MapPin, Phone, Mail, Navigation } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+
+const LIVE_STATUS_OPTIONS = ['On The Way', '10mins', '5mins', '2mins', 'Arrived'];
+
+const getStatusColor = (status: string | undefined) => {
+  switch (status) {
+    case 'On The Way':
+      return 'bg-blue-100 text-blue-800';
+    case '10mins':
+      return 'bg-yellow-100 text-yellow-800';
+    case '5mins':
+      return 'bg-orange-100 text-orange-800';
+    case '2mins':
+      return 'bg-red-100 text-red-800';
+    case 'Arrived':
+      return 'bg-green-100 text-green-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
 
 export default function FreelancerDashboardPage() {
   const { member } = useMember();
@@ -23,6 +42,7 @@ export default function FreelancerDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   // Form states
   const [profileForm, setProfileForm] = useState({
@@ -160,6 +180,36 @@ export default function FreelancerDashboardPage() {
     }
   };
 
+  const handleLiveStatusUpdate = async (status: string) => {
+    if (!freelancerProfile) return;
+
+    try {
+      setUpdatingStatus(true);
+      
+      const updatedProfile = {
+        ...freelancerProfile,
+        liveStatus: status
+      };
+
+      await BaseCrudService.update('freelancers', updatedProfile);
+      setFreelancerProfile(updatedProfile);
+      
+      toast({
+        title: "Success",
+        description: `Live status updated to "${status}"`,
+      });
+    } catch (error) {
+      console.error('Error updating live status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update live status.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   const getBookingStats = () => {
     const totalBookings = bookings.length;
     const completedBookings = bookings.filter(b => b.bookingStatus === 'completed').length;
@@ -201,20 +251,54 @@ export default function FreelancerDashboardPage() {
       <div className="max-w-[120rem] mx-auto p-6">
         {/* Header */}
         <div className="mb-10">
-          <div className="flex items-center gap-6 mb-8">
-            <Avatar className="h-20 w-20 border-2 border-logoGold/20">
-              <AvatarImage src={freelancerProfile.profilePicture} />
-              <AvatarFallback className="bg-logoGold text-logoBlack text-xl font-bold">
-                {freelancerProfile.fullName?.split(' ').map(n => n[0]).join('') || 'FL'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="space-y-2">
-              <h1 className="text-4xl font-heading font-bold text-white leading-tight">
-                Welcome back, {freelancerProfile.fullName}
-              </h1>
-              <p className="text-xl font-paragraph text-white/80 leading-relaxed">
-                Manage your profile and track your progress
-              </p>
+          <div className="flex items-center justify-between gap-6 mb-8">
+            <div className="flex items-center gap-6">
+              <Avatar className="h-20 w-20 border-2 border-logoGold/20">
+                <AvatarImage src={freelancerProfile.profilePicture} />
+                <AvatarFallback className="bg-logoGold text-logoBlack text-xl font-bold">
+                  {freelancerProfile.fullName?.split(' ').map(n => n[0]).join('') || 'FL'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-2">
+                <h1 className="text-4xl font-heading font-bold text-white leading-tight">
+                  Welcome back, {freelancerProfile.fullName}
+                </h1>
+                <p className="text-xl font-paragraph text-white/80 leading-relaxed">
+                  Manage your profile and track your progress
+                </p>
+              </div>
+            </div>
+            
+            {/* Live Status Section */}
+            <div className="bg-white rounded-lg shadow-lg p-6 min-w-fit">
+              <div className="flex items-center gap-3 mb-4">
+                <Navigation className="h-6 w-6 text-logoGold" />
+                <h3 className="text-lg font-heading font-bold text-gray-900">Live Status</h3>
+              </div>
+              {freelancerProfile.liveStatus && (
+                <div className="mb-4">
+                  <Badge className={`${getStatusColor(freelancerProfile.liveStatus)} text-base px-4 py-2 font-semibold`}>
+                    {freelancerProfile.liveStatus}
+                  </Badge>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {LIVE_STATUS_OPTIONS.map((status) => (
+                  <Button
+                    key={status}
+                    onClick={() => handleLiveStatusUpdate(status)}
+                    disabled={updatingStatus || freelancerProfile.liveStatus === status}
+                    variant={freelancerProfile.liveStatus === status ? 'default' : 'outline'}
+                    className={`text-sm font-semibold transition-all ${
+                      freelancerProfile.liveStatus === status
+                        ? 'bg-logoGold text-logoBlack hover:bg-logoGold/90'
+                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {status}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
 

@@ -125,6 +125,8 @@ export interface Freelancers {
   customersReview?: string;
   /** @wixFieldType reference */
   reference?: ClientReviews;
+  /** @wixFieldType text */
+  liveStatus?: string;
 }
 
 
