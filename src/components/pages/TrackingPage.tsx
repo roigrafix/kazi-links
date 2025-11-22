@@ -275,11 +275,6 @@ export default function TrackingPage() {
     };
 
     fetchUserBookings();
-    
-    // Set up real-time polling to fetch updated bookings every 5 seconds
-    const pollInterval = setInterval(fetchUserBookings, 5000);
-    
-    return () => clearInterval(pollInterval);
   }, [member?.loginEmail]);
 
 
