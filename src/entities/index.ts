@@ -45,6 +45,8 @@ export interface Bookings {
   clientEmail?: string;
   /** @wixFieldType text */
   clientPhone?: string;
+  /** @wixFieldType text */
+  liveStatus?: string;
 }
 
 
@@ -83,6 +85,8 @@ export interface Freelancers {
   _updatedDate?: Date;
   /** @wixFieldType text */
   city?: string;
+  /** @wixFieldType text */
+  liveStatus?: string;
   /** @wixFieldType text */
   serviceCities?: string;
   /** @wixFieldType text */
@@ -125,8 +129,6 @@ export interface Freelancers {
   customersReview?: string;
   /** @wixFieldType reference */
   reference?: ClientReviews;
-  /** @wixFieldType text */
-  liveStatus?: string;
 }
 
 

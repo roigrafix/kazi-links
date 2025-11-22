@@ -42,7 +42,7 @@ export default function FreelancerDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
 
   // Form states
   const [profileForm, setProfileForm] = useState({
@@ -180,33 +180,36 @@ export default function FreelancerDashboardPage() {
     }
   };
 
-  const handleLiveStatusUpdate = async (status: string) => {
-    if (!freelancerProfile) return;
-
+  const handleBookingLiveStatusUpdate = async (bookingId: string, status: string) => {
     try {
-      setUpdatingStatus(true);
+      setUpdatingBookingId(bookingId);
       
-      const updatedProfile = {
-        ...freelancerProfile,
+      const bookingToUpdate = bookings.find(b => b._id === bookingId);
+      if (!bookingToUpdate) return;
+
+      const updatedBooking = {
+        ...bookingToUpdate,
         liveStatus: status
       };
 
-      await BaseCrudService.update('freelancers', updatedProfile);
-      setFreelancerProfile(updatedProfile);
+      await BaseCrudService.update('bookings', updatedBooking);
+      
+      // Update local state
+      setBookings(bookings.map(b => b._id === bookingId ? updatedBooking : b));
       
       toast({
         title: "Success",
-        description: `Live status updated to "${status}"`,
+        description: `Booking status updated to "${status}"`,
       });
     } catch (error) {
-      console.error('Error updating live status:', error);
+      console.error('Error updating booking live status:', error);
       toast({
         title: "Error",
-        description: "Failed to update live status.",
+        description: "Failed to update booking status.",
         variant: "destructive",
       });
     } finally {
-      setUpdatingStatus(false);
+      setUpdatingBookingId(null);
     }
   };
 
@@ -275,30 +278,7 @@ export default function FreelancerDashboardPage() {
                 <Navigation className="h-6 w-6 text-logoGold" />
                 <h3 className="text-lg font-heading font-bold text-gray-900">Live Status</h3>
               </div>
-              {freelancerProfile.liveStatus && (
-                <div className="mb-4">
-                  <Badge className={`${getStatusColor(freelancerProfile.liveStatus)} text-base px-4 py-2 font-semibold`}>
-                    {freelancerProfile.liveStatus}
-                  </Badge>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {LIVE_STATUS_OPTIONS.map((status) => (
-                  <Button
-                    key={status}
-                    onClick={() => handleLiveStatusUpdate(status)}
-                    disabled={updatingStatus || freelancerProfile.liveStatus === status}
-                    variant={freelancerProfile.liveStatus === status ? 'default' : 'outline'}
-                    className={`text-sm font-semibold transition-all ${
-                      freelancerProfile.liveStatus === status
-                        ? 'bg-logoGold text-logoBlack hover:bg-logoGold/90'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {status}
-                  </Button>
-                ))}
-              </div>
+              <p className="text-sm text-gray-600 mb-4">Update status for active bookings below</p>
             </div>
           </div>
 
@@ -720,6 +700,45 @@ export default function FreelancerDashboardPage() {
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Address:</p>
                           <p className="text-base text-gray-700">{booking.serviceAddress}</p>
+                        </div>
+                      )}
+
+                      {/* Live Status Update Section for Booking */}
+                      {booking.bookingStatus !== 'completed' && (
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                              <Navigation className="h-5 w-5 text-logoGold" />
+                              <h4 className="font-semibold text-gray-900">Live Status Update</h4>
+                            </div>
+                            {booking.liveStatus && (
+                              <Badge className={`${getStatusColor(booking.liveStatus)} text-sm px-3 py-1 font-semibold`}>
+                                {booking.liveStatus}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {LIVE_STATUS_OPTIONS.map((status) => (
+                              <Button
+                                key={status}
+                                onClick={() => handleBookingLiveStatusUpdate(booking._id, status)}
+                                disabled={updatingBookingId === booking._id || booking.liveStatus === status}
+                                variant={booking.liveStatus === status ? 'default' : 'outline'}
+                                size="sm"
+                                className={`text-xs font-semibold transition-all ${
+                                  booking.liveStatus === status
+                                    ? 'bg-logoGold text-logoBlack hover:bg-logoGold/90'
+                                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                {updatingBookingId === booking._id ? (
+                                  <LoadingSpinner />
+                                ) : (
+                                  status
+                                )}
+                              </Button>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
