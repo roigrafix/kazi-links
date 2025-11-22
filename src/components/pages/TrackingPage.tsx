@@ -12,9 +12,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Shield, MessageSquare, Settings, Star, History } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Shield, MessageSquare, Settings, Star, History, Zap } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
 import { notificationService, OTPDeliveryOptions } from '@/services/notificationService';
+import { realtimeService } from '@/services/realtimeService';
 
 export default function TrackingPage() {
   const { member } = useMember();
@@ -23,6 +24,9 @@ export default function TrackingPage() {
   const [pastBookings, setPastBookings] = useState<Bookings[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
+  const [realtimeUpdates, setRealtimeUpdates] = useState<Map<string, Bookings>>(new Map());
+  
+  // ... keep existing code (OTP states and provider configuration states) ...
   
   // OTP states
   const [showOTPDialog, setShowOTPDialog] = useState(false);
@@ -267,6 +271,38 @@ export default function TrackingPage() {
         
         setActiveBookings(active);
         setPastBookings(past);
+
+        // Subscribe to real-time updates for all active bookings
+        const activeBookingIds = active.map(b => b._id);
+        if (activeBookingIds.length > 0) {
+          const unsubscribe = realtimeService.subscribeToMultiple(
+            activeBookingIds,
+            (updatedBooking) => {
+              // Update the booking in state
+              setRealtimeUpdates(prev => {
+                const newMap = new Map(prev);
+                newMap.set(updatedBooking._id, updatedBooking);
+                return newMap;
+              });
+
+              // Update active bookings with the latest data
+              setActiveBookings(prev =>
+                prev.map(b => b._id === updatedBooking._id ? updatedBooking : b)
+              );
+
+              // Update main bookings array
+              setBookings(prev =>
+                prev.map(b => b._id === updatedBooking._id ? updatedBooking : b)
+              );
+            }
+          );
+
+          // Cleanup on unmount
+          return () => {
+            unsubscribe();
+            realtimeService.stopAllPolling();
+          };
+        }
       } catch (error) {
         console.error('Error fetching user bookings:', error);
       } finally {
@@ -458,6 +494,20 @@ export default function TrackingPage() {
                       <p className={`text-sm ${etaInfo.color}`}>
                         {etaInfo.text}
                       </p>
+                      
+                      {/* Real-time Update Indicator */}
+                      {realtimeUpdates.has(booking._id) && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="mt-3 p-2 bg-green-500/20 rounded-lg border border-green-500/50"
+                        >
+                          <div className="flex items-center justify-center gap-2 mb-2">
+                            <Zap className="h-3 w-3 text-green-500 animate-pulse" />
+                            <span className="text-xs font-semibold text-green-500">Live Update</span>
+                          </div>
+                        </motion.div>
+                      )}
                       
                       {booking.liveStatus && ['on the way', '10mins', '5mins', '2mins'].includes(booking.liveStatus.toLowerCase()) && (
                         <div className="mt-3">
