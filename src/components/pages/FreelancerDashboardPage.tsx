@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMember } from '@/integrations';
 import { BaseCrudService } from '@/integrations';
-import { Freelancers, Bookings } from '@/entities';
+import { Freelancers, Bookings, ClientReviews } from '@/entities';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, User, Briefcase, TrendingUp, Star, MapPin, Phone, Mail, Navigation } from 'lucide-react';
+import { Calendar, Clock, User, Briefcase, TrendingUp, Star, MapPin, Phone, Mail, Navigation, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 
@@ -39,6 +39,7 @@ export default function FreelancerDashboardPage() {
   const { toast } = useToast();
   const [freelancerProfile, setFreelancerProfile] = useState<Freelancers | null>(null);
   const [bookings, setBookings] = useState<Bookings[]>([]);
+  const [reviews, setReviews] = useState<ClientReviews[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
@@ -107,6 +108,17 @@ export default function FreelancerDashboardPage() {
         const { items: allBookings } = await BaseCrudService.getAll<Bookings>('bookings');
         const freelancerBookings = allBookings.filter(b => b.freelancerName === freelancer.fullName);
         setBookings(freelancerBookings);
+
+        // Load reviews for this freelancer
+        const { items: allReviews } = await BaseCrudService.getAll<ClientReviews>('clientreviews');
+        const freelancerReviews = allReviews.filter(review => 
+          review.freelancerId === freelancer._id
+        ).sort((a, b) => {
+          const dateA = new Date(a.reviewDate || a._createdDate || 0);
+          const dateB = new Date(b.reviewDate || b._createdDate || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
+        setReviews(freelancerReviews);
       }
     } catch (error) {
       console.error('Error loading freelancer data:', error);
@@ -221,7 +233,12 @@ export default function FreelancerDashboardPage() {
       .filter(b => b.bookingStatus === 'completed')
       .reduce((sum, b) => sum + (b.paymentAmount || 0), 0);
     
-    return { totalBookings, completedBookings, pendingBookings, totalEarnings };
+    // Calculate average rating from reviews
+    const averageRating = reviews.length > 0 
+      ? (reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / reviews.length).toFixed(1)
+      : '0.0';
+    
+    return { totalBookings, completedBookings, pendingBookings, totalEarnings, averageRating };
   };
 
   if (loading) {
@@ -333,8 +350,8 @@ export default function FreelancerDashboardPage() {
                     <Star className="h-8 w-8 text-purple-600" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Earnings</p>
-                    <p className="text-3xl font-bold text-gray-900">₹{stats.totalEarnings.toLocaleString()}</p>
+                    <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Average Rating</p>
+                    <p className="text-3xl font-bold text-gray-900">{stats.averageRating} ⭐</p>
                   </div>
                 </div>
               </CardContent>
@@ -344,7 +361,7 @@ export default function FreelancerDashboardPage() {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-14 bg-white border border-gray-200 rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-5 h-14 bg-white border border-gray-200 rounded-lg p-1">
             <TabsTrigger 
               value="overview" 
               className="text-base font-medium data-[state=active]:bg-logoGold data-[state=active]:text-logoBlack data-[state=active]:shadow-sm"
@@ -368,6 +385,12 @@ export default function FreelancerDashboardPage() {
               className="text-base font-medium data-[state=active]:bg-logoGold data-[state=active]:text-logoBlack data-[state=active]:shadow-sm"
             >
               Bookings
+            </TabsTrigger>
+            <TabsTrigger 
+              value="reviews" 
+              className="text-base font-medium data-[state=active]:bg-logoGold data-[state=active]:text-logoBlack data-[state=active]:shadow-sm"
+            >
+              Reviews ({reviews.length})
             </TabsTrigger>
           </TabsList>
 
@@ -752,6 +775,101 @@ export default function FreelancerDashboardPage() {
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-8 mt-8">
+            <Card className="bg-white border-0 shadow-lg">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-2xl font-heading font-bold text-gray-900">Client Reviews</CardTitle>
+                <CardDescription className="text-base text-gray-600 mt-2">
+                  Reviews from clients who have booked your services
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {reviews.length > 0 ? (
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-r from-logoGold/10 to-purple-100 rounded-lg p-6 mb-8">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Overall Rating</p>
+                          <div className="flex items-center gap-3">
+                            <p className="text-4xl font-bold text-gray-900">{stats.averageRating}</p>
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-5 w-5 ${
+                                    i < Math.round(Number(stats.averageRating)) ? 'text-logoGold fill-current' : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-bold text-gray-900">{reviews.length}</p>
+                          <p className="text-sm text-gray-600">Total Review{reviews.length !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {reviews.map((review) => (
+                        <div key={review._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < (review.rating || 0) ? 'text-logoGold fill-current' : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm font-semibold text-gray-500">
+                              {review.reviewDate 
+                                ? new Date(review.reviewDate).toLocaleDateString()
+                                : review._createdDate 
+                                  ? new Date(review._createdDate).toLocaleDateString()
+                                  : 'Recent'
+                              }
+                            </span>
+                          </div>
+                          
+                          {review.reviewTitle && (
+                            <h4 className="font-heading text-lg font-semibold text-gray-900 mb-2">
+                              {review.reviewTitle}
+                            </h4>
+                          )}
+                          
+                          <p className="font-paragraph text-gray-700 mb-4 leading-relaxed">
+                            "{review.reviewContent}"
+                          </p>
+                          
+                          <div className="pt-4 border-t border-gray-200">
+                            <p className="font-semibold text-gray-900">{review.clientName}</p>
+                            <p className="text-sm text-gray-600">Verified Booking</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Star className="h-12 w-12 text-gray-300" />
+                    </div>
+                    <h3 className="font-heading text-xl font-semibold text-gray-900 mb-2">
+                      No Reviews Yet
+                    </h3>
+                    <p className="font-paragraph text-gray-600 max-w-md mx-auto">
+                      Once clients complete bookings and leave reviews, they will appear here. Keep providing excellent service to earn positive reviews!
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
