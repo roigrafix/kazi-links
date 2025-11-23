@@ -24,6 +24,7 @@ export default function TrackingPage() {
   const [pastBookings, setPastBookings] = useState<Bookings[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
+  const [completingBookingId, setCompletingBookingId] = useState<string | null>(null);
   const [realtimeUpdates, setRealtimeUpdates] = useState<Map<string, Bookings>>(new Map());
   
   // ... keep existing code (OTP states and provider configuration states) ...
@@ -241,6 +242,42 @@ export default function TrackingPage() {
     await sendOTP(booking);
   };
 
+  // Handle mark as completed button click
+  const handleMarkAsCompleted = async (booking: Bookings) => {
+    setCompletingBookingId(booking._id);
+    try {
+      await BaseCrudService.update('bookings', {
+        _id: booking._id,
+        bookingStatus: 'completed'
+      });
+      
+      // Update local state for active bookings
+      setActiveBookings(prev => 
+        prev.filter(b => b._id !== booking._id)
+      );
+      
+      // Update local state for past bookings (add completed booking to past)
+      setPastBookings(prev => [
+        ...prev,
+        { ...booking, bookingStatus: 'completed' }
+      ]);
+      
+      // Also update the main bookings array
+      setBookings(prev => 
+        prev.map(b => 
+          b._id === booking._id 
+            ? { ...b, bookingStatus: 'completed' }
+            : b
+        )
+      );
+      
+    } catch (error) {
+      console.error('Error marking booking as completed:', error);
+    } finally {
+      setCompletingBookingId(null);
+    }
+  };
+
   useEffect(() => {
     const fetchUserBookings = async () => {
       if (!member?.loginEmail) return;
@@ -432,21 +469,35 @@ export default function TrackingPage() {
                   </div>
                 </div>
 
-                {/* Cancel Booking Button - Only for active bookings */}
-                {canCancelBooking(booking) && (
-                  <div className="mt-4">
+                {/* Action Buttons */}
+                <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                  {/* Mark as Completed Button - Only for active bookings */}
+                  {booking.bookingStatus !== 'cancelled' && booking.bookingStatus !== 'completed' && (
+                    <Button 
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                      onClick={() => handleMarkAsCompleted(booking)}
+                      disabled={completingBookingId === booking._id}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      {completingBookingId === booking._id ? 'Marking...' : 'Mark as Completed'}
+                    </Button>
+                  )}
+
+                  {/* Cancel Booking Button - Only for active bookings */}
+                  {canCancelBooking(booking) && (
                     <Button 
                       variant="destructive" 
                       size="sm"
-                      className="bg-red-600 hover:bg-red-700 text-white"
+                      className="bg-red-600 hover:bg-red-700 text-white flex-1"
                       onClick={() => handleCancelBookingClick(booking)}
                       disabled={cancellingBookingId === booking._id}
                     >
                       <X className="h-4 w-4 mr-2" />
                       {cancellingBookingId === booking._id ? 'Cancelling...' : 'Cancel Booking'}
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Write Review Button - Only show for completed bookings */}
                 {booking.bookingStatus === 'completed' && (
@@ -454,7 +505,7 @@ export default function TrackingPage() {
                     <Button 
                       asChild
                       size="sm"
-                      className="bg-logoGold text-logoBlack hover:bg-logoGold/90"
+                      className="bg-logoGold text-logoBlack hover:bg-logoGold/90 w-full"
                     >
                       <Link to={`/review?booking=${booking._id}`}>
                         <Star className="h-4 w-4 mr-2" />
