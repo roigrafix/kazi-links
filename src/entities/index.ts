@@ -23,8 +23,8 @@ export interface Bookings {
   serviceState?: string;
   /** @wixFieldType text */
   freelancerName?: string;
-  /** @wixFieldType date @format YYYY-MM-DD */
-  bookingDate?: string;
+  /** @wixFieldType date */
+  bookingDate?: Date | string;
   /** @wixFieldType time */
   bookingTime?: any;
   /** @wixFieldType text */
@@ -68,8 +68,8 @@ export interface ClientReviews {
   rating?: number;
   /** @wixFieldType text */
   reviewContent?: string;
-  /** @wixFieldType datetime @format {$date: "ISO_STRING"} (e.g., {$date: "2024-03-10T00:00:00Z"}) */
-  reviewDate?: { $date: string };
+  /** @wixFieldType datetime */
+  reviewDate?: Date | string;
   /** @wixFieldType text */
   reviewTitle?: string;
 }

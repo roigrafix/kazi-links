@@ -129,17 +129,10 @@ export default function FreelancerDetailPage() {
                     <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-400 rounded-full border-4 border-white"></div>
                   </div>
 
-                  {/* Name and Contact */}
-                  <h1 className="font-heading text-2xl font-bold mb-2">
+                  {/* Name */}
+                  <h1 className="font-heading text-2xl font-bold mb-6">
                     {freelancer.fullName}
                   </h1>
-                  
-                  {freelancer.contactEmail && (
-                    <div className="flex items-center justify-center gap-2 mb-4 text-secondary-foreground/70">
-                      <Mail className="h-4 w-4" />
-                      <span className="text-sm">{freelancer.contactEmail}</span>
-                    </div>
-                  )}
 
                   {/* Rating and Rate */}
                   <div className="flex items-center justify-center gap-4 mb-6">
