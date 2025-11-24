@@ -69,7 +69,7 @@
     "@wix/faq": "^1.0.30",
     "@wix/fast-gallery-vibe": "1.4.0",
     "@wix/forms": "^1.0.352",
-    "@wix/headless-components": "^0.0.29",
+    "@wix/headless-components": "^0.0.31",
     "@wix/image": "^1.392.0",
     "@wix/image-kit": "^1.0.0",
     "@wix/media": "^1.0.189",
