@@ -9,14 +9,27 @@ import { WixDataItem } from ".";
 export class BaseCrudService {
   /**
    * Creates a new item in the collection
-   * @param itemData - Data for the new item
+   * @param itemData - Data for the new item (single reference fields should be IDs: string)
+   * @param multiReferences - Multi-reference fields as Record<fieldName, arrayOfIds>
    * @returns Promise<T> - The created item
    */
-  static async create<T extends WixDataItem>(collectionId: string, itemData: T): Promise<T> {
+  static async create<T extends WixDataItem>(
+    collectionId: string,
+    itemData: Partial<T> | Record<string, unknown>,
+    multiReferences?: Record<string, any>
+  ): Promise<T> {
     try {
-      const result = await items.insert(collectionId, itemData);
+      const result = await items.insert(collectionId, itemData as Record<string, unknown>);
+
+      if (multiReferences && Object.keys(multiReferences).length > 0 && result._id) {
+        for (const [propertyName, refIds] of Object.entries(multiReferences)) {
+          await items.insertReference(collectionId, propertyName, result._id, refIds as string[]);
+        }
+      }
+
       return result as T;
     } catch (error) {
+      // Should consider reverting the insert with a remove in order to prevent partial insert.
       console.error(`Error creating ${collectionId}:`, error);
       throw new Error(
         error instanceof Error ? error.message : `Failed to create ${collectionId}`
@@ -88,7 +101,7 @@ export class BaseCrudService {
 
   /**
    * Updates an existing item
-   * @param itemData - Updated item data (must include _id)
+   * @param itemData - Updated item data (must include _id, only include fields to update)
    * @returns Promise<T> - The updated item
    */
   static async update<T extends WixDataItem>(collectionId: string, itemData: T): Promise<T> {
@@ -97,7 +110,11 @@ export class BaseCrudService {
         throw new Error(`${collectionId} ID is required for update`);
       }
 
-      const result = await items.update(collectionId, itemData);
+      const currentItem = await this.getById<T>(collectionId, itemData._id);
+
+      const mergedData = { ...currentItem, ...itemData };
+
+      const result = await items.update(collectionId, mergedData);
       return result as T;
     } catch (error) {
       console.error(`Error updating ${collectionId}:`, error);
