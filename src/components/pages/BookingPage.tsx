@@ -428,7 +428,7 @@ export default function BookingPage() {
         _id: crypto.randomUUID(),
         serviceName: formData.serviceName,
         freelancerName: formData.freelancerName,
-        bookingDate: formData.bookingDate,
+        bookingDate: formData.bookingDate?.toISOString(),
         bookingTime: formData.bookingTime,
         serviceLocationType: formData.serviceLocationType,
         serviceAddress: serviceAddress,
@@ -952,11 +952,50 @@ export default function BookingPage() {
                           mode="single"
                           selected={formData.bookingDate}
                           onSelect={(date) => setFormData(prev => ({ ...prev, bookingDate: date }))}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => {
+                            // Disable past dates
+                            if (date < new Date()) return true;
+                            
+                            // Disable dates that don't match available days
+                            if (selectedFreelancer?.availableDays) {
+                              const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                              const availableDays = selectedFreelancer.availableDays.split(',').map(day => day.trim());
+                              if (availableDays.length > 0 && !availableDays.includes(dayName)) {
+                                return true;
+                              }
+                            }
+                            
+                            // Disable blocked dates
+                            if (selectedFreelancer?.blockedDates) {
+                              const blockedDates = selectedFreelancer.blockedDates.split(',').map(d => d.trim());
+                              const dateString = date.toISOString().split('T')[0];
+                              if (blockedDates.includes(dateString)) {
+                                return true;
+                              }
+                            }
+                            
+                            return false;
+                          }}
                           initialFocus
                         />
                       </PopoverContent>
                     </Popover>
+                    
+                    {/* Availability Info */}
+                    {selectedFreelancer && (
+                      <div className="mt-3 space-y-2 text-sm">
+                        {selectedFreelancer.availableDays && (
+                          <div className="bg-blue-50 rounded p-2 text-blue-800">
+                            <strong>Available Days:</strong> {selectedFreelancer.availableDays}
+                          </div>
+                        )}
+                        {selectedFreelancer.blockedDates && (
+                          <div className="bg-red-50 rounded p-2 text-red-800">
+                            <strong>Blocked Dates:</strong> {selectedFreelancer.blockedDates}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Time Selection */}
