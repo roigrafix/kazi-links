@@ -173,7 +173,7 @@ export default function HomePage() {
                     <CardContent className="p-0">
                       <div className="relative overflow-hidden rounded-t-lg">
                         <Image
-                          src={index === 0 ? 'https://static.wixstatic.com/media/d6d795_eabe2fdfb9784cb39308a728953b52a9~mv2.png?originWidth=384&originHeight=256' : (category.categoryImage || 'https://static.wixstatic.com/media/d6d795_94b37e5959234373a8d283760576486b~mv2.png?originWidth=384&originHeight=192')}
+                          src={category.categoryImage || 'https://static.wixstatic.com/media/d6d795_94b37e5959234373a8d283760576486b~mv2.png?originWidth=384&originHeight=192'}
                           alt={category.categoryName || 'Service category'}
                           width={400}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
