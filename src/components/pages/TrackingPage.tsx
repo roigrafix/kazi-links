@@ -48,9 +48,9 @@ export default function TrackingPage() {
   const configureProviders = () => {
     if (twilioAccountSid.trim() && twilioAuthToken.trim() && twilioPhoneNumber.trim()) {
       // Store in localStorage for persistence
-      localStorage.setItem(ACfd9172eeae25bf29c2dbb1311d7d358b, twilioAccountSid.trim());
-      localStorage.setItem(d04a0241023a0ea97d463d624d73829b, twilioAuthToken.trim());
-      localStorage.setItem(+12513124247, twilioPhoneNumber.trim());
+      localStorage.setItem('ACfd9172eeae25bf29c2dbb1311d7d358b', twilioAccountSid.trim());
+      localStorage.setItem('d04a0241023a0ea97d463d624d73829b', twilioAuthToken.trim());
+      localStorage.setItem('+12513124247', twilioPhoneNumber.trim());
     }
     
     setShowProviderConfig(false);
