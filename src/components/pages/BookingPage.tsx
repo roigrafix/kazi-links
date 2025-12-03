@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Image } from '@/components/ui/image';
 import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter } from 'lucide-react';
 import { format } from 'date-fns';
+import { sendGridService } from '@/services/sendgridService';
 
 interface BookingFormData {
   serviceName: string;

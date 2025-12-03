@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Image } from '@/components/ui/image';
 import { Star, ArrowLeft, CheckCircle } from 'lucide-react';
+import { sendGridService } from '@/services/sendgridService';
 
 export default function ReviewPage() {
   const [searchParams] = useSearchParams();
@@ -84,6 +85,18 @@ export default function ReviewPage() {
       };
 
       await BaseCrudService.create('clientreviews', reviewData);
+      
+      // Send review notification email to freelancer
+      await sendGridService.sendReviewNotification({
+        freelancerName: freelancer.fullName || 'Freelancer',
+        freelancerEmail: freelancer.contactEmail || 'noreply@servicebooking.com',
+        clientName: clientName,
+        rating: rating,
+        reviewTitle: reviewTitle,
+        reviewContent: reviewContent,
+        serviceName: booking.serviceName || 'Service'
+      });
+      
       setIsSubmitted(true);
     } catch (error) {
       console.error('Error submitting review:', error);

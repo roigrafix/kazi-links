@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { HeadphonesIcon, AlertTriangleIcon, RefreshCwIcon, MessageSquareIcon, ArrowLeftIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { sendGridService } from '@/services/sendgridService';
 
 export default function SupportRequestPage() {
   const { toast } = useToast();
@@ -29,7 +30,18 @@ export default function SupportRequestPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simulate form submission
+    const supportRequestId = crypto.randomUUID();
+    
+    // Send support request confirmation email
+    await sendGridService.sendSupportRequestConfirmation({
+      clientName: formData.name,
+      clientEmail: formData.email,
+      subject: formData.subject,
+      message: formData.description,
+      supportRequestId: supportRequestId
+    });
+    
+    // Show success toast
     toast({
       title: "Support Request Submitted",
       description: "We've received your request and will get back to you within 24 hours.",
