@@ -17,6 +17,7 @@ import FreelancerDashboardPage from '@/components/pages/FreelancerDashboardPage'
 import SupportRequestPage from '@/components/pages/SupportRequestPage';
 import ReviewPage from '@/components/pages/ReviewPage';
 import AdminDashboardPage from '@/components/pages/AdminDashboardPage';
+import SMSAuthPage from '@/components/pages/SMSAuthPage';
 import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
 import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
 import { FreelancerProtectedRoute } from '@/components/ui/freelancer-protected-route';
@@ -67,6 +68,10 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <LoginPage />,
+      },
+      {
+        path: "sms-auth",
+        element: <SMSAuthPage />,
       },
       {
         path: "profile",
