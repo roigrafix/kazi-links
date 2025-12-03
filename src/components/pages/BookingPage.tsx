@@ -39,6 +39,8 @@ interface BookingFormData {
   clientLocation: string;
 }
 
+const PLATFORM_FEE_PERCENTAGE = 0.1; // 10%
+
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -87,6 +89,14 @@ export default function BookingPage() {
     serviceCity: '',
     clientLocation: ''
   });
+
+  // Calculate total with platform fee
+  const calculateTotal = (amount: number) => {
+    return amount + (amount * PLATFORM_FEE_PERCENTAGE);
+  };
+
+  const platformFee = formData.paymentAmount * PLATFORM_FEE_PERCENTAGE;
+  const totalAmount = calculateTotal(formData.paymentAmount);
 
   // Generate available time slots based on freelancer availability and existing bookings
   const getAvailableTimeSlots = async (freelancer: Freelancers, date: Date): Promise<string[]> => {
@@ -435,7 +445,7 @@ export default function BookingPage() {
         clientName: formData.clientName,
         clientEmail: formData.clientEmail,
         clientPhone: formData.clientPhone,
-        paymentAmount: formData.paymentAmount,
+        paymentAmount: totalAmount,
         transportationCost: 0, // Transportation cost will be sent via email
         bookingStatus: 'confirmed',
         paymentStatus: 'paid',
@@ -1238,7 +1248,11 @@ export default function BookingPage() {
                       </div>
                       <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span>Service Cost:</span>
-                        <span className="font-medium">₹{formData.paymentAmount}</span>
+                        <span className="font-medium">₹{formData.paymentAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                        <span>Platform Usage Fee (10%):</span>
+                        <span className="font-medium text-orange-600">₹{platformFee.toFixed(2)}</span>
                       </div>
                       {formData.serviceLocationType === 'client' && (
                         <div className="text-sm text-gray-600 italic">
@@ -1248,7 +1262,7 @@ export default function BookingPage() {
                       <div className="border-t pt-3 flex flex-col sm:flex-row sm:justify-between gap-1 font-semibold text-lg">
                         <span>Total:</span>
                         <span className="text-brightpink">
-                          ₹{formData.paymentAmount}
+                          ₹{totalAmount.toFixed(2)}
                         </span>
                       </div>
                     </div>
