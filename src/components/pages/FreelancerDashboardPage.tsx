@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, User, Briefcase, TrendingUp, Star, MapPin, Phone, Mail, Navigation, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, User, Briefcase, TrendingUp, Star, MapPin, Phone, Mail, Navigation, MessageSquare, Download } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 
@@ -222,6 +222,77 @@ export default function FreelancerDashboardPage() {
       });
     } finally {
       setUpdatingBookingId(null);
+    }
+  };
+
+  const handleAddToCalendar = (booking: Bookings) => {
+    if (!booking.bookingDate) {
+      toast({
+        title: "Error",
+        description: "Booking date is not available.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Parse booking date and time
+    const bookingDate = new Date(booking.bookingDate);
+    const [hours, minutes] = (booking.bookingTime || '09:00').split(':');
+    bookingDate.setHours(parseInt(hours), parseInt(minutes));
+
+    // Create calendar event details
+    const eventTitle = `${booking.serviceName} - ${booking.clientName}`;
+    const eventDescription = `Client: ${booking.clientName}\nService: ${booking.serviceName}\nLocation: ${booking.serviceAddress || booking.serviceCity}\nPayment: ₹${booking.paymentAmount}`;
+    const eventLocation = booking.serviceAddress || `${booking.serviceCity}, ${booking.serviceState}`;
+    
+    // Format dates for calendar
+    const startDate = bookingDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const endDate = new Date(bookingDate.getTime() + 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+    // Create Google Calendar link
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(eventDescription)}&location=${encodeURIComponent(eventLocation)}`;
+
+    // Create iCal format for other calendar apps
+    const icalContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Freelancer Booking//EN
+BEGIN:VEVENT
+UID:${booking._id}@freelancer-booking
+DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTSTART:${startDate}
+DTEND:${endDate}
+SUMMARY:${eventTitle}
+DESCRIPTION:${eventDescription}
+LOCATION:${eventLocation}
+END:VEVENT
+END:VCALENDAR`;
+
+    // Show options to user
+    const userChoice = window.confirm(
+      'Choose your calendar app:\n\nOK = Google Calendar\nCancel = Download .ics file'
+    );
+
+    if (userChoice) {
+      // Open Google Calendar
+      window.open(googleCalendarUrl, '_blank');
+      toast({
+        title: "Success",
+        description: "Opening Google Calendar...",
+      });
+    } else {
+      // Download iCal file
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icalContent));
+      element.setAttribute('download', `${booking.serviceName}-${booking.clientName}.ics`);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      
+      toast({
+        title: "Success",
+        description: "Calendar file downloaded. Import it to your calendar app.",
+      });
     }
   };
 
@@ -764,6 +835,17 @@ export default function FreelancerDashboardPage() {
                           </div>
                         </div>
                       )}
+
+                      {/* Add to Calendar Button */}
+                      <div className="mt-6 pt-6 border-t border-gray-200">
+                        <Button
+                          onClick={() => handleAddToCalendar(booking)}
+                          className="w-full h-11 text-base font-semibold bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2"
+                        >
+                          <Calendar className="h-5 w-5" />
+                          Add to Calendar
+                        </Button>
+                      </div>
                     </div>
                   ))}
 
