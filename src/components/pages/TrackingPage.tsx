@@ -4,15 +4,11 @@ import { Link } from 'react-router-dom';
 import { BaseCrudService, useMember } from '@/integrations';
 import { Bookings } from '@/entities';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Shield, Star, History, Zap, MessageSquare, Settings } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Star, History, Zap } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
-import { twilioService } from '@/services/twilioService';
 import { realtimeService } from '@/services/realtimeService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,40 +22,6 @@ export default function TrackingPage() {
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
   const [completingBookingId, setCompletingBookingId] = useState<string | null>(null);
   const [realtimeUpdates, setRealtimeUpdates] = useState<Map<string, Bookings>>(new Map());
-  
-  // SMS OTP states
-  const [showOTPDialog, setShowOTPDialog] = useState(false);
-  const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<Bookings | null>(null);
-  const [otpCode, setOtpCode] = useState('');
-  const [generatedOTP, setGeneratedOTP] = useState('');
-  const [isOTPSending, setIsOTPSending] = useState(false);
-  const [isOTPSent, setIsOTPSent] = useState(false);
-  const [otpError, setOtpError] = useState('');
-  const [otpResendTimer, setOtpResendTimer] = useState(0);
-  const [isOTPVerifying, setIsOTPVerifying] = useState(false);
-  const [showProviderConfig, setShowProviderConfig] = useState(false);
-  
-  // Provider configuration states
-  const [twilioAccountSid, setTwilioAccountSid] = useState('');
-  const [twilioAuthToken, setTwilioAuthToken] = useState('');
-  const [twilioPhoneNumber, setTwilioPhoneNumber] = useState('');
-  
-  // Configure providers with user-provided credentials
-  const configureProviders = () => {
-    if (twilioAccountSid.trim() && twilioAuthToken.trim() && twilioPhoneNumber.trim()) {
-      // Store in localStorage for persistence
-      localStorage.setItem('twilioAccountSid', twilioAccountSid.trim());
-      localStorage.setItem('twilioAuthToken', twilioAuthToken.trim());
-      localStorage.setItem('twilioPhoneNumber', twilioPhoneNumber.trim());
-    }
-    
-    setShowProviderConfig(false);
-  };
-  
-  // Check if Twilio is configured
-  const isTwilioConfigured = () => {
-    return twilioService.isConfigured();
-  };
 
   // Check if booking can be cancelled (12 hours before booking date)
   const canCancelBooking = (booking: Bookings): boolean => {
@@ -80,127 +42,34 @@ export default function TrackingPage() {
     return hoursUntilBooking >= 12;
   };
 
-  // Generate a 6-digit OTP
-  const generateOTP = (): string => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  };
-
-  // Send OTP via Twilio SMS
-  const sendOTP = async (booking: Bookings): Promise<boolean> => {
-    setIsOTPSending(true);
-    setOtpError('');
-    
+  // Handle cancel booking button click
+  const handleCancelBooking = async (booking: Bookings) => {
+    setCancellingBookingId(booking._id);
     try {
-      if (!booking.clientPhone) {
-        setOtpError('Phone number not available for this booking.');
-        return false;
-      }
-
-      // Generate new OTP
-      const newOTP = generateOTP();
-      setGeneratedOTP(newOTP);
-      
-      // Format phone number to E.164 format
-      const formattedPhone = twilioService.formatPhoneNumber(booking.clientPhone);
-      
-      // Send OTP via Twilio
-      const result = await twilioService.sendOTP(formattedPhone);
-      
-      if (result.success) {
-        setIsOTPSent(true);
-        setOtpResendTimer(60); // 60 seconds cooldown
-        toast({
-          title: 'OTP Sent',
-          description: `Verification code sent to ${formattedPhone}`,
-        });
-        return true;
-      } else {
-        setOtpError(result.message || 'Failed to send OTP. Please try again.');
-        toast({
-          title: 'Error',
-          description: result.message,
-          variant: 'destructive',
-        });
-        return false;
-      }
-      
-    } catch (error) {
-      setOtpError('Failed to send OTP. Please try again.');
-      console.error('OTP sending error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to send OTP. Please try again.',
-        variant: 'destructive',
-      });
-      return false;
-    } finally {
-      setIsOTPSending(false);
-    }
-  };
-
-  // Handle OTP resend timer
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (otpResendTimer > 0) {
-      interval = setInterval(() => {
-        setOtpResendTimer(prev => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [otpResendTimer]);
-
-  // Verify OTP and proceed with cancellation
-  const verifyOTPAndCancel = async () => {
-    if (!selectedBookingForCancel) return;
-    
-    setOtpError('');
-    setIsOTPVerifying(true);
-    
-    try {
-      // Verify OTP with Twilio
-      const formattedPhone = twilioService.formatPhoneNumber(selectedBookingForCancel.clientPhone || '');
-      const result = await twilioService.verifyOTP(formattedPhone, otpCode);
-      
-      if (!result.success || !result.valid) {
-        setOtpError(result.message || 'Invalid OTP. Please check and try again.');
-        return;
-      }
-      
-      // OTP verified, proceed with cancellation
-      setCancellingBookingId(selectedBookingForCancel._id);
-      
       await BaseCrudService.update('bookings', {
-        _id: selectedBookingForCancel._id,
+        _id: booking._id,
         bookingStatus: 'cancelled'
       });
       
       // Update local state for active bookings
       setActiveBookings(prev => 
-        prev.map(booking => 
-          booking._id === selectedBookingForCancel._id 
-            ? { ...booking, bookingStatus: 'cancelled' }
-            : booking
-        ).filter(booking => booking.bookingStatus !== 'cancelled')
+        prev.filter(b => b._id !== booking._id)
       );
       
       // Update local state for past bookings (add cancelled booking to past)
       setPastBookings(prev => [
         ...prev,
-        { ...selectedBookingForCancel, bookingStatus: 'cancelled' }
+        { ...booking, bookingStatus: 'cancelled' }
       ]);
       
       // Also update the main bookings array
       setBookings(prev => 
-        prev.map(booking => 
-          booking._id === selectedBookingForCancel._id 
-            ? { ...booking, bookingStatus: 'cancelled' }
-            : booking
+        prev.map(b => 
+          b._id === booking._id 
+            ? { ...b, bookingStatus: 'cancelled' }
+            : b
         )
       );
-      
-      // Close OTP dialog and reset states
-      setShowOTPDialog(false);
-      resetOTPStates();
       
       toast({
         title: 'Success',
@@ -209,7 +78,6 @@ export default function TrackingPage() {
       
     } catch (error) {
       console.error('Error cancelling booking:', error);
-      setOtpError('Failed to cancel booking. Please try again.');
       toast({
         title: 'Error',
         description: 'Failed to cancel booking. Please try again.',
@@ -217,32 +85,7 @@ export default function TrackingPage() {
       });
     } finally {
       setCancellingBookingId(null);
-      setIsOTPVerifying(false);
     }
-  };
-
-  // Reset OTP related states
-  const resetOTPStates = () => {
-    setSelectedBookingForCancel(null);
-    setOtpCode('');
-    setGeneratedOTP('');
-    setIsOTPSent(false);
-    setOtpError('');
-    setOtpResendTimer(0);
-  };
-
-  // Handle cancel booking button click
-  const handleCancelBookingClick = async (booking: Bookings) => {
-    if (!isTwilioConfigured()) {
-      setShowProviderConfig(true);
-      return;
-    }
-    
-    setSelectedBookingForCancel(booking);
-    setShowOTPDialog(true);
-    
-    // Automatically send OTP when dialog opens
-    await sendOTP(booking);
   };
 
   // Handle mark as completed button click
@@ -491,7 +334,7 @@ export default function TrackingPage() {
                       variant="destructive" 
                       size="sm"
                       className="bg-red-600 hover:bg-red-700 text-white flex-1"
-                      onClick={() => handleCancelBookingClick(booking)}
+                      onClick={() => handleCancelBooking(booking)}
                       disabled={cancellingBookingId === booking._id}
                     >
                       <X className="h-4 w-4 mr-2" />
@@ -622,31 +465,6 @@ export default function TrackingPage() {
             <p className="font-paragraph text-xl text-secondary-foreground/70 max-w-2xl mx-auto">
               Track your active bookings and view your booking history
             </p>
-          </motion.div>
-          
-          {/* Provider Configuration Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-center mt-8"
-          >
-            <Button
-              variant="outline"
-              onClick={() => setShowProviderConfig(true)}
-              className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Configure Twilio SMS
-            </Button>
-            
-            {/* Provider Status Indicator */}
-            <div className="flex justify-center gap-4 mt-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${isTwilioConfigured() ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span>Twilio SMS {isTwilioConfigured() ? 'Ready' : 'Not Configured'}</span>
-              </div>
-            </div>
           </motion.div>
         </div>
       </section>
@@ -825,226 +643,6 @@ export default function TrackingPage() {
           </div>
         </div>
       </section>
-
-      {/* OTP Verification Dialog */}
-      <Dialog open={showOTPDialog} onOpenChange={(open) => {
-        if (!open) {
-          setShowOTPDialog(false);
-          resetOTPStates();
-        }
-      }}>
-        <DialogContent className="bg-secondary text-secondary-foreground max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-600" />
-              Security Verification
-            </DialogTitle>
-            <DialogDescription className="text-secondary-foreground/70">
-              For your security, we need to verify your identity before cancelling this booking.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            {/* Booking Details */}
-            {selectedBookingForCancel && (
-              <div className="bg-white/5 rounded-lg p-3">
-                <h4 className="font-medium mb-2">Booking to Cancel:</h4>
-                <div className="text-sm space-y-1">
-                  <p><strong>Service:</strong> {selectedBookingForCancel.serviceName}</p>
-                  <p><strong>Date:</strong> {formatDate(selectedBookingForCancel.bookingDate)} at {selectedBookingForCancel.bookingTime}</p>
-                  <p><strong>Freelancer:</strong> {selectedBookingForCancel.freelancerName}</p>
-                </div>
-              </div>
-            )}
-
-            {/* OTP Input Section */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="otp">Enter Verification Code</Label>
-                {isOTPSent && (
-                  <span className="text-xs text-green-600">
-                    ✓ Code sent via SMS to {selectedBookingForCancel?.clientPhone}
-                  </span>
-                )}
-              </div>
-              
-              <Input
-                id="otp"
-                type="text"
-                placeholder="Enter 6-digit code"
-                value={otpCode}
-                onChange={(e) => {
-                  setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6));
-                  setOtpError('');
-                }}
-                maxLength={6}
-                className="text-center text-lg tracking-widest"
-                disabled={!isOTPSent}
-              />
-
-              {/* OTP Error */}
-              {otpError && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-                  {otpError}
-                </div>
-              )}
-
-              {/* Resend OTP */}
-              {isOTPSent && (
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-secondary-foreground/70">
-                    Didn't receive the code?
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => selectedBookingForCancel && sendOTP(selectedBookingForCancel)}
-                    disabled={otpResendTimer > 0 || isOTPSending}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    {otpResendTimer > 0 ? `Resend in ${otpResendTimer}s` : 'Resend Code'}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowOTPDialog(false);
-                resetOTPStates();
-              }}
-              className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10"
-            >
-              Cancel
-            </Button>
-            
-            {!isOTPSent ? (
-              <Button
-                onClick={() => selectedBookingForCancel && sendOTP(selectedBookingForCancel)}
-                disabled={isOTPSending}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {isOTPSending ? 'Sending...' : 'Send Code via SMS'}
-              </Button>
-            ) : (
-              <Button
-                onClick={verifyOTPAndCancel}
-                disabled={otpCode.length !== 6 || isOTPVerifying}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                {isOTPVerifying ? 'Verifying...' : 'Verify & Cancel Booking'}
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Twilio Configuration Dialog */}
-      <Dialog open={showProviderConfig} onOpenChange={setShowProviderConfig}>
-        <DialogContent className="bg-secondary text-secondary-foreground max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Configure Twilio SMS
-            </DialogTitle>
-            <DialogDescription className="text-secondary-foreground/70">
-              Set up your Twilio credentials to enable SMS OTP verification for booking cancellations.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Twilio Configuration */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-green-600" />
-                <h3 className="font-semibold">Twilio SMS Configuration</h3>
-                <Badge variant={isTwilioConfigured() ? "default" : "secondary"}>
-                  {isTwilioConfigured() ? "Configured" : "Not Configured"}
-                </Badge>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="twilio-sid">Account SID</Label>
-                  <Input
-                    id="twilio-sid"
-                    type="password"
-                    placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                    value={twilioAccountSid}
-                    onChange={(e) => setTwilioAccountSid(e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="twilio-token">Auth Token</Label>
-                  <Input
-                    id="twilio-token"
-                    type="password"
-                    placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                    value={twilioAuthToken}
-                    onChange={(e) => setTwilioAuthToken(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="twilio-phone">Twilio Phone Number</Label>
-                <Input
-                  id="twilio-phone"
-                  placeholder="+1234567890"
-                  value={twilioPhoneNumber}
-                  onChange={(e) => setTwilioPhoneNumber(e.target.value)}
-                />
-                <p className="text-xs text-secondary-foreground/70 mt-1">
-                  Your verified Twilio phone number (include country code)
-                </p>
-              </div>
-            </div>
-
-            {/* Important Notes */}
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-800 mb-2">How to Get Your Credentials:</h4>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>1. Sign up at <a href="https://www.twilio.com" target="_blank" rel="noopener noreferrer" className="underline">twilio.com</a></li>
-                <li>2. Go to Console → Account → API keys & tokens</li>
-                <li>3. Copy your Account SID and Auth Token</li>
-                <li>4. Get a verified Twilio phone number from Phone Numbers section</li>
-                <li>5. Paste all credentials here and save</li>
-              </ul>
-            </div>
-
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <h4 className="font-medium text-yellow-800 mb-2">Important Notes:</h4>
-              <ul className="text-sm text-yellow-700 space-y-1">
-                <li>• Credentials are stored securely in environment variables</li>
-                <li>• For production, use environment variables instead of storing here</li>
-                <li>• Twilio charges for SMS delivery (typically $0.0075 per SMS)</li>
-                <li>• Service SID: VAd3e1619e0cc8a1296109fb6927e00af2</li>
-              </ul>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowProviderConfig(false)}
-              className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10"
-            >
-              Cancel
-            </Button>
-            
-            <Button
-              onClick={configureProviders}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Save Configuration
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
