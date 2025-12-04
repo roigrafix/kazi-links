@@ -47,6 +47,8 @@ export interface Bookings {
   clientEmail?: string;
   /** @wixFieldType text */
   clientPhone?: string;
+  /** @wixFieldType text */
+  referenceId?: string;
 }
 
 

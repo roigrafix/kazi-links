@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BaseCrudService, useMember } from '@/integrations';
 import { Bookings } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Star, History, Zap } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
@@ -15,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function TrackingPage() {
   const { member } = useMember();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Bookings[]>([]);
   const [activeBookings, setActiveBookings] = useState<Bookings[]>([]);
   const [pastBookings, setPastBookings] = useState<Bookings[]>([]);
@@ -22,6 +24,8 @@ export default function TrackingPage() {
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
   const [completingBookingId, setCompletingBookingId] = useState<string | null>(null);
   const [realtimeUpdates, setRealtimeUpdates] = useState<Map<string, Bookings>>(new Map());
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [selectedBookingToCancel, setSelectedBookingToCancel] = useState<Bookings | null>(null);
 
   // Check if booking can be cancelled (12 hours before booking date)
   const canCancelBooking = (booking: Bookings): boolean => {
@@ -42,30 +46,38 @@ export default function TrackingPage() {
     return hoursUntilBooking >= 12;
   };
 
-  // Handle cancel booking button click
-  const handleCancelBooking = async (booking: Bookings) => {
-    setCancellingBookingId(booking._id);
+  // Handle cancel booking button click - Show confirmation dialog
+  const handleCancelBookingClick = (booking: Bookings) => {
+    setSelectedBookingToCancel(booking);
+    setShowCancelConfirm(true);
+  };
+
+  // Confirm and process cancellation
+  const handleCancelBookingConfirm = async () => {
+    if (!selectedBookingToCancel) return;
+    
+    setCancellingBookingId(selectedBookingToCancel._id);
     try {
       await BaseCrudService.update('bookings', {
-        _id: booking._id,
+        _id: selectedBookingToCancel._id,
         bookingStatus: 'cancelled'
       });
       
       // Update local state for active bookings
       setActiveBookings(prev => 
-        prev.filter(b => b._id !== booking._id)
+        prev.filter(b => b._id !== selectedBookingToCancel._id)
       );
       
       // Update local state for past bookings (add cancelled booking to past)
       setPastBookings(prev => [
         ...prev,
-        { ...booking, bookingStatus: 'cancelled' }
+        { ...selectedBookingToCancel, bookingStatus: 'cancelled' }
       ]);
       
       // Also update the main bookings array
       setBookings(prev => 
         prev.map(b => 
-          b._id === booking._id 
+          b._id === selectedBookingToCancel._id 
             ? { ...b, bookingStatus: 'cancelled' }
             : b
         )
@@ -75,6 +87,13 @@ export default function TrackingPage() {
         title: 'Success',
         description: 'Booking cancelled successfully.',
       });
+
+      // Close confirmation dialog
+      setShowCancelConfirm(false);
+      
+      // Redirect to refund page with booking reference ID
+      const refundUrl = `/support?type=refund&bookingRef=${selectedBookingToCancel.referenceId || selectedBookingToCancel._id}`;
+      navigate(refundUrl);
       
     } catch (error) {
       console.error('Error cancelling booking:', error);
@@ -334,7 +353,7 @@ export default function TrackingPage() {
                       variant="destructive" 
                       size="sm"
                       className="bg-red-600 hover:bg-red-700 text-white flex-1"
-                      onClick={() => handleCancelBooking(booking)}
+                      onClick={() => handleCancelBookingClick(booking)}
                       disabled={cancellingBookingId === booking._id}
                     >
                       <X className="h-4 w-4 mr-2" />
@@ -441,6 +460,16 @@ export default function TrackingPage() {
                   <span>Booked on {formatDate(booking._createdDate)}</span>
                 </div>
               </div>
+              
+              {/* Booking Reference ID */}
+              {booking.referenceId && (
+                <div className="mt-4 pt-4 border-t border-secondary-foreground/10">
+                  <div className="flex items-center justify-between">
+                    <span className="text-secondary-foreground/70 text-xs font-medium">Reference ID:</span>
+                    <span className="font-mono font-semibold text-logoGold">{booking.referenceId}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -643,6 +672,82 @@ export default function TrackingPage() {
           </div>
         </div>
       </section>
+
+      {/* Cancellation Confirmation Dialog */}
+      <Dialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+        <DialogContent className="bg-secondary text-secondary-foreground max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              Cancel Booking?
+            </DialogTitle>
+            <DialogDescription className="text-secondary-foreground/70">
+              Are you sure you want to cancel this booking? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedBookingToCancel && (
+            <div className="space-y-4">
+              {/* Booking Details */}
+              <div className="bg-white/5 rounded-lg p-4 space-y-3">
+                <div>
+                  <p className="text-xs text-secondary-foreground/70 mb-1">Service</p>
+                  <p className="font-semibold">{selectedBookingToCancel.serviceName}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-secondary-foreground/70 mb-1">Freelancer</p>
+                  <p className="font-semibold">{selectedBookingToCancel.freelancerName}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-secondary-foreground/70 mb-1">Scheduled Date & Time</p>
+                  <p className="font-semibold">
+                    {formatDate(selectedBookingToCancel.bookingDate)} at {selectedBookingToCancel.bookingTime}
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-secondary-foreground/10">
+                  <p className="text-xs text-secondary-foreground/70 mb-1">Refund Amount</p>
+                  <p className="font-semibold text-logoGold text-lg">₹{selectedBookingToCancel.paymentAmount}</p>
+                </div>
+              </div>
+
+              {/* Reference ID Info */}
+              {selectedBookingToCancel.referenceId && (
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <p className="text-xs text-blue-700 mb-1">Booking Reference ID</p>
+                  <p className="font-mono font-semibold text-blue-900">{selectedBookingToCancel.referenceId}</p>
+                  <p className="text-xs text-blue-600 mt-2">You'll need this ID to process your refund</p>
+                </div>
+              )}
+
+              {/* Warning */}
+              <div className="bg-red-50 p-3 rounded-lg">
+                <p className="text-xs text-red-700">
+                  <strong>Note:</strong> After cancellation, you'll be redirected to the refund page to process your refund.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelConfirm(false)}
+              className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10"
+            >
+              Keep Booking
+            </Button>
+            
+            <Button
+              variant="destructive"
+              onClick={handleCancelBookingConfirm}
+              disabled={cancellingBookingId !== null}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {cancellingBookingId ? 'Cancelling...' : 'Yes, Cancel Booking'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

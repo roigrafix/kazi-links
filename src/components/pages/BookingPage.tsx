@@ -435,6 +435,12 @@ export default function BookingPage() {
 
     setIsSubmitting(true);
     try {
+      // Generate unique reference ID (format: REF-YYYYMMDD-XXXXX)
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const referenceId = `REF-${dateStr}-${randomStr}`;
+
       const bookingData: Partial<Bookings> = {
         _id: crypto.randomUUID(),
         serviceName: formData.serviceName,
@@ -454,7 +460,8 @@ export default function BookingPage() {
         // Location fields
         serviceState: formData.serviceState,
         serviceCity: formData.serviceCity,
-        clientLocation: formData.clientLocation
+        clientLocation: formData.clientLocation,
+        referenceId: referenceId
       };
 
       await BaseCrudService.create('bookings', bookingData as any);

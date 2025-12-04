@@ -10,6 +10,7 @@ import FreelancersPage from '@/components/pages/FreelancersPage';
 import FreelancerDetailPage from '@/components/pages/FreelancerDetailPage';
 import BookingPage from '@/components/pages/BookingPage';
 import TrackingPage from '@/components/pages/TrackingPage';
+import RefundPage from '@/components/pages/RefundPage';
 import LoginPage from '@/components/pages/LoginPage';
 import ProfilePage from '@/components/pages/ProfilePage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
@@ -63,6 +64,14 @@ const router = createBrowserRouter([
         element: (
           <MemberProtectedRoute messageToSignIn="Please sign in to track your bookings">
             <TrackingPage />
+          </MemberProtectedRoute>
+        ),
+      },
+      {
+        path: "refund",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Please sign in to process your refund">
+            <RefundPage />
           </MemberProtectedRoute>
         ),
       },
