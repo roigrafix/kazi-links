@@ -92,7 +92,7 @@ export default function TrackingPage() {
       setShowCancelConfirm(false);
       
       // Redirect to refund page with booking reference ID
-      const refundUrl = `/support?type=refund&bookingRef=${selectedBookingToCancel.referenceId || selectedBookingToCancel._id}`;
+      const refundUrl = `/refund?bookingRef=${selectedBookingToCancel.referenceId || selectedBookingToCancel._id}`;
       navigate(refundUrl);
       
     } catch (error) {
