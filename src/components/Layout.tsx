@@ -15,7 +15,8 @@ export default function Layout() {
   const adminEmails = [
     'admin@example.com',
     'admin@freelanceplatform.com',
-    'manager@example.com'
+    'manager@example.com',
+    'roigrafix@gmail.com'
   ];
 
   // Check if user is admin

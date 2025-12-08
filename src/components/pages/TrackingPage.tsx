@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { BaseCrudService, useMember } from '@/integrations';
-import { Bookings } from '@/entities';
+import { Bookings, RefundRequests } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,7 @@ export default function TrackingPage() {
   const [bookings, setBookings] = useState<Bookings[]>([]);
   const [activeBookings, setActiveBookings] = useState<Bookings[]>([]);
   const [pastBookings, setPastBookings] = useState<Bookings[]>([]);
+  const [refunds, setRefunds] = useState<RefundRequests[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
   const [completingBookingId, setCompletingBookingId] = useState<string | null>(null);
@@ -173,6 +174,11 @@ export default function TrackingPage() {
         
         setActiveBookings(active);
         setPastBookings(past);
+
+        // Fetch refunds for the current user
+        const { items: refundItems } = await BaseCrudService.getAll<RefundRequests>('refunds');
+        const userRefunds = refundItems?.filter(r => r.clientEmail === member.loginEmail) || [];
+        setRefunds(userRefunds);
 
         // Subscribe to real-time updates for all active bookings
         const activeBookingIds = active.map(b => b._id);
@@ -508,7 +514,7 @@ export default function TrackingPage() {
             </div>
           ) : (
             <Tabs defaultValue="active" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-8">
+              <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto mb-8">
                 <TabsTrigger value="active" className="flex items-center gap-2">
                   <Navigation className="h-4 w-4" />
                   Active Bookings ({activeBookings.length})
@@ -516,6 +522,10 @@ export default function TrackingPage() {
                 <TabsTrigger value="history" className="flex items-center gap-2">
                   <History className="h-4 w-4" />
                   History ({pastBookings.length})
+                </TabsTrigger>
+                <TabsTrigger value="refunds" className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Refunds ({refunds.length})
                 </TabsTrigger>
               </TabsList>
 
@@ -596,6 +606,109 @@ export default function TrackingPage() {
 
                     <div className="grid gap-6">
                       {pastBookings.map((booking, index) => renderBookingCard(booking, index))}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Refunds Tab */}
+              <TabsContent value="refunds" className="space-y-6">
+                {refunds.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="text-center py-12"
+                  >
+                    <div className="w-24 h-24 mx-auto mb-6 bg-secondary/10 rounded-full flex items-center justify-center">
+                      <AlertCircle className="h-12 w-12 text-primary-foreground/50" />
+                    </div>
+                    <h3 className="font-heading text-2xl font-semibold mb-4">
+                      No Refund Requests
+                    </h3>
+                    <p className="font-paragraph text-primary-foreground/70 mb-6">
+                      You don't have any refund requests yet.
+                    </p>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-6">
+                    <motion.h2
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      className="font-heading text-2xl font-bold text-center mb-8"
+                    >
+                      Your Refund Requests ({refunds.length})
+                    </motion.h2>
+
+                    <div className="grid gap-6">
+                      {refunds.map((refund, index) => (
+                        <motion.div
+                          key={refund._id}
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.6, delay: index * 0.1 }}
+                        >
+                          <Card className="bg-secondary text-secondary-foreground">
+                            <CardContent className="p-6">
+                              <div className="flex items-start justify-between mb-4">
+                                <div>
+                                  <h3 className="font-heading text-lg font-semibold mb-2">
+                                    Booking Reference: {refund.bookingReference}
+                                  </h3>
+                                  <p className="text-secondary-foreground/70 text-sm">
+                                    Refund Amount: <span className="font-semibold text-brightpink">₹{refund.refundAmount?.toFixed(2)}</span>
+                                  </p>
+                                </div>
+                                <Badge className={`${
+                                  refund.status === 'Approved' ? 'bg-green-500' :
+                                  refund.status === 'Rejected' ? 'bg-red-500' :
+                                  'bg-yellow-500'
+                                } text-white`}>
+                                  {refund.status || 'Pending'}
+                                </Badge>
+                              </div>
+
+                              <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-secondary-foreground/10">
+                                <div>
+                                  <p className="text-xs text-secondary-foreground/70 mb-1">Request Date</p>
+                                  <p className="font-paragraph text-sm">
+                                    {refund.requestDate ? format(new Date(refund.requestDate), 'MMM dd, yyyy') : '-'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-secondary-foreground/70 mb-1">Reason</p>
+                                  <p className="font-paragraph text-sm truncate">{refund.refundReason || '-'}</p>
+                                </div>
+                              </div>
+
+                              {refund.status === 'Approved' && (
+                                <div className="mt-4 p-3 bg-green-500/20 rounded-lg border border-green-500/50">
+                                  <p className="text-sm text-green-600 font-paragraph">
+                                    ✓ Your refund has been approved and will be processed soon.
+                                  </p>
+                                </div>
+                              )}
+
+                              {refund.status === 'Rejected' && (
+                                <div className="mt-4 p-3 bg-red-500/20 rounded-lg border border-red-500/50">
+                                  <p className="text-sm text-red-600 font-paragraph">
+                                    Your refund request has been rejected. Please contact support for more information.
+                                  </p>
+                                </div>
+                              )}
+
+                              {refund.status === 'Pending' && (
+                                <div className="mt-4 p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/50">
+                                  <p className="text-sm text-yellow-600 font-paragraph">
+                                    Your refund request is being reviewed. We will update you soon.
+                                  </p>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
                     </div>
                   </div>
                 )}

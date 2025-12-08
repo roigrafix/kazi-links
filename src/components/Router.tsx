@@ -69,6 +69,16 @@ const router = createBrowserRouter([
             <TrackingPage />
           </MemberProtectedRoute>
         ),
+        children: [
+          {
+            path: "refunds",
+            element: (
+              <MemberProtectedRoute messageToSignIn="Please sign in to track your refunds">
+                <ClientRefundTrackingPage />
+              </MemberProtectedRoute>
+            ),
+          },
+        ],
       },
       {
         path: "refund",
@@ -146,14 +156,7 @@ const router = createBrowserRouter([
           </AdminProtectedRoute>
         ),
       },
-      {
-        path: "refund-tracking",
-        element: (
-          <MemberProtectedRoute messageToSignIn="Please sign in to track your refunds">
-            <ClientRefundTrackingPage />
-          </MemberProtectedRoute>
-        ),
-      },
+
       {
         path: "*",
         element: <Navigate to="/" replace />,
