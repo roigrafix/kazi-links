@@ -47,8 +47,8 @@ export interface Bookings {
   clientEmail?: string;
   /** @wixFieldType text */
   clientPhone?: string;
-  /** @wixFieldType text */
-  referenceId?: string;
+  /** @wixFieldType boolean */
+  refunded?: boolean;
 }
 
 
@@ -74,6 +74,31 @@ export interface ClientReviews {
   reviewDate?: Date | string;
   /** @wixFieldType text */
   reviewTitle?: string;
+}
+
+
+/**
+ * Collection ID: customerservicerequests
+ * Interface for CustomerServiceRequests
+ */
+export interface CustomerServiceRequests {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType text */
+  clientName?: string;
+  /** @wixFieldType text */
+  clientEmail?: string;
+  /** @wixFieldType text */
+  issueDescription?: string;
+  /** @wixFieldType text */
+  category?: string;
+  /** @wixFieldType text */
+  status?: string;
+  /** @wixFieldType text */
+  priority?: string;
+  /** @wixFieldType datetime */
+  submissionDate?: Date | string;
 }
 
 
@@ -152,6 +177,31 @@ export interface IndianLocations {
   cityCode?: string;
   /** @wixFieldType text */
   region?: string;
+}
+
+
+/**
+ * Collection ID: refunds
+ * Interface for RefundRequests
+ */
+export interface RefundRequests {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType text */
+  bookingReference?: string;
+  /** @wixFieldType text */
+  clientName?: string;
+  /** @wixFieldType text */
+  clientEmail?: string;
+  /** @wixFieldType number */
+  refundAmount?: number;
+  /** @wixFieldType text */
+  refundReason?: string;
+  /** @wixFieldType datetime */
+  requestDate?: Date | string;
+  /** @wixFieldType text */
+  status?: string;
 }
 
 
