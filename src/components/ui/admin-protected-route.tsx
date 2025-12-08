@@ -17,7 +17,8 @@ interface AdminProtectedRouteProps {
 const DEFAULT_ADMIN_EMAILS = [
   'admin@example.com',
   'admin@freelanceplatform.com',
-  'manager@example.com'
+  'manager@example.com',
+  'roigrafix@gmail.com'
 ];
 
 export function AdminProtectedRoute({
