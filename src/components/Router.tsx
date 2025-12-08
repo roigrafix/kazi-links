@@ -18,8 +18,11 @@ import FreelancerDashboardPage from '@/components/pages/FreelancerDashboardPage'
 import SupportRequestPage from '@/components/pages/SupportRequestPage';
 import ReviewPage from '@/components/pages/ReviewPage';
 import AdminDashboardPage from '@/components/pages/AdminDashboardPage';
+import AdminRefundsPage from '@/components/pages/AdminRefundsPage';
+import AdminSupportPage from '@/components/pages/AdminSupportPage';
 import SMSAuthPage from '@/components/pages/SMSAuthPage';
 import PrivacyPolicyPage from '@/components/pages/PrivacyPolicyPage';
+import ClientRefundTrackingPage from '@/components/pages/ClientRefundTrackingPage';
 import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
 import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
 import { FreelancerProtectedRoute } from '@/components/ui/freelancer-protected-route';
@@ -126,6 +129,30 @@ const router = createBrowserRouter([
       {
         path: "privacy-policy",
         element: <PrivacyPolicyPage />,
+      },
+      {
+        path: "admin-refunds",
+        element: (
+          <AdminProtectedRoute messageToSignIn="Please sign in with an admin account to manage refunds.">
+            <AdminRefundsPage />
+          </AdminProtectedRoute>
+        ),
+      },
+      {
+        path: "admin-support",
+        element: (
+          <AdminProtectedRoute messageToSignIn="Please sign in with an admin account to manage support requests.">
+            <AdminSupportPage />
+          </AdminProtectedRoute>
+        ),
+      },
+      {
+        path: "refund-tracking",
+        element: (
+          <MemberProtectedRoute messageToSignIn="Please sign in to track your refunds">
+            <ClientRefundTrackingPage />
+          </MemberProtectedRoute>
+        ),
       },
       {
         path: "*",
