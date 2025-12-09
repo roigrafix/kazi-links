@@ -38,6 +38,8 @@ interface BookingFormData {
   serviceState: string;
   serviceCity: string;
   clientLocation: string;
+  // Payment method
+  paymentMethod: 'card' | 'cash';
 }
 
 const PLATFORM_FEE_PERCENTAGE = 0.1; // 10%
@@ -88,7 +90,9 @@ export default function BookingPage() {
     // Location fields
     serviceState: '',
     serviceCity: '',
-    clientLocation: ''
+    clientLocation: '',
+    // Payment method
+    paymentMethod: 'card'
   });
 
   // Calculate total with platform fee
@@ -1279,15 +1283,47 @@ export default function BookingPage() {
                   {/* Payment Method */}
                   <div>
                     <Label>Payment Method</Label>
-                    <div className="bg-white/5 rounded-lg p-4 mt-2">
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="h-5 w-5 text-electricblue" />
-                        <span>Credit/Debit Card (Secure Payment)</span>
+                    <RadioGroup 
+                      value={formData.paymentMethod} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value as 'card' | 'cash' }))}
+                      className="mt-2"
+                    >
+                      {/* Card Payment Option */}
+                      <div className="bg-white/5 rounded-lg p-4 mb-3">
+                        <div className="flex items-start space-x-3">
+                          <RadioGroupItem value="card" id="card" className="mt-1" />
+                          <div className="flex-1">
+                            <Label htmlFor="card" className="text-sm font-medium leading-relaxed cursor-pointer">
+                              <div className="flex items-center gap-2 mb-1">
+                                <CreditCard className="h-4 w-4 text-electricblue" />
+                                Credit/Debit Card (Secure Payment)
+                              </div>
+                            </Label>
+                            <p className="text-xs text-gray-600 ml-6">
+                              Your payment will be processed securely. You'll be charged after the service is completed.
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600 mt-2">
-                        Your payment will be processed securely. You'll be charged after the service is completed.
-                      </p>
-                    </div>
+
+                      {/* Cash on Delivery Option */}
+                      <div className="bg-white/5 rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <RadioGroupItem value="cash" id="cash" className="mt-1" />
+                          <div className="flex-1">
+                            <Label htmlFor="cash" className="text-sm font-medium leading-relaxed cursor-pointer">
+                              <div className="flex items-center gap-2 mb-1">
+                                <DollarSign className="h-4 w-4 text-green-500" />
+                                Cash on Delivery
+                              </div>
+                            </Label>
+                            <p className="text-xs text-gray-600 ml-6">
+                              Pay the freelancer directly in cash when the service is completed. No online payment required.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </CardContent>
               </Card>
