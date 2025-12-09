@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Image } from '@/components/ui/image';
-import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail, Instagram, Twitter, Linkedin, MessageCircle } from 'lucide-react';
+import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail, Instagram, Twitter, Linkedin, MessageCircle, LogOut } from 'lucide-react';
 import { useMember } from '@/integrations';
 
 export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  const { member, isAuthenticated } = useMember();
+  const { member, isAuthenticated, actions } = useMember();
 
   // Default admin emails - you can modify this list
   const adminEmails = [
@@ -19,9 +19,19 @@ export default function Layout() {
     'roigrafix@gmail.com'
   ];
 
+  // Freelancer emails - you can modify this list
+  const freelancerEmails = [
+    'freelancer@example.com',
+    'freelancer@freelanceplatform.com',
+    'roigrafix@gmail.com'
+  ];
+
   // Check if user is admin
   const userEmail = member?.loginEmail?.toLowerCase();
   const isAdmin = userEmail && adminEmails.some(email => email.toLowerCase() === userEmail);
+  
+  // Check if user is a freelancer
+  const isFreelancer = userEmail && freelancerEmails.some(email => email.toLowerCase() === userEmail);
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -29,12 +39,8 @@ export default function Layout() {
     { name: 'Freelancers', href: '/freelancers' },
     { name: 'Book Now', href: '/booking' },
     { name: 'Track Booking', href: '/tracking' },
-    // Show refund tracking to authenticated users
-    ...(isAuthenticated ? [
-      { name: 'Refund Tracking', href: '/refund-tracking' }
-    ] : []),
-    // Show freelancer dashboard to authenticated users
-    ...(isAuthenticated ? [
+    // Show freelancer dashboard only to registered freelancers
+    ...(isAuthenticated && isFreelancer ? [
       { name: 'Freelancer Dashboard', href: '/freelancer-dashboard' }
     ] : []),
     // Only show admin links to admin users
@@ -44,7 +50,12 @@ export default function Layout() {
       { name: 'Manage Support', href: '/admin-support' },
       { name: 'Availability', href: '/freelancer-availability' }
     ] : []),
-    { name: 'Login', href: '/login' }
+    // Show profile or login based on authentication status
+    ...(isAuthenticated ? [
+      { name: 'Profile', href: '/profile' }
+    ] : [
+      { name: 'Login', href: '/login' }
+    ])
   ];
 
   const isActive = (href: string) => {
@@ -87,7 +98,17 @@ export default function Layout() {
             </nav>
 
             {/* CTA Button - Desktop */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:flex items-center gap-4">
+              {isAuthenticated && (
+                <Button 
+                  onClick={actions.logout}
+                  variant="outline"
+                  className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              )}
               <Button 
                 asChild 
                 className="bg-logoGold text-logoBlack hover:bg-logoGold/90"
@@ -135,6 +156,19 @@ export default function Layout() {
                       {item.name}
                     </Link>
                   ))}
+                  {isAuthenticated && (
+                    <Button 
+                      onClick={() => {
+                        actions.logout();
+                        setIsMenuOpen(false);
+                      }}
+                      variant="outline"
+                      className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary w-full mt-2"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </Button>
+                  )}
                   <Button 
                     asChild 
                     className="bg-logoGold text-logoBlack hover:bg-logoGold/90 w-full mt-4"
