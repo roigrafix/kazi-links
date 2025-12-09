@@ -23,6 +23,7 @@ import AdminSupportPage from '@/components/pages/AdminSupportPage';
 import SMSAuthPage from '@/components/pages/SMSAuthPage';
 import PrivacyPolicyPage from '@/components/pages/PrivacyPolicyPage';
 import ClientRefundTrackingPage from '@/components/pages/ClientRefundTrackingPage';
+import BookingConfirmationPage from '@/components/pages/BookingConfirmationPage';
 import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
 import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
 import { FreelancerProtectedRoute } from '@/components/ui/freelancer-protected-route';
@@ -61,6 +62,10 @@ const router = createBrowserRouter([
       {
         path: "booking",
         element: <BookingPage />,
+      },
+      {
+        path: "booking-confirmation",
+        element: <BookingConfirmationPage />,
       },
       {
         path: "tracking",
