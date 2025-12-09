@@ -25,6 +25,7 @@ export default function Layout() {
     'freelancer@example.com',
     'freelancer@freelanceplatform.com',
     'roigrafix@gmail.com',
+    'roiawuya@gmail.com',
     // Add more freelancer emails as needed
   ];
 
