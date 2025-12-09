@@ -20,10 +20,12 @@ export default function Layout() {
   ];
 
   // Freelancer emails - you can modify this list
+  // Add emails of registered freelancers here
   const freelancerEmails = [
     'freelancer@example.com',
     'freelancer@freelanceplatform.com',
-    'roigrafix@gmail.com'
+    'roigrafix@gmail.com',
+    // Add more freelancer emails as needed
   ];
 
   // Check if user is admin
