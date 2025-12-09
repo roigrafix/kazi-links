@@ -128,10 +128,10 @@ export default function SMSAuthPage() {
           description: 'Phone number verified successfully!',
         });
 
-        // Redirect to home after 2 seconds
+        // Redirect to home after 1.5 seconds
         setTimeout(() => {
           navigate('/');
-        }, 2000);
+        }, 1500);
       } else {
         toast({
           title: 'Error',

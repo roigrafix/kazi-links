@@ -43,13 +43,17 @@ export default function LoginPage() {
     const unsubscribe = firebaseAuth.onAuthStateChanged((user) => {
       setFirebaseUser(user);
       if (user) {
-        // User is signed in with Firebase, you might want to sync with Wix
+        // User is signed in with Firebase, automatically redirect to home
         setSuccess(`Welcome ${user.displayName || user.email || user.phoneNumber}!`);
+        // Redirect after a short delay to show success message
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   // OTP timer countdown
   useEffect(() => {
@@ -62,12 +66,12 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, [otpTimer]);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated with Wix
   useEffect(() => {
-    if (isAuthenticated || firebaseUser) {
-      navigate('/profile');
+    if (isAuthenticated) {
+      navigate('/');
     }
-  }, [isAuthenticated, firebaseUser, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
