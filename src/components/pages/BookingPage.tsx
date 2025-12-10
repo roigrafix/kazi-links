@@ -829,10 +829,24 @@ export default function BookingPage() {
                           mode="single"
                           selected={formData.bookingDate}
                           onSelect={(date) => setFormData(prev => ({ ...prev, bookingDate: date }))}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => {
+                            if (date < new Date()) return true;
+                            if (!selectedFreelancer) return false;
+                            
+                            // Disable blocked dates
+                            const blockedDates = selectedFreelancer.blockedDates?.split(',').map(d => d.trim()) || [];
+                            const dateString = date.toISOString().split('T')[0];
+                            return blockedDates.includes(dateString);
+                          }}
                         />
                       </PopoverContent>
                     </Popover>
+                    {selectedFreelancer && selectedFreelancer.blockedDates && (
+                      <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-xs font-semibold text-red-700 mb-1">Unavailable Dates:</p>
+                        <p className="text-xs text-red-600 font-paragraph">{selectedFreelancer.blockedDates}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Time Selection */}
@@ -932,11 +946,16 @@ export default function BookingPage() {
                     </div>
                   )}
 
-                  {/* Freelancer Location Display */}
+                  {/* Freelancer Location Display - Postal Code Only */}
                   {formData.serviceLocationType === 'freelancer' && selectedFreelancer && (
                     <div className="p-4 bg-logoGold/10 rounded-lg border border-logoGold/20">
-                      <h4 className="font-semibold text-sm text-logoBlack mb-2">Freelancer's Location</h4>
-                      <p className="text-sm text-logoBlack font-paragraph">{selectedFreelancer.fullAddress || selectedFreelancer.serviceArea}</p>
+                      <h4 className="font-semibold text-sm text-logoBlack mb-2">Service Location</h4>
+                      <p className="text-sm text-logoBlack font-paragraph">
+                        <span className="font-semibold">Service Area:</span> {selectedFreelancer.serviceArea || 'Not specified'}
+                      </p>
+                      <p className="text-xs text-logoBlack/70 font-paragraph mt-2">
+                        Full address will be provided after booking confirmation
+                      </p>
                     </div>
                   )}
                 </CardContent>
