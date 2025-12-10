@@ -135,7 +135,7 @@ export default function FreelancerAvailabilityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-logoBlack to-[#2a2a2a]">
       <div className="max-w-[120rem] mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -145,19 +145,19 @@ export default function FreelancerAvailabilityPage() {
         >
           {/* Header */}
           <div className="text-center space-y-4">
-            <h1 className="font-heading text-4xl md:text-5xl font-bold text-secondary">
+            <h1 className="font-heading text-4xl md:text-5xl font-bold text-logoGold">
               Freelancer Availability Management
             </h1>
-            <p className="font-paragraph text-lg text-secondary/80 max-w-2xl mx-auto">
+            <p className="font-paragraph text-lg text-secondary/90 max-w-2xl mx-auto">
               Manage your working hours, available days, and blocked dates to control your booking schedule.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Freelancer Selection */}
-            <Card className="bg-secondary/5 border-secondary/20">
-              <CardHeader>
-                <CardTitle className="text-secondary flex items-center gap-2">
+            <Card className="bg-secondary border-logoGold/20 shadow-lg">
+              <CardHeader className="bg-secondary border-b border-logoGold/20">
+                <CardTitle className="text-logoBlack flex items-center gap-2 font-heading">
                   <User className="w-5 h-5" />
                   Select Freelancer
                 </CardTitle>
@@ -171,11 +171,15 @@ export default function FreelancerAvailabilityPage() {
                   >
                     <Button
                       variant={selectedFreelancer?._id === freelancer._id ? "default" : "outline"}
-                      className="w-full justify-start text-left h-auto p-4"
+                      className={`w-full justify-start text-left h-auto p-4 ${
+                        selectedFreelancer?._id === freelancer._id
+                          ? 'bg-logoGold text-logoBlack hover:bg-logoGold/90'
+                          : 'border-logoGold/30 text-logoBlack hover:bg-logoGold/10'
+                      }`}
                       onClick={() => loadFreelancerAvailability(freelancer)}
                     >
                       <div>
-                        <div className="font-medium">{freelancer.fullName}</div>
+                        <div className="font-bold">{freelancer.fullName}</div>
                         <div className="text-sm opacity-70">{freelancer.serviceArea}, {freelancer.city}</div>
                       </div>
                     </Button>
@@ -189,9 +193,9 @@ export default function FreelancerAvailabilityPage() {
               {selectedFreelancer ? (
                 <>
                   {/* Available Days */}
-                  <Card className="bg-secondary/5 border-secondary/20">
-                    <CardHeader>
-                      <CardTitle className="text-secondary">Available Days</CardTitle>
+                  <Card className="bg-secondary border-logoGold/20 shadow-lg">
+                    <CardHeader className="bg-secondary border-b border-logoGold/20">
+                      <CardTitle className="text-logoBlack font-heading">Available Days</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -201,8 +205,9 @@ export default function FreelancerAvailabilityPage() {
                               id={day}
                               checked={availableDays.includes(day)}
                               onCheckedChange={(checked) => handleDayToggle(day, checked as boolean)}
+                              className="border-logoGold/30"
                             />
-                            <Label htmlFor={day} className="text-secondary text-sm">
+                            <Label htmlFor={day} className="text-logoBlack text-sm font-paragraph cursor-pointer">
                               {day}
                             </Label>
                           </div>
@@ -212,9 +217,9 @@ export default function FreelancerAvailabilityPage() {
                   </Card>
 
                   {/* Working Hours */}
-                  <Card className="bg-secondary/5 border-secondary/20">
-                    <CardHeader>
-                      <CardTitle className="text-secondary flex items-center gap-2">
+                  <Card className="bg-secondary border-logoGold/20 shadow-lg">
+                    <CardHeader className="bg-secondary border-b border-logoGold/20">
+                      <CardTitle className="text-logoBlack flex items-center gap-2 font-heading">
                         <Clock className="w-5 h-5" />
                         Working Hours
                       </CardTitle>
@@ -222,21 +227,21 @@ export default function FreelancerAvailabilityPage() {
                     <CardContent className="space-y-4">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-secondary">Start Time</Label>
+                          <Label className="text-logoBlack font-semibold">Start Time</Label>
                           <Input
                             type="time"
                             value={workingHoursStart}
                             onChange={(e) => setWorkingHoursStart(e.target.value)}
-                            className="text-secondary-foreground"
+                            className="text-logoBlack bg-white border-logoGold/30 font-paragraph"
                           />
                         </div>
                         <div>
-                          <Label className="text-secondary">End Time</Label>
+                          <Label className="text-logoBlack font-semibold">End Time</Label>
                           <Input
                             type="time"
                             value={workingHoursEnd}
                             onChange={(e) => setWorkingHoursEnd(e.target.value)}
-                            className="text-secondary-foreground"
+                            className="text-logoBlack bg-white border-logoGold/30 font-paragraph"
                           />
                         </div>
                       </div>
@@ -244,9 +249,9 @@ export default function FreelancerAvailabilityPage() {
                   </Card>
 
                   {/* Blocked Dates */}
-                  <Card className="bg-secondary/5 border-secondary/20">
-                    <CardHeader>
-                      <CardTitle className="text-secondary flex items-center gap-2">
+                  <Card className="bg-secondary border-logoGold/20 shadow-lg">
+                    <CardHeader className="bg-secondary border-b border-logoGold/20">
+                      <CardTitle className="text-logoBlack flex items-center gap-2 font-heading">
                         <CalendarIcon className="w-5 h-5" />
                         Blocked Dates
                       </CardTitle>
@@ -254,10 +259,10 @@ export default function FreelancerAvailabilityPage() {
                     <CardContent className="space-y-4">
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
-                          <Label className="text-secondary">Add Blocked Date</Label>
+                          <Label className="text-logoBlack font-semibold">Add Blocked Date</Label>
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="outline" className="w-full justify-start text-left">
+                              <Button variant="outline" className="w-full justify-start text-left border-logoGold/30 text-logoBlack hover:bg-logoGold/10">
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 Select date to block
                               </Button>
@@ -274,26 +279,26 @@ export default function FreelancerAvailabilityPage() {
                         </div>
                         
                         <div>
-                          <Label className="text-secondary">Currently Blocked Dates</Label>
+                          <Label className="text-logoBlack font-semibold">Currently Blocked Dates</Label>
                           <div className="space-y-2 max-h-32 overflow-y-auto">
                             {blockedDates.length > 0 ? (
                               blockedDates.map((date, index) => (
-                                <div key={index} className="flex items-center justify-between bg-secondary/10 p-2 rounded">
-                                  <span className="text-secondary text-sm">
+                                <div key={index} className="flex items-center justify-between bg-logoGold/10 p-2 rounded border border-logoGold/20">
+                                  <span className="text-logoBlack text-sm font-paragraph">
                                     {format(date, 'PPP')}
                                   </span>
                                   <Button
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => handleBlockedDateRemove(date)}
-                                    className="text-destructive hover:text-destructive"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                   >
                                     Remove
                                   </Button>
                                 </div>
                               ))
                             ) : (
-                              <p className="text-secondary/60 text-sm">No blocked dates</p>
+                              <p className="text-logoBlack/60 text-sm font-paragraph">No blocked dates</p>
                             )}
                           </div>
                         </div>
@@ -309,7 +314,7 @@ export default function FreelancerAvailabilityPage() {
                     <Button
                       onClick={saveAvailability}
                       disabled={isSaving}
-                      className="w-full bg-brightpink hover:bg-brightpink/90 text-white"
+                      className="w-full bg-logoGold hover:bg-logoGold/90 text-logoBlack font-heading font-bold"
                       size="lg"
                     >
                       <Save className="mr-2 h-5 w-5" />

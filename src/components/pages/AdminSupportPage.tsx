@@ -113,16 +113,16 @@ export default function AdminSupportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-logoBlack to-[#2a2a2a] p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-heading font-bold text-logoBlack mb-2">Customer Support Management</h1>
-          <p className="text-gray-600">Manage and respond to customer service requests</p>
+          <h1 className="text-4xl font-heading font-bold text-logoGold mb-2">Customer Support Management</h1>
+          <p className="text-secondary/90 font-paragraph text-lg">Manage and respond to customer service requests</p>
         </div>
 
-        <Card className="mb-6 border-0 shadow-lg">
-          <CardHeader className="bg-white border-b">
-            <CardTitle>Filters & Search</CardTitle>
+        <Card className="mb-6 border-0 shadow-lg bg-secondary">
+          <CardHeader className="bg-secondary border-b border-logoGold/20">
+            <CardTitle className="text-logoBlack font-heading text-xl">Filters & Search</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -130,10 +130,10 @@ export default function AdminSupportPage() {
                 placeholder="Search by name, email, or issue..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="border-gray-300"
+                className="border-logoGold/30 bg-white text-logoBlack placeholder:text-logoBlack/50 font-paragraph"
               />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="border-gray-300">
+                <SelectTrigger className="border-logoGold/30 bg-white text-logoBlack font-paragraph">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -145,7 +145,7 @@ export default function AdminSupportPage() {
                 </SelectContent>
               </Select>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="border-gray-300">
+                <SelectTrigger className="border-logoGold/30 bg-white text-logoBlack font-paragraph">
                   <SelectValue placeholder="Filter by priority" />
                 </SelectTrigger>
                 <SelectContent>
@@ -156,66 +156,66 @@ export default function AdminSupportPage() {
                   <SelectItem value="Urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="text-sm text-gray-600 flex items-center">
-                Total: <span className="font-bold ml-2">{filteredRequests.length}</span>
+              <div className="text-base text-logoBlack flex items-center font-paragraph font-semibold">
+                Total: <span className="font-bold ml-2 text-logoGold">{filteredRequests.length}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg overflow-hidden">
+        <Card className="border-0 shadow-lg overflow-hidden bg-secondary">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-gray-100">
+              <TableHeader className="bg-logoGold/10 border-b-2 border-logoGold">
                 <TableRow>
-                  <TableHead className="font-heading font-semibold">Client Name</TableHead>
-                  <TableHead className="font-heading font-semibold">Email</TableHead>
-                  <TableHead className="font-heading font-semibold">Category</TableHead>
-                  <TableHead className="font-heading font-semibold">Issue</TableHead>
-                  <TableHead className="font-heading font-semibold">Status</TableHead>
-                  <TableHead className="font-heading font-semibold">Priority</TableHead>
-                  <TableHead className="font-heading font-semibold">Date</TableHead>
-                  <TableHead className="font-heading font-semibold">Actions</TableHead>
+                  <TableHead className="font-heading font-bold text-logoBlack">Client Name</TableHead>
+                  <TableHead className="font-heading font-bold text-logoBlack">Email</TableHead>
+                  <TableHead className="font-heading font-bold text-logoBlack">Category</TableHead>
+                  <TableHead className="font-heading font-bold text-logoBlack">Issue</TableHead>
+                  <TableHead className="font-heading font-bold text-logoBlack">Status</TableHead>
+                  <TableHead className="font-heading font-bold text-logoBlack">Priority</TableHead>
+                  <TableHead className="font-heading font-bold text-logoBlack">Date</TableHead>
+                  <TableHead className="font-heading font-bold text-logoBlack">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRequests.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={8} className="text-center py-8 text-logoBlack/60 font-paragraph">
                       No support requests found
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredRequests.map((request) => (
-                    <TableRow key={request._id} className="hover:bg-gray-50 border-b">
-                      <TableCell className="font-paragraph">{request.clientName}</TableCell>
-                      <TableCell className="font-paragraph text-sm">{request.clientEmail}</TableCell>
-                      <TableCell className="font-paragraph text-sm">{request.category}</TableCell>
-                      <TableCell className="font-paragraph text-sm max-w-xs truncate">
+                    <TableRow key={request._id} className="hover:bg-logoGold/5 border-b border-logoGold/10">
+                      <TableCell className="font-paragraph font-semibold text-logoBlack">{request.clientName}</TableCell>
+                      <TableCell className="font-paragraph text-sm text-logoBlack/80">{request.clientEmail}</TableCell>
+                      <TableCell className="font-paragraph text-sm text-logoBlack/80">{request.category}</TableCell>
+                      <TableCell className="font-paragraph text-sm text-logoBlack/80 max-w-xs truncate">
                         <Dialog>
                           <DialogTrigger asChild>
-                            <button className="text-blue-600 hover:underline cursor-pointer">
+                            <button className="text-logoGold hover:text-logoGold/80 hover:underline cursor-pointer font-semibold">
                               View Details
                             </button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
+                          <DialogContent className="max-w-2xl bg-secondary border-logoGold/20">
                             <DialogHeader>
-                              <DialogTitle>Issue Details</DialogTitle>
+                              <DialogTitle className="text-logoBlack font-heading">Issue Details</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-4">
                               <div>
-                                <h3 className="font-heading font-semibold mb-2">Description</h3>
-                                <p className="font-paragraph text-gray-700 whitespace-pre-wrap">{request.issueDescription}</p>
+                                <h3 className="font-heading font-bold text-logoBlack mb-2">Description</h3>
+                                <p className="font-paragraph text-logoBlack/80 whitespace-pre-wrap">{request.issueDescription}</p>
                               </div>
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <h3 className="font-heading font-semibold mb-2">Client</h3>
-                                  <p className="font-paragraph">{request.clientName}</p>
-                                  <p className="font-paragraph text-sm text-gray-600">{request.clientEmail}</p>
+                                  <h3 className="font-heading font-bold text-logoBlack mb-2">Client</h3>
+                                  <p className="font-paragraph font-semibold text-logoBlack">{request.clientName}</p>
+                                  <p className="font-paragraph text-sm text-logoBlack/70">{request.clientEmail}</p>
                                 </div>
                                 <div>
-                                  <h3 className="font-heading font-semibold mb-2">Category</h3>
-                                  <p className="font-paragraph">{request.category}</p>
+                                  <h3 className="font-heading font-bold text-logoBlack mb-2">Category</h3>
+                                  <p className="font-paragraph font-semibold text-logoBlack">{request.category}</p>
                                 </div>
                               </div>
                             </div>
@@ -225,7 +225,7 @@ export default function AdminSupportPage() {
                       <TableCell>
                         {editingId === request._id ? (
                           <Select value={editStatus} onValueChange={setEditStatus}>
-                            <SelectTrigger className="w-32 h-8 text-xs">
+                            <SelectTrigger className="w-32 h-8 text-xs bg-white text-logoBlack border-logoGold/30">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -236,7 +236,7 @@ export default function AdminSupportPage() {
                             </SelectContent>
                           </Select>
                         ) : (
-                          <Badge className={`${getStatusColor(request.status)} border-0`}>
+                          <Badge className={`${getStatusColor(request.status)} border-0 font-semibold`}>
                             {request.status || 'Open'}
                           </Badge>
                         )}
@@ -244,7 +244,7 @@ export default function AdminSupportPage() {
                       <TableCell>
                         {editingId === request._id ? (
                           <Select value={editPriority} onValueChange={setEditPriority}>
-                            <SelectTrigger className="w-28 h-8 text-xs">
+                            <SelectTrigger className="w-28 h-8 text-xs bg-white text-logoBlack border-logoGold/30">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -255,12 +255,12 @@ export default function AdminSupportPage() {
                             </SelectContent>
                           </Select>
                         ) : (
-                          <Badge className={`${getPriorityColor(request.priority)} border-0`}>
+                          <Badge className={`${getPriorityColor(request.priority)} border-0 font-semibold`}>
                             {request.priority || 'Medium'}
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="font-paragraph text-sm">
+                      <TableCell className="font-paragraph text-sm text-logoBlack/80">
                         {request.submissionDate ? format(new Date(request.submissionDate), 'MMM dd, yyyy') : '-'}
                       </TableCell>
                       <TableCell>
@@ -269,7 +269,7 @@ export default function AdminSupportPage() {
                             <>
                               <Button
                                 size="sm"
-                                className="bg-green-600 hover:bg-green-700 text-white h-8"
+                                className="bg-logoGold hover:bg-logoGold/90 text-logoBlack h-8 font-semibold"
                                 onClick={() => handleUpdate(request._id, editStatus, editPriority)}
                               >
                                 Save
@@ -277,7 +277,7 @@ export default function AdminSupportPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-8"
+                                className="h-8 border-logoGold/30 text-logoBlack hover:bg-logoGold/10"
                                 onClick={() => setEditingId(null)}
                               >
                                 Cancel
@@ -288,7 +288,7 @@ export default function AdminSupportPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-8"
+                                className="h-8 border-logoGold/30 text-logoBlack hover:bg-logoGold/10"
                                 onClick={() => {
                                   setEditingId(request._id);
                                   setEditStatus(request.status || 'Open');
@@ -301,22 +301,21 @@ export default function AdminSupportPage() {
                                 <AlertDialogTrigger asChild>
                                   <Button
                                     size="sm"
-                                    variant="destructive"
-                                    className="h-8"
+                                    className="h-8 bg-red-600 hover:bg-red-700 text-white"
                                   >
                                     Delete
                                   </Button>
                                 </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogTitle>Delete Support Request</AlertDialogTitle>
-                                  <AlertDialogDescription>
+                                <AlertDialogContent className="bg-secondary border-logoGold/20">
+                                  <AlertDialogTitle className="text-logoBlack font-heading">Delete Support Request</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-logoBlack/70 font-paragraph">
                                     Are you sure you want to delete this support request? This action cannot be undone.
                                   </AlertDialogDescription>
                                   <div className="flex gap-3 justify-end">
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogCancel className="border-logoGold/30 text-logoBlack hover:bg-logoGold/10">Cancel</AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() => handleDelete(request._id)}
-                                      className="bg-red-600 hover:bg-red-700"
+                                      className="bg-red-600 hover:bg-red-700 text-white"
                                     >
                                       Delete
                                     </AlertDialogAction>
