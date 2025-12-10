@@ -40,7 +40,6 @@ export default function BookingConfirmationPage() {
         setBookingData(pendingBooking);
 
         // Verify payment with payment gateway
-        // This is a placeholder - replace with your actual payment verification logic
         const paymentVerified = await verifyPaymentWithGateway(
           paymentId,
           orderId,
@@ -55,19 +54,35 @@ export default function BookingConfirmationPage() {
         }
 
         // Payment successful - create the booking in database
-        const bookingToCreate: Partial<Bookings> = {
-          ...pendingBooking,
+        const bookingToCreate: Bookings = {
+          _id: pendingBooking._id || crypto.randomUUID(),
+          serviceName: pendingBooking.serviceName,
+          freelancerName: pendingBooking.freelancerName,
+          bookingDate: pendingBooking.bookingDate,
+          bookingTime: pendingBooking.bookingTime,
+          serviceLocationType: pendingBooking.serviceLocationType,
+          serviceAddress: pendingBooking.serviceAddress,
+          clientName: pendingBooking.clientName,
+          clientEmail: pendingBooking.clientEmail,
+          clientPhone: pendingBooking.clientPhone,
+          paymentAmount: pendingBooking.paymentAmount,
+          transportationCost: pendingBooking.transportationCost || 0,
           bookingStatus: 'confirmed',
-          paymentStatus: 'paid'
+          paymentStatus: 'paid',
+          etaStatus: pendingBooking.etaStatus || 'scheduled',
+          serviceState: pendingBooking.serviceState,
+          serviceCity: pendingBooking.serviceCity,
+          clientLocation: pendingBooking.clientLocation,
+          refunded: false
         };
 
-        const createdBooking = await BaseCrudService.create('bookings', bookingToCreate as any);
+        await BaseCrudService.create('bookings', bookingToCreate);
         
         // Clear sessionStorage
         sessionStorage.removeItem('pendingBooking');
         sessionStorage.removeItem('bookingReferenceId');
 
-        setBookingId(pendingBooking._id);
+        setBookingId(bookingToCreate._id);
         setPaymentStatus('success');
       } catch (error) {
         console.error('Error verifying payment or creating booking:', error);
@@ -90,19 +105,10 @@ export default function BookingConfirmationPage() {
     amount: number
   ): Promise<boolean> => {
     try {
-      // This is a placeholder implementation
-      // Replace with your actual payment gateway verification logic
+      // Simulate payment verification
+      // In production, integrate with Razorpay, Stripe, or your payment gateway
       
-      // Example for Razorpay:
-      // const response = await fetch('/api/verify-payment', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ paymentId, orderId, amount })
-      // });
-      // const result = await response.json();
-      // return result.verified;
-
-      // For now, check if status indicates success
+      // Check if status indicates success
       if (status === 'success' || status === 'completed') {
         return true;
       }

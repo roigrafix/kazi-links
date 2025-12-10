@@ -361,7 +361,25 @@ export default function BookingPage() {
   };
 
   const handleSubmit = async () => {
+    // Validation checks
     if (!selectedService || !selectedFreelancer || !formData.bookingDate) {
+      alert('Please complete all required fields.');
+      return;
+    }
+
+    if (!formData.bookingTime) {
+      alert('Please select a time slot.');
+      return;
+    }
+
+    if (!formData.clientName || !formData.clientEmail || !formData.clientPhone) {
+      alert('Please fill in all contact details.');
+      return;
+    }
+
+    if (formData.serviceLocationType === 'client' && 
+        (!formData.houseFloorNo || !formData.street || !formData.area || !formData.city || !formData.postalCode)) {
+      alert('Please fill in your complete address.');
       return;
     }
 
@@ -425,25 +443,30 @@ export default function BookingPage() {
       redirectToPaymentGateway(bookingData as Bookings, referenceId);
     } catch (error) {
       console.error('Error preparing booking:', error);
+      alert('An error occurred while processing your booking. Please try again.');
       setIsSubmitting(false);
     }
   };
 
   const redirectToPaymentGateway = (bookingData: Bookings, referenceId: string) => {
+    // Simulate payment processing - in production, integrate with Razorpay, Stripe, etc.
+    // For demo purposes, we'll redirect to confirmation page with success status
+    
     // Create payment gateway URL with booking details
     const paymentParams = new URLSearchParams({
+      payment_id: `pay_${Math.random().toString(36).substr(2, 9)}`,
+      order_id: referenceId,
+      status: 'success', // In production, this comes from payment gateway
       amount: (bookingData.paymentAmount! * 100).toString(),
-      orderId: referenceId,
       customerName: bookingData.clientName || '',
       customerEmail: bookingData.clientEmail || '',
       customerPhone: bookingData.clientPhone || '',
-      description: `${bookingData.serviceName} - ${bookingData.freelancerName}`,
-      returnUrl: `${window.location.origin}/booking-confirmation`
+      description: `${bookingData.serviceName} - ${bookingData.freelancerName}`
     });
 
-    // Redirect to payment gateway
-    // Replace with your actual payment gateway URL
-    window.location.href = `https://payment-gateway.example.com/checkout?${paymentParams.toString()}`;
+    // Redirect to booking confirmation page
+    // In production, replace with your actual payment gateway URL
+    window.location.href = `/booking-confirmation?${paymentParams.toString()}`;
   };
 
   const filterFreelancersByLocation = (state: string, city: string) => {
@@ -642,7 +665,142 @@ export default function BookingPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* ... Step 1 content remains the same ... */}
+                  {/* Service Search & Filter */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="search">Search Services</Label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="search"
+                          placeholder="Search by service name..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="category">Category</Label>
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                          <SelectTrigger id="category">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Categories</SelectItem>
+                            {categories.map((cat) => (
+                              <SelectItem key={cat._id} value={cat.categoryName || ''}>
+                                {cat.categoryName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="priceRange">Price Range</Label>
+                        <Select value={priceRange} onValueChange={setPriceRange}>
+                          <SelectTrigger id="priceRange">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Prices</SelectItem>
+                            <SelectItem value="0-500">₹0 - ₹500</SelectItem>
+                            <SelectItem value="500-1000">₹500 - ₹1000</SelectItem>
+                            <SelectItem value="1000-5000">₹1000 - ₹5000</SelectItem>
+                            <SelectItem value="5000-999999">₹5000+</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Service Selection */}
+                  <div>
+                    <Label htmlFor="service">Select Service</Label>
+                    <Select value={selectedService?._id || ''} onValueChange={handleServiceChange}>
+                      <SelectTrigger id="service">
+                        <SelectValue placeholder="Choose a service" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredServices.map((service) => (
+                          <SelectItem key={service._id} value={service._id}>
+                            {service.serviceName} - ₹{service.price}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedService && (
+                      <p className="text-sm text-gray-600 mt-2">{selectedService.description}</p>
+                    )}
+                  </div>
+
+                  {/* Location Selection */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="state">State</Label>
+                      <Select value={formData.serviceState} onValueChange={(state) => {
+                        setFormData(prev => ({ ...prev, serviceState: state }));
+                        filterFreelancersByLocation(state, formData.serviceCity);
+                      }}>
+                        <SelectTrigger id="state">
+                          <SelectValue placeholder="Select state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableStates.map((state) => (
+                            <SelectItem key={state} value={state}>
+                              {state}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="city">City</Label>
+                      <Select value={formData.serviceCity} onValueChange={(city) => {
+                        setFormData(prev => ({ ...prev, serviceCity: city }));
+                        filterFreelancersByLocation(formData.serviceState, city);
+                      }}>
+                        <SelectTrigger id="city">
+                          <SelectValue placeholder="Select city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableCities.map((city) => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Freelancer Selection */}
+                  <div>
+                    <Label htmlFor="freelancer">Select Freelancer</Label>
+                    <Select value={selectedFreelancer?._id || ''} onValueChange={handleFreelancerChange}>
+                      <SelectTrigger id="freelancer">
+                        <SelectValue placeholder="Choose a freelancer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableFreelancers.map((freelancer) => (
+                          <SelectItem key={freelancer._id} value={freelancer._id}>
+                            {freelancer.fullName} - ₹{freelancer.hourlyRate}/hr
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedFreelancer && (
+                      <div className="mt-3 p-3 bg-white/5 rounded">
+                        <p className="text-sm font-medium">{selectedFreelancer.fullName}</p>
+                        <p className="text-xs text-gray-600">{selectedFreelancer.bio}</p>
+                        <p className="text-xs text-gray-600 mt-1">Skills: {selectedFreelancer.skills}</p>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -656,7 +814,126 @@ export default function BookingPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* ... Step 2 content remains the same ... */}
+                  {/* Date Selection */}
+                  <div>
+                    <Label>Select Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.bookingDate ? format(formData.bookingDate, 'PPP') : 'Pick a date'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.bookingDate}
+                          onSelect={(date) => setFormData(prev => ({ ...prev, bookingDate: date }))}
+                          disabled={(date) => date < new Date()}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Time Selection */}
+                  <div>
+                    <Label htmlFor="time">Select Time</Label>
+                    <Select value={formData.bookingTime} onValueChange={(time) => setFormData(prev => ({ ...prev, bookingTime: time }))}>
+                      <SelectTrigger id="time">
+                        <SelectValue placeholder="Choose a time slot" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTimeSlots.length > 0 ? (
+                          availableTimeSlots.map((slot) => (
+                            <SelectItem key={slot} value={slot}>
+                              {slot}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="all" disabled>
+                            No available slots for this date
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Service Location Type */}
+                  <div>
+                    <Label>Service Location</Label>
+                    <RadioGroup value={formData.serviceLocationType} onValueChange={(value) => setFormData(prev => ({ ...prev, serviceLocationType: value }))}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="client" id="client" />
+                        <Label htmlFor="client" className="font-normal cursor-pointer">At my location (Client's address)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="freelancer" id="freelancer" />
+                        <Label htmlFor="freelancer" className="font-normal cursor-pointer">At freelancer's location</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Address Fields - Only show if client location selected */}
+                  {formData.serviceLocationType === 'client' && (
+                    <div className="space-y-4 p-4 bg-white/5 rounded-lg">
+                      <h4 className="font-semibold text-sm">Enter Your Address</h4>
+                      <div>
+                        <Label htmlFor="houseFloor">House/Floor No.</Label>
+                        <Input
+                          id="houseFloor"
+                          value={formData.houseFloorNo}
+                          onChange={(e) => setFormData(prev => ({ ...prev, houseFloorNo: e.target.value }))}
+                          placeholder="e.g., 123, Apt 4B"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="street">Street Name</Label>
+                        <Input
+                          id="street"
+                          value={formData.street}
+                          onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
+                          placeholder="e.g., Main Street"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="area">Area/Locality</Label>
+                        <Input
+                          id="area"
+                          value={formData.area}
+                          onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
+                          placeholder="e.g., Downtown"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="city">City</Label>
+                          <Input
+                            id="city"
+                            value={formData.city}
+                            onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                            placeholder="e.g., Bangalore"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="postal">Postal Code</Label>
+                          <Input
+                            id="postal"
+                            value={formData.postalCode}
+                            onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
+                            placeholder="e.g., 560001"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Freelancer Location Display */}
+                  {formData.serviceLocationType === 'freelancer' && selectedFreelancer && (
+                    <div className="p-4 bg-white/5 rounded-lg">
+                      <h4 className="font-semibold text-sm mb-2">Freelancer's Location</h4>
+                      <p className="text-sm text-gray-600">{selectedFreelancer.fullAddress || selectedFreelancer.serviceArea}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
