@@ -56,6 +56,7 @@ export default function BookingPage() {
   const [locations, setLocations] = useState<IndianLocations[]>([]);
   const [availableStates, setAvailableStates] = useState<string[]>([]);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [citiesByState, setCitiesByState] = useState<Record<string, string[]>>({});
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -186,12 +187,30 @@ export default function BookingPage() {
         
         const states = new Set<string>();
         const cities = new Set<string>();
+        const citiesMap: Record<string, Set<string>> = {};
+        
         locationsData.items.forEach(location => {
-          if (location.stateName) states.add(location.stateName);
-          if (location.cityName) cities.add(location.cityName);
+          if (location.stateName) {
+            states.add(location.stateName);
+            if (!citiesMap[location.stateName]) {
+              citiesMap[location.stateName] = new Set<string>();
+            }
+            if (location.cityName) {
+              citiesMap[location.stateName].add(location.cityName);
+              cities.add(location.cityName);
+            }
+          }
         });
+        
+        // Convert Sets to sorted arrays
+        const citiesByStateMap: Record<string, string[]> = {};
+        Object.keys(citiesMap).forEach(state => {
+          citiesByStateMap[state] = Array.from(citiesMap[state]).sort();
+        });
+        
         setAvailableStates(Array.from(states).sort());
         setAvailableCities(Array.from(cities).sort());
+        setCitiesByState(citiesByStateMap);
 
         const serviceId = searchParams.get('service');
         const freelancerId = searchParams.get('freelancer');
@@ -768,11 +787,17 @@ export default function BookingPage() {
                           <SelectValue placeholder="Select city" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableCities.map((city) => (
-                            <SelectItem key={city} value={city}>
-                              {city}
+                          {formData.serviceState ? (
+                            citiesByState[formData.serviceState]?.map((city) => (
+                              <SelectItem key={city} value={city}>
+                                {city}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="all" disabled>
+                              Please select a state first
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
