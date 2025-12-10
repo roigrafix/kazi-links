@@ -620,7 +620,7 @@ export default function BookingPage() {
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-logoBlack">
               Book Your Service
             </h1>
-            <p className="font-paragraph text-lg sm:text-xl text-logoBlack/70">
+            <p className="font-paragraph text-lg sm:text-xl text-logoBlack">
               Complete your booking in just a few simple steps
             </p>
           </motion.div>
@@ -657,9 +657,9 @@ export default function BookingPage() {
             transition={{ duration: 0.4 }}
           >
             {currentStep === 1 && (
-              <Card className="bg-secondary text-gray-700">
+              <Card className="bg-secondary text-logoBlack border-0 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-logoBlack">
                     <User className="h-5 w-5" />
                     Select Service & Freelancer
                   </CardTitle>
@@ -668,7 +668,7 @@ export default function BookingPage() {
                   {/* Service Search & Filter */}
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="search">Search Services</Label>
+                      <Label htmlFor="search" className="text-logoBlack font-semibold">Search Services</Label>
                       <div className="relative">
                         <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                         <Input
@@ -676,16 +676,16 @@ export default function BookingPage() {
                           placeholder="Search by service name..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-10"
+                          className="pl-10 bg-white text-logoBlack placeholder:text-gray-500 border-gray-300"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="category">Category</Label>
+                        <Label htmlFor="category" className="text-logoBlack font-semibold">Category</Label>
                         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                          <SelectTrigger id="category">
+                          <SelectTrigger id="category" className="bg-white text-logoBlack border-gray-300">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -700,9 +700,9 @@ export default function BookingPage() {
                       </div>
 
                       <div>
-                        <Label htmlFor="priceRange">Price Range</Label>
+                        <Label htmlFor="priceRange" className="text-logoBlack font-semibold">Price Range</Label>
                         <Select value={priceRange} onValueChange={setPriceRange}>
-                          <SelectTrigger id="priceRange">
+                          <SelectTrigger id="priceRange" className="bg-white text-logoBlack border-gray-300">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -719,9 +719,9 @@ export default function BookingPage() {
 
                   {/* Service Selection */}
                   <div>
-                    <Label htmlFor="service">Select Service</Label>
+                    <Label htmlFor="service" className="text-logoBlack font-semibold">Select Service</Label>
                     <Select value={selectedService?._id || ''} onValueChange={handleServiceChange}>
-                      <SelectTrigger id="service">
+                      <SelectTrigger id="service" className="bg-white text-logoBlack border-gray-300">
                         <SelectValue placeholder="Choose a service" />
                       </SelectTrigger>
                       <SelectContent>
@@ -733,19 +733,19 @@ export default function BookingPage() {
                       </SelectContent>
                     </Select>
                     {selectedService && (
-                      <p className="text-sm text-gray-600 mt-2">{selectedService.description}</p>
+                      <p className="text-sm text-logoBlack mt-2 font-paragraph">{selectedService.description}</p>
                     )}
                   </div>
 
                   {/* Location Selection */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="state">State</Label>
+                      <Label htmlFor="state" className="text-logoBlack font-semibold">State</Label>
                       <Select value={formData.serviceState} onValueChange={(state) => {
                         setFormData(prev => ({ ...prev, serviceState: state }));
                         filterFreelancersByLocation(state, formData.serviceCity);
                       }}>
-                        <SelectTrigger id="state">
+                        <SelectTrigger id="state" className="bg-white text-logoBlack border-gray-300">
                           <SelectValue placeholder="Select state" />
                         </SelectTrigger>
                         <SelectContent>
@@ -759,12 +759,12 @@ export default function BookingPage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="city">City</Label>
+                      <Label htmlFor="city" className="text-logoBlack font-semibold">City</Label>
                       <Select value={formData.serviceCity} onValueChange={(city) => {
                         setFormData(prev => ({ ...prev, serviceCity: city }));
                         filterFreelancersByLocation(formData.serviceState, city);
                       }}>
-                        <SelectTrigger id="city">
+                        <SelectTrigger id="city" className="bg-white text-logoBlack border-gray-300">
                           <SelectValue placeholder="Select city" />
                         </SelectTrigger>
                         <SelectContent>
@@ -780,9 +780,9 @@ export default function BookingPage() {
 
                   {/* Freelancer Selection */}
                   <div>
-                    <Label htmlFor="freelancer">Select Freelancer</Label>
+                    <Label htmlFor="freelancer" className="text-logoBlack font-semibold">Select Freelancer</Label>
                     <Select value={selectedFreelancer?._id || ''} onValueChange={handleFreelancerChange}>
-                      <SelectTrigger id="freelancer">
+                      <SelectTrigger id="freelancer" className="bg-white text-logoBlack border-gray-300">
                         <SelectValue placeholder="Choose a freelancer" />
                       </SelectTrigger>
                       <SelectContent>
@@ -794,10 +794,10 @@ export default function BookingPage() {
                       </SelectContent>
                     </Select>
                     {selectedFreelancer && (
-                      <div className="mt-3 p-3 bg-white/5 rounded">
-                        <p className="text-sm font-medium">{selectedFreelancer.fullName}</p>
-                        <p className="text-xs text-gray-600">{selectedFreelancer.bio}</p>
-                        <p className="text-xs text-gray-600 mt-1">Skills: {selectedFreelancer.skills}</p>
+                      <div className="mt-3 p-3 bg-logoGold/10 rounded border border-logoGold/20">
+                        <p className="text-sm font-semibold text-logoBlack">{selectedFreelancer.fullName}</p>
+                        <p className="text-xs text-logoBlack/70 font-paragraph">{selectedFreelancer.bio}</p>
+                        <p className="text-xs text-logoBlack/70 font-paragraph mt-1">Skills: {selectedFreelancer.skills}</p>
                       </div>
                     )}
                   </div>
@@ -806,9 +806,9 @@ export default function BookingPage() {
             )}
 
             {currentStep === 2 && (
-              <Card className="bg-secondary text-gray-700">
+              <Card className="bg-secondary text-logoBlack border-0 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-logoBlack">
                     <CalendarIcon className="h-5 w-5" />
                     Date, Time & Location
                   </CardTitle>
@@ -816,10 +816,10 @@ export default function BookingPage() {
                 <CardContent className="space-y-6">
                   {/* Date Selection */}
                   <div>
-                    <Label>Select Date</Label>
+                    <Label className="text-logoBlack font-semibold">Select Date</Label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <Button variant="outline" className="w-full justify-start text-left font-normal bg-white text-logoBlack border-gray-300 hover:bg-gray-50">
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {formData.bookingDate ? format(formData.bookingDate, 'PPP') : 'Pick a date'}
                         </Button>
@@ -837,9 +837,9 @@ export default function BookingPage() {
 
                   {/* Time Selection */}
                   <div>
-                    <Label htmlFor="time">Select Time</Label>
+                    <Label htmlFor="time" className="text-logoBlack font-semibold">Select Time</Label>
                     <Select value={formData.bookingTime} onValueChange={(time) => setFormData(prev => ({ ...prev, bookingTime: time }))}>
-                      <SelectTrigger id="time">
+                      <SelectTrigger id="time" className="bg-white text-logoBlack border-gray-300">
                         <SelectValue placeholder="Choose a time slot" />
                       </SelectTrigger>
                       <SelectContent>
@@ -860,67 +860,72 @@ export default function BookingPage() {
 
                   {/* Service Location Type */}
                   <div>
-                    <Label>Service Location</Label>
+                    <Label className="text-logoBlack font-semibold">Service Location</Label>
                     <RadioGroup value={formData.serviceLocationType} onValueChange={(value) => setFormData(prev => ({ ...prev, serviceLocationType: value }))}>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="client" id="client" />
-                        <Label htmlFor="client" className="font-normal cursor-pointer">At my location (Client's address)</Label>
+                        <Label htmlFor="client" className="font-normal cursor-pointer text-logoBlack">At my location (Client's address)</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="freelancer" id="freelancer" />
-                        <Label htmlFor="freelancer" className="font-normal cursor-pointer">At freelancer's location</Label>
+                        <Label htmlFor="freelancer" className="font-normal cursor-pointer text-logoBlack">At freelancer's location</Label>
                       </div>
                     </RadioGroup>
                   </div>
 
                   {/* Address Fields - Only show if client location selected */}
                   {formData.serviceLocationType === 'client' && (
-                    <div className="space-y-4 p-4 bg-white/5 rounded-lg">
-                      <h4 className="font-semibold text-sm">Enter Your Address</h4>
+                    <div className="space-y-4 p-4 bg-logoGold/10 rounded-lg border border-logoGold/20">
+                      <h4 className="font-semibold text-sm text-logoBlack">Enter Your Address</h4>
                       <div>
-                        <Label htmlFor="houseFloor">House/Floor No.</Label>
+                        <Label htmlFor="houseFloor" className="text-logoBlack">House/Floor No.</Label>
                         <Input
                           id="houseFloor"
                           value={formData.houseFloorNo}
                           onChange={(e) => setFormData(prev => ({ ...prev, houseFloorNo: e.target.value }))}
                           placeholder="e.g., 123, Apt 4B"
+                          className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="street">Street Name</Label>
+                        <Label htmlFor="street" className="text-logoBlack">Street Name</Label>
                         <Input
                           id="street"
                           value={formData.street}
                           onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
                           placeholder="e.g., Main Street"
+                          className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="area">Area/Locality</Label>
+                        <Label htmlFor="area" className="text-logoBlack">Area/Locality</Label>
                         <Input
                           id="area"
                           value={formData.area}
                           onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
                           placeholder="e.g., Downtown"
+                          className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="city">City</Label>
+                          <Label htmlFor="city" className="text-logoBlack">City</Label>
                           <Input
                             id="city"
                             value={formData.city}
                             onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                             placeholder="e.g., Bangalore"
+                            className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="postal">Postal Code</Label>
+                          <Label htmlFor="postal" className="text-logoBlack">Postal Code</Label>
                           <Input
                             id="postal"
                             value={formData.postalCode}
                             onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
                             placeholder="e.g., 560001"
+                            className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
                           />
                         </div>
                       </div>
@@ -929,9 +934,9 @@ export default function BookingPage() {
 
                   {/* Freelancer Location Display */}
                   {formData.serviceLocationType === 'freelancer' && selectedFreelancer && (
-                    <div className="p-4 bg-white/5 rounded-lg">
-                      <h4 className="font-semibold text-sm mb-2">Freelancer's Location</h4>
-                      <p className="text-sm text-gray-600">{selectedFreelancer.fullAddress || selectedFreelancer.serviceArea}</p>
+                    <div className="p-4 bg-logoGold/10 rounded-lg border border-logoGold/20">
+                      <h4 className="font-semibold text-sm text-logoBlack mb-2">Freelancer's Location</h4>
+                      <p className="text-sm text-logoBlack font-paragraph">{selectedFreelancer.fullAddress || selectedFreelancer.serviceArea}</p>
                     </div>
                   )}
                 </CardContent>

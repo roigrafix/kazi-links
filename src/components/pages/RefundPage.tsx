@@ -88,18 +88,19 @@ export default function RefundPage() {
 
     setIsSubmitting(true);
     try {
-      // Here you would typically send this data to your backend
-      // For now, we'll just show a success message
-      console.log('Refund request submitted:', {
-        bookingRef: booking.referenceId || booking._id,
-        refundReason,
-        additionalNotes,
-        bankName,
-        accountNumber,
-        ifscCode,
-        accountHolderName,
+      // Create refund request in database
+      const refundRequest = {
+        _id: crypto.randomUUID(),
+        bookingReference: booking._id,
+        clientName: booking.clientName,
+        clientEmail: booking.clientEmail,
         refundAmount: booking.paymentAmount,
-      });
+        refundReason: refundReason,
+        requestDate: new Date().toISOString(),
+        status: 'Pending'
+      };
+
+      await BaseCrudService.create('refunds', refundRequest);
 
       setSubmitted(true);
       toast({
