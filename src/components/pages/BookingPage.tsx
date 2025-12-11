@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BaseCrudService } from '@/integrations';
+import { BaseCrudService, useMember } from '@/integrations';
 import { Services, Freelancers, Bookings, ServiceCategories, IndianLocations } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,6 +37,7 @@ interface BookingFormData {
   serviceCity: string;
   clientLocation: string;
   paymentMethod: 'card' | 'cash';
+  savedAddressId?: string;
 }
 
 const PLATFORM_FEE_PERCENTAGE = 0.1;
@@ -44,6 +45,7 @@ const PLATFORM_FEE_PERCENTAGE = 0.1;
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { member } = useMember();
   
   const [services, setServices] = useState<Services[]>([]);
   const [categories, setCategories] = useState<ServiceCategories[]>([]);
@@ -65,6 +67,7 @@ export default function BookingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<Array<{ id: string; address: string }>>([]);
   
   const [formData, setFormData] = useState<BookingFormData>({
     serviceName: '',
@@ -184,6 +187,16 @@ export default function BookingPage() {
         setFreelancers(freelancersData.items);
         setCategories(categoriesData.items.filter(cat => cat.isActive));
         setLocations(locationsData.items);
+        
+        // Load saved address from member profile
+        if (member?.profile?.title) {
+          setSavedAddresses([
+            {
+              id: 'saved-address',
+              address: member.profile.title
+            }
+          ]);
+        }
         
         const states = new Set<string>();
         const cities = new Set<string>();
@@ -397,6 +410,7 @@ export default function BookingPage() {
     }
 
     if (formData.serviceLocationType === 'client' && 
+        !formData.savedAddressId &&
         (!formData.houseFloorNo || !formData.street || !formData.area || !formData.city || !formData.postalCode)) {
       alert('Please fill in your complete address.');
       return;
@@ -422,6 +436,9 @@ export default function BookingPage() {
     if (formData.serviceLocationType === 'freelancer') {
       serviceAddress = selectedFreelancer.fullAddress || 
                        `${selectedFreelancer.serviceArea || ''}, ${selectedFreelancer.city || ''}`.trim();
+    } else if (formData.savedAddressId) {
+      const saved = savedAddresses.find(a => a.id === formData.savedAddressId);
+      serviceAddress = saved?.address || '';
     } else {
       serviceAddress = `${formData.houseFloorNo}, ${formData.street}, ${formData.area}, ${formData.city} ${formData.postalCode}`;
     }
@@ -563,6 +580,7 @@ export default function BookingPage() {
       case 2:
         return formData.bookingDate && formData.bookingTime && 
                (formData.serviceLocationType === 'freelancer' || 
+                formData.savedAddressId ||
                 (formData.houseFloorNo && formData.street && formData.area && 
                  formData.postalCode && formData.city));
       case 3:
@@ -915,59 +933,95 @@ export default function BookingPage() {
                   {/* Address Fields - Only show if client location selected */}
                   {formData.serviceLocationType === 'client' && (
                     <div className="space-y-4 p-4 bg-logoGold/10 rounded-lg border border-logoGold/20">
-                      <h4 className="font-semibold text-sm text-logoBlack">Enter Your Address</h4>
-                      <div>
-                        <Label htmlFor="houseFloor" className="text-logoBlack">House/Floor No.</Label>
-                        <Input
-                          id="houseFloor"
-                          value={formData.houseFloorNo}
-                          onChange={(e) => setFormData(prev => ({ ...prev, houseFloorNo: e.target.value }))}
-                          placeholder="e.g., 123, Apt 4B"
-                          className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="street" className="text-logoBlack">Street Name</Label>
-                        <Input
-                          id="street"
-                          value={formData.street}
-                          onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
-                          placeholder="e.g., Main Street"
-                          className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="area" className="text-logoBlack">Area/Locality</Label>
-                        <Input
-                          id="area"
-                          value={formData.area}
-                          onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
-                          placeholder="e.g., Downtown"
-                          className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="city" className="text-logoBlack">City</Label>
-                          <Input
-                            id="city"
-                            value={formData.city}
-                            onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                            placeholder="e.g., Bangalore"
-                            className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
-                          />
+                      <h4 className="font-semibold text-sm text-logoBlack">Service Address</h4>
+                      
+                      {/* Saved Addresses Option */}
+                      {savedAddresses.length > 0 && (
+                        <div className="space-y-3">
+                          <Label className="text-logoBlack font-semibold text-sm">Use Saved Address</Label>
+                          <Select value={formData.savedAddressId || ''} onValueChange={(value) => {
+                            if (value === 'new') {
+                              setFormData(prev => ({ ...prev, savedAddressId: undefined, houseFloorNo: '', street: '', area: '', postalCode: '', city: '' }));
+                            } else {
+                              const saved = savedAddresses.find(a => a.id === value);
+                              if (saved) {
+                                setFormData(prev => ({ ...prev, savedAddressId: value, serviceAddress: saved.address, houseFloorNo: '', street: '', area: '', postalCode: '', city: '' }));
+                              }
+                            }
+                          }}>
+                            <SelectTrigger className="bg-white text-logoBlack border-gray-300">
+                              <SelectValue placeholder="Select an address" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {savedAddresses.map(addr => (
+                                <SelectItem key={addr.id} value={addr.id}>
+                                  {addr.address}
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="new">Enter New Address</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <div>
-                          <Label htmlFor="postal" className="text-logoBlack">Postal Code</Label>
-                          <Input
-                            id="postal"
-                            value={formData.postalCode}
-                            onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
-                            placeholder="e.g., 560001"
-                            className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
-                          />
+                      )}
+                      
+                      {/* Manual Address Entry - Show if no saved address selected */}
+                      {!formData.savedAddressId && (
+                        <div className="space-y-4">
+                          <h5 className="font-semibold text-xs text-logoBlack/70">Enter Your Address</h5>
+                          <div>
+                            <Label htmlFor="houseFloor" className="text-logoBlack">House/Floor No.</Label>
+                            <Input
+                              id="houseFloor"
+                              value={formData.houseFloorNo}
+                              onChange={(e) => setFormData(prev => ({ ...prev, houseFloorNo: e.target.value }))}
+                              placeholder="e.g., 123, Apt 4B"
+                              className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="street" className="text-logoBlack">Street Name</Label>
+                            <Input
+                              id="street"
+                              value={formData.street}
+                              onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
+                              placeholder="e.g., Main Street"
+                              className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="area" className="text-logoBlack">Area/Locality</Label>
+                            <Input
+                              id="area"
+                              value={formData.area}
+                              onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
+                              placeholder="e.g., Downtown"
+                              className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="city" className="text-logoBlack">City</Label>
+                              <Input
+                                id="city"
+                                value={formData.city}
+                                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                                placeholder="e.g., Bangalore"
+                                className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="postal" className="text-logoBlack">Postal Code</Label>
+                              <Input
+                                id="postal"
+                                value={formData.postalCode}
+                                onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
+                                placeholder="e.g., 560001"
+                                className="bg-white text-logoBlack border-gray-300 placeholder:text-gray-500"
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   )}
 

@@ -52,7 +52,6 @@ export default function ProfilePage() {
 
   const menuItems = [
     { icon: '📅', label: 'My bookings', href: '/tracking' },
-    { icon: '🎧', label: 'Help center', href: 'https://www.chatway.app' },
     { icon: '⭐', label: 'My rating', href: '#' },
     { icon: '📍', label: 'Manage addresses', href: '#' },
   ];
@@ -234,8 +233,6 @@ export default function ProfilePage() {
                     setIsEditing(true);
                   } else if (item.label === 'My bookings') {
                     navigate('/tracking');
-                  } else if (item.label === 'Help center') {
-                    window.open(item.href, '_blank');
                   }
                 }}
                 className="w-full flex items-center justify-between p-4 bg-secondary border border-logoGold/20 rounded-lg hover:bg-logoGold/5 transition-colors group"
