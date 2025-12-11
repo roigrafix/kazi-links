@@ -49,14 +49,11 @@ export default function ProfilePage() {
     : member?.loginEmail?.[0]?.toUpperCase() || 'U';
 
   const menuItems = [
-    { icon: '📋', label: 'My Plans', href: '#' },
     { icon: '📅', label: 'My bookings', href: '#' },
     { icon: '🎧', label: 'Help center', href: '#' },
-    { icon: '⭐', label: 'Plus membership', href: '#' },
     { icon: '⭐', label: 'My rating', href: '#' },
     { icon: '📍', label: 'Manage addresses', href: '#' },
     { icon: '⚙️', label: 'Settings', href: '#' },
-    { icon: 'ℹ️', label: 'About UC', href: '#' },
   ];
 
   return (
