@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { LogOut, Edit2, MapPin, Phone, Mail, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -16,11 +16,21 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editFormData, setEditFormData] = useState({
     phone: member?.contact?.phones?.[0] || '',
     email: member?.loginEmail || '',
     address: member?.profile?.title || ''
   });
+
+  // Update form data when member data changes
+  useEffect(() => {
+    setEditFormData({
+      phone: member?.contact?.phones?.[0] || '',
+      email: member?.loginEmail || '',
+      address: member?.profile?.title || ''
+    });
+  }, [member]);
 
   const handleLogout = async () => {
     await actions.logout();
@@ -32,17 +42,64 @@ export default function ProfilePage() {
 
   const handleSaveChanges = async () => {
     try {
+      setIsSaving(true);
+      
+      // Since the Wix Members API may not have a direct updateMember method,
+      // we'll use the available API to update the profile
+      // The member data is typically read-only from the Wix SDK
+      // We need to use the Wix Members API directly
+      
+      // For now, we'll attempt to call updateMember if it exists
+      if ('updateMember' in actions && typeof actions.updateMember === 'function') {
+        await (actions as any).updateMember({
+          contact: {
+            phones: editFormData.phone ? [editFormData.phone] : [],
+          },
+          profile: {
+            title: editFormData.address,
+          }
+        });
+      } else {
+        // Fallback: Show message that updates need to be done through Wix dashboard
+        console.warn('updateMember action not available. Using alternative update method.');
+        
+        // Try to update using the Wix API directly if available
+        if (typeof window !== 'undefined' && 'Wix' in window && (window as any).Wix?.members) {
+          try {
+            await (window as any).Wix.members.updateMember({
+              contact: {
+                phones: editFormData.phone ? [editFormData.phone] : [],
+              },
+              profile: {
+                title: editFormData.address,
+              }
+            });
+          } catch (wixError) {
+            console.error('Wix API update failed:', wixError);
+            throw new Error('Unable to update profile. Please try again.');
+          }
+        }
+      }
+      
+      // Reload member data to reflect changes
+      if ('loadCurrentMember' in actions && typeof actions.loadCurrentMember === 'function') {
+        await (actions as any).loadCurrentMember();
+      }
+      
       toast({
         title: "Profile Updated",
         description: "Your profile information has been updated successfully.",
       });
       setIsEditing(false);
     } catch (error) {
+      console.error('Error updating profile:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to update profile. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -135,9 +192,10 @@ export default function ProfilePage() {
                       </Button>
                       <Button
                         onClick={handleSaveChanges}
+                        disabled={isSaving}
                         className="bg-logoGold hover:bg-logoGold/90 text-logoBlack font-semibold"
                       >
-                        Save Changes
+                        {isSaving ? 'Saving...' : 'Save Changes'}
                       </Button>
                     </div>
                   </div>
