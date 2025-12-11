@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { MessageCircle, Send, X, Minimize2, Maximize2, Phone, Mail, Clock } from 'lucide-react';
+import { MessageCircle, Send, X, Minimize2, Maximize2, Phone, Mail, Clock, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface ChatMessage {
@@ -73,18 +73,18 @@ export default function CustomerServicePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-logoBlack to-[#2a2a2a]">
       {/* Header */}
-      <section className="py-20 border-b border-logoGold/20">
-        <div className="max-w-[100rem] mx-auto px-8">
+      <section className="py-16 md:py-20 border-b border-logoGold/20">
+        <div className="max-w-[100rem] mx-auto px-6 md:px-8 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-6xl font-heading font-bold mb-6 leading-tight text-logoGold">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold mb-4 md:mb-6 leading-tight text-logoGold">
               Customer Service Center
             </h1>
-            <p className="text-2xl font-paragraph max-w-4xl mx-auto leading-relaxed text-secondary/90">
+            <p className="text-lg md:text-xl lg:text-2xl font-paragraph max-w-4xl mx-auto leading-relaxed text-secondary/90">
               We're here to help. Get support through multiple channels available 24/7.
             </p>
           </motion.div>
@@ -92,18 +92,18 @@ export default function CustomerServicePage() {
       </section>
 
       {/* Support Channels */}
-      <section className="py-20">
-        <div className="max-w-[100rem] mx-auto px-8">
+      <section className="py-16 md:py-20">
+        <div className="max-w-[100rem] mx-auto px-6 md:px-8 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-16"
+            className="mb-12 md:mb-16"
           >
-            <h2 className="text-4xl font-heading font-bold text-center mb-12 text-logoGold leading-tight">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-center mb-8 md:mb-12 text-logoGold leading-tight">
               How Can We Help You?
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               {/* Live Chat */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -115,15 +115,15 @@ export default function CustomerServicePage() {
                     <div className="mx-auto mb-4 w-16 h-16 bg-logoGold/15 rounded-full flex items-center justify-center">
                       <MessageCircle className="w-8 h-8 text-logoGold" />
                     </div>
-                    <CardTitle className="text-2xl font-heading font-bold text-logoBlack">
+                    <CardTitle className="text-xl md:text-2xl font-heading font-bold text-logoBlack">
                       Live Chat
                     </CardTitle>
-                    <CardDescription className="font-paragraph text-base text-logoBlack/70 mt-2">
+                    <CardDescription className="font-paragraph text-sm md:text-base text-logoBlack/70 mt-2">
                       Chat with our support team in real-time
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="text-center space-y-4">
-                    <p className="font-paragraph text-logoBlack/80">Available 24/7 for immediate assistance</p>
+                    <p className="font-paragraph text-sm md:text-base text-logoBlack/80">Available 24/7 for immediate assistance</p>
                     <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
                       <DialogTrigger asChild>
                         <Button className="w-full bg-logoGold hover:bg-logoGold/90 text-logoBlack font-semibold">
@@ -146,21 +146,23 @@ export default function CustomerServicePage() {
                     <div className="mx-auto mb-4 w-16 h-16 bg-logoGold/15 rounded-full flex items-center justify-center">
                       <Phone className="w-8 h-8 text-logoGold" />
                     </div>
-                    <CardTitle className="text-2xl font-heading font-bold text-logoBlack">
+                    <CardTitle className="text-xl md:text-2xl font-heading font-bold text-logoBlack">
                       Phone Support
                     </CardTitle>
-                    <CardDescription className="font-paragraph text-base text-logoBlack/70 mt-2">
+                    <CardDescription className="font-paragraph text-sm md:text-base text-logoBlack/70 mt-2">
                       Call our support team directly
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="text-center space-y-4">
                     <div>
-                      <p className="font-paragraph text-lg font-bold text-logoBlack mb-2">1-800-SUPPORT</p>
-                      <p className="font-paragraph text-logoBlack/70">Mon-Fri 9AM-6PM EST</p>
+                      <p className="font-paragraph text-base md:text-lg font-bold text-logoBlack mb-2">+91 966-395-2491</p>
+                      <p className="font-paragraph text-sm md:text-base text-logoBlack/70">Mon-Fri 9AM-6PM IST</p>
                     </div>
-                    <Button variant="outline" className="w-full border-logoGold/30 text-logoBlack hover:bg-logoGold/10">
-                      Call Now
-                    </Button>
+                    <a href="tel:+919663952491">
+                      <Button variant="outline" className="w-full border-logoGold/30 text-logoBlack hover:bg-logoGold/10">
+                        Call Now
+                      </Button>
+                    </a>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -176,15 +178,15 @@ export default function CustomerServicePage() {
                     <div className="mx-auto mb-4 w-16 h-16 bg-logoGold/15 rounded-full flex items-center justify-center">
                       <Mail className="w-8 h-8 text-logoGold" />
                     </div>
-                    <CardTitle className="text-2xl font-heading font-bold text-logoBlack">
+                    <CardTitle className="text-xl md:text-2xl font-heading font-bold text-logoBlack">
                       Email Support
                     </CardTitle>
-                    <CardDescription className="font-paragraph text-base text-logoBlack/70 mt-2">
+                    <CardDescription className="font-paragraph text-sm md:text-base text-logoBlack/70 mt-2">
                       Send us a detailed message
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="text-center space-y-4">
-                    <p className="font-paragraph text-logoBlack/80">Response within 24 hours</p>
+                    <p className="font-paragraph text-sm md:text-base text-logoBlack/80">Response within 24 hours</p>
                     <Link to="/support">
                       <Button className="w-full bg-logoGold hover:bg-logoGold/90 text-logoBlack font-semibold">
                         Send Email
@@ -201,12 +203,12 @@ export default function CustomerServicePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-20"
+            className="mt-12 md:mt-20"
           >
-            <h2 className="text-4xl font-heading font-bold text-center mb-12 text-logoGold leading-tight">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-center mb-8 md:mb-12 text-logoGold leading-tight">
               Frequently Asked Questions
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               {[
                 {
                   question: 'How do I track my booking?',
@@ -232,7 +234,7 @@ export default function CustomerServicePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="font-paragraph text-logoBlack/80">{faq.answer}</p>
+                    <p className="font-paragraph text-sm md:text-base text-logoBlack/80">{faq.answer}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -247,13 +249,13 @@ export default function CustomerServicePage() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
-          className="fixed bottom-6 right-6 w-96 h-[600px] bg-secondary border-2 border-logoGold rounded-lg shadow-2xl flex flex-col z-50"
+          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 w-full max-w-sm md:w-96 h-[500px] md:h-[600px] bg-secondary border-2 border-logoGold rounded-lg shadow-2xl flex flex-col z-50"
         >
           {/* Chat Header */}
           <div className="bg-logoGold text-logoBlack p-4 rounded-t-lg flex justify-between items-center">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
-              <h3 className="font-heading font-bold">Live Support</h3>
+              <h3 className="font-heading font-bold text-sm md:text-base">Live Support</h3>
             </div>
             <div className="flex gap-2">
               <button
@@ -281,13 +283,13 @@ export default function CustomerServicePage() {
                     className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-xs px-4 py-2 rounded-lg ${
+                      className={`max-w-xs px-4 py-2 rounded-lg text-sm md:text-base ${
                         msg.sender === 'user'
                           ? 'bg-logoGold text-logoBlack'
                           : 'bg-logoBlack/20 text-logoBlack border border-logoGold/20'
                       }`}
                     >
-                      <p className="font-paragraph text-sm">{msg.message}</p>
+                      <p className="font-paragraph">{msg.message}</p>
                       <p className="text-xs opacity-70 mt-1">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
@@ -314,13 +316,13 @@ export default function CustomerServicePage() {
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Type your message..."
-                  className="bg-white text-logoBlack border-logoGold/30 font-paragraph"
+                  className="bg-white text-logoBlack border-logoGold/30 font-paragraph text-sm"
                   disabled={isLoading}
                 />
                 <Button
                   type="submit"
                   size="icon"
-                  className="bg-logoGold hover:bg-logoGold/90 text-logoBlack"
+                  className="bg-logoGold hover:bg-logoGold/90 text-logoBlack flex-shrink-0"
                   disabled={isLoading || !chatInput.trim()}
                 >
                   <Send className="w-4 h-4" />
@@ -339,11 +341,30 @@ export default function CustomerServicePage() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-logoGold hover:bg-logoGold/90 text-logoBlack rounded-full shadow-lg flex items-center justify-center z-40 border-2 border-logoBlack"
+          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 w-14 h-14 bg-logoGold hover:bg-logoGold/90 text-logoBlack rounded-full shadow-lg flex items-center justify-center z-40 border-2 border-logoBlack"
+          title="Open chat for urgent help"
         >
           <MessageCircle className="w-6 h-6" />
         </motion.button>
       )}
+
+      {/* Urgent Help Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+        className="fixed bottom-24 md:bottom-32 right-4 md:right-6 max-w-xs z-30"
+      >
+        <Card className="bg-logoGold border-2 border-logoBlack shadow-lg">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-logoBlack flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-heading font-bold text-logoBlack text-sm">Need Urgent Help?</p>
+              <p className="font-paragraph text-xs text-logoBlack/80 mt-1">Click the chat button below for immediate assistance</p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
