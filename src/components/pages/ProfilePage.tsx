@@ -9,10 +9,12 @@ import { LogOut, Edit2, MapPin, Phone, Mail, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
   const { member, actions } = useMember();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({
     phone: member?.contact?.phones?.[0] || '',
@@ -49,11 +51,10 @@ export default function ProfilePage() {
     : member?.loginEmail?.[0]?.toUpperCase() || 'U';
 
   const menuItems = [
-    { icon: '📅', label: 'My bookings', href: '#' },
-    { icon: '🎧', label: 'Help center', href: '#' },
+    { icon: '📅', label: 'My bookings', href: '/tracking' },
+    { icon: '🎧', label: 'Help center', href: 'https://www.chatway.app' },
     { icon: '⭐', label: 'My rating', href: '#' },
     { icon: '📍', label: 'Manage addresses', href: '#' },
-    { icon: '⚙️', label: 'Settings', href: '#' },
   ];
 
   return (
@@ -231,6 +232,10 @@ export default function ProfilePage() {
                 onClick={() => {
                   if (item.label === 'Manage addresses') {
                     setIsEditing(true);
+                  } else if (item.label === 'My bookings') {
+                    navigate('/tracking');
+                  } else if (item.label === 'Help center') {
+                    window.open(item.href, '_blank');
                   }
                 }}
                 className="w-full flex items-center justify-between p-4 bg-secondary border border-logoGold/20 rounded-lg hover:bg-logoGold/5 transition-colors group"
