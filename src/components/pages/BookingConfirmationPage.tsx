@@ -6,6 +6,7 @@ import { Bookings } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertCircle, Loader } from 'lucide-react';
+import { sendGridService } from '@/services/sendgridService';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
@@ -77,6 +78,29 @@ export default function BookingConfirmationPage() {
         };
 
         await BaseCrudService.create('bookings', bookingToCreate);
+        
+        // Send booking confirmation email to client
+        const emailSent = await sendGridService.sendBookingConfirmation({
+          clientName: bookingToCreate.clientName || '',
+          clientEmail: bookingToCreate.clientEmail || '',
+          serviceName: bookingToCreate.serviceName || '',
+          freelancerName: bookingToCreate.freelancerName || '',
+          bookingDate: bookingToCreate.bookingDate 
+            ? new Date(bookingToCreate.bookingDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })
+            : '',
+          bookingTime: bookingToCreate.bookingTime || '',
+          serviceAddress: bookingToCreate.serviceAddress || '',
+          paymentAmount: bookingToCreate.paymentAmount || 0,
+          bookingId: bookingToCreate._id
+        });
+
+        if (!emailSent) {
+          console.warn('Failed to send booking confirmation email, but booking was created successfully');
+        }
         
         // Clear sessionStorage
         sessionStorage.removeItem('pendingBooking');
