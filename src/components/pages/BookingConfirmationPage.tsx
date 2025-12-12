@@ -79,27 +79,59 @@ export default function BookingConfirmationPage() {
 
         await BaseCrudService.create('bookings', bookingToCreate);
         
+        // Format booking date for emails
+        const formattedBookingDate = bookingToCreate.bookingDate 
+          ? new Date(bookingToCreate.bookingDate).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })
+          : '';
+        
         // Send booking confirmation email to client
-        const emailSent = await sendGridService.sendBookingConfirmation({
+        const clientEmailSent = await sendGridService.sendBookingConfirmation({
           clientName: bookingToCreate.clientName || '',
           clientEmail: bookingToCreate.clientEmail || '',
           serviceName: bookingToCreate.serviceName || '',
           freelancerName: bookingToCreate.freelancerName || '',
-          bookingDate: bookingToCreate.bookingDate 
-            ? new Date(bookingToCreate.bookingDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })
-            : '',
+          bookingDate: formattedBookingDate,
           bookingTime: bookingToCreate.bookingTime || '',
           serviceAddress: bookingToCreate.serviceAddress || '',
           paymentAmount: bookingToCreate.paymentAmount || 0,
           bookingId: bookingToCreate._id
         });
 
-        if (!emailSent) {
-          console.warn('Failed to send booking confirmation email, but booking was created successfully');
+        if (!clientEmailSent) {
+          console.warn('Failed to send booking confirmation email to client, but booking was created successfully');
+        }
+
+        // Send booking notification email to freelancer
+        try {
+          const { items: freelancers } = await BaseCrudService.getAll('freelancers');
+          const freelancer = freelancers.find(f => f.fullName === bookingToCreate.freelancerName);
+          
+          if (freelancer && freelancer.contactEmail) {
+            const freelancerEmailSent = await sendGridService.sendFreelancerBookingNotification(
+              freelancer.contactEmail,
+              {
+                clientName: bookingToCreate.clientName || '',
+                clientEmail: bookingToCreate.clientEmail || '',
+                serviceName: bookingToCreate.serviceName || '',
+                freelancerName: bookingToCreate.freelancerName || '',
+                bookingDate: formattedBookingDate,
+                bookingTime: bookingToCreate.bookingTime || '',
+                serviceAddress: bookingToCreate.serviceAddress || '',
+                paymentAmount: bookingToCreate.paymentAmount || 0,
+                bookingId: bookingToCreate._id
+              }
+            );
+
+            if (!freelancerEmailSent) {
+              console.warn('Failed to send booking notification email to freelancer, but booking was created successfully');
+            }
+          }
+        } catch (error) {
+          console.warn('Error sending freelancer notification email:', error);
         }
         
         // Clear sessionStorage
