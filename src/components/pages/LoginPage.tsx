@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-// 1. Remove useMember and Import our Firebase Service
-import { firebaseAuth } from '@/services/firebaseAuth'; 
+import { useMember } from '@/integrations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Image } from '@/components/ui/image';
@@ -11,19 +10,19 @@ import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  // 2. We manage auth state locally or via context now
+  const { isAuthenticated, isLoading, actions } = useMember();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
-  // check if user is already logged in
+
+  // Redirect if already authenticated
   useEffect(() => {
-    if (firebaseAuth.getCurrentUser()) {
+    if (isAuthenticated && !isLoading) {
       navigate('/');
     }
-  }, [navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,19 +30,10 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      // 3. Call the Real Firebase Login
-      const result = await firebaseAuth.signInWithEmailAndPassword(email, password);
-      
-      if (result.success) {
-        // Redirect to Dashboard/Home on success
-        navigate('/'); 
-      } else {
-        // Show error message from Firebase
-        setError(result.error?.message || 'Login failed');
-        setIsSubmitting(false);
-      }
+      // Use Wix login which handles authentication
+      actions.login();
     } catch (err) {
-      setError('An unexpected error occurred.');
+      setError('Login failed. Please try again.');
       setIsSubmitting(false);
     }
   };
