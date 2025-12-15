@@ -1,4 +1,3 @@
-import { MemberProvider } from '@/integrations';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { ScrollToTop } from '@/lib/scroll-to-top';
 import ErrorPage from '@/integrations/errorHandlers/ErrorPage';
@@ -29,6 +28,11 @@ import TestEmailPage from '@/components/pages/TestEmailPage';
 import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
 import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
 import { FreelancerProtectedRoute } from '@/components/ui/freelancer-protected-route';
+import { lazy, Suspense } from 'react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+
+// Lazy load MemberProvider to avoid dynamic import issues
+const MemberProvider = lazy(() => import('@/integrations').then(m => ({ default: m.MemberProvider })));
 
 const router = createBrowserRouter([
   {
@@ -184,8 +188,10 @@ const router = createBrowserRouter([
 
 export default function AppRouter() {
   return (
-    <MemberProvider>
-      <RouterProvider router={router} />
-    </MemberProvider>
+    <Suspense fallback={<LoadingSpinner />}>
+      <MemberProvider>
+        <RouterProvider router={router} />
+      </MemberProvider>
+    </Suspense>
   );
 }

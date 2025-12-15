@@ -7,7 +7,7 @@ import { Image } from '@/components/ui/image';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
 import { useMember } from '@/integrations';
-import firebaseAuth, { PhoneAuthResult, ConfirmationResult } from '@/services/firebaseAuth';
+import firebaseAuth, { type PhoneAuthResult, type ConfirmationResult } from '@/services/firebaseAuth';
 import { Phone, Lock, ArrowRight, Loader, CheckCircle, AlertCircle } from 'lucide-react';
 // Firebase types imported from service
 // import { ConfirmationResult } from 'firebase/auth';

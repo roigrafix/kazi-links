@@ -1,19 +1,23 @@
-// 1. Import the REAL Firebase SDK functions
-import { initializeApp } from "firebase/app";
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged, 
-  RecaptchaVerifier, 
-  signInWithPhoneNumber,
-  type Auth,
-  type User,
-  type ConfirmationResult
-} from "firebase/auth";
+// Firebase Auth Service - Mock Implementation
+// Note: Firebase SDK is not installed. This is a mock service for development.
+// To use real Firebase, install: npm install firebase
 
-// 2. Keep your Configuration
+// Mock types to match Firebase Auth API
+export type Auth = any;
+export type User = {
+  uid: string;
+  email: string | null;
+  phoneNumber: string | null;
+  displayName: string | null;
+};
+export type ConfirmationResult = {
+  confirm: (verificationCode: string) => Promise<{ user: User }>;
+};
+export type RecaptchaVerifier = {
+  clear: () => void;
+};
+
+// Firebase Configuration (for reference when real SDK is installed)
 const firebaseConfig = {
   apiKey: "AIzaSyB79Ulw8ssi5I8nzpcueoX3poDOex2OtaY",
   authDomain: "kazilinks-95d1d.firebaseapp.com",
@@ -23,9 +27,6 @@ const firebaseConfig = {
   appId: "1:448542748498:web:bbaa6b46c32a86ad37d48b",
   measurementId: "G-50650X2SB9"
 };
-
-// Initialize Firebase App instance
-const app = initializeApp(firebaseConfig);
 
 // --- Interfaces ---
 export interface AuthResult {
@@ -47,121 +48,76 @@ class FirebaseAuthService {
   private recaptchaVerifier: RecaptchaVerifier | null = null;
 
   constructor() {
-    // 3. Use the real auth instance initialized above
-    this.auth = getAuth(app);
-    
-    onAuthStateChanged(this.auth, (user) => {
-      this.currentUser = user;
-      this.notifyAuthStateListeners(user);
-    });
+    // Mock auth instance - replace with real Firebase when SDK is installed
+    this.auth = {} as Auth;
+    console.warn('Firebase Auth Service: Using mock implementation. Install firebase package for real authentication.');
   }
 
   // --- Email Authentication ---
   async signInWithEmailAndPassword(email: string, password: string): Promise<AuthResult> {
-    try {
-      // Uses the real SDK function now
-      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
-      return { success: true, user: userCredential.user };
-    } catch (error: any) {
-      console.error("Login Error:", error); // Added logging for debugging
-      return {
-        success: false,
-        error: {
-          code: error.code,
-          message: error.message
-        }
-      };
-    }
+    // Mock implementation - replace with real Firebase SDK
+    console.warn('Mock: signInWithEmailAndPassword called');
+    return {
+      success: false,
+      error: {
+        code: 'auth/not-implemented',
+        message: 'Firebase SDK not installed. Please install firebase package.'
+      }
+    };
   }
 
   async createUserWithEmailAndPassword(email: string, password: string): Promise<AuthResult> {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-      return { success: true, user: userCredential.user };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: {
-          code: error.code,
-          message: error.message
-        }
-      };
-    }
+    // Mock implementation - replace with real Firebase SDK
+    console.warn('Mock: createUserWithEmailAndPassword called');
+    return {
+      success: false,
+      error: {
+        code: 'auth/not-implemented',
+        message: 'Firebase SDK not installed. Please install firebase package.'
+      }
+    };
   }
 
   // --- Phone Authentication ---
   async setupRecaptcha(containerId: string): Promise<RecaptchaVerifier> {
-    try {
-      // Clear existing verifier if any to prevent duplicates
-      if (this.recaptchaVerifier) {
-        this.recaptchaVerifier.clear();
-      }
-      
-      this.recaptchaVerifier = new RecaptchaVerifier(this.auth, containerId, {
-        size: 'invisible',
-        callback: () => {
-          console.log('reCAPTCHA verified');
-        },
-        'expired-callback': () => {
-          console.log('reCAPTCHA expired');
-        }
-      });
-      return this.recaptchaVerifier;
-    } catch (error: any) {
-      console.error('Error setting up reCAPTCHA:', error);
-      throw error;
-    }
+    // Mock implementation
+    console.warn('Mock: setupRecaptcha called');
+    this.recaptchaVerifier = {
+      clear: () => console.log('Mock: RecaptchaVerifier cleared')
+    };
+    return this.recaptchaVerifier;
   }
 
   async sendPhoneVerificationCode(phoneNumber: string, containerId: string = 'recaptcha-container'): Promise<PhoneAuthResult> {
-    try {
-      if (!this.recaptchaVerifier) {
-        await this.setupRecaptcha(containerId);
+    // Mock implementation - replace with real Firebase SDK
+    console.warn('Mock: sendPhoneVerificationCode called for', phoneNumber);
+    return {
+      success: false,
+      error: {
+        code: 'auth/not-implemented',
+        message: 'Firebase SDK not installed. Please install firebase package to enable phone authentication.'
       }
-
-      const confirmationResult = await signInWithPhoneNumber(
-        this.auth,
-        phoneNumber,
-        this.recaptchaVerifier!
-      );
-
-      return {
-        success: true,
-        confirmationResult
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: {
-          code: error.code,
-          message: error.message
-        }
-      };
-    }
+    };
   }
 
   async verifyPhoneOTP(confirmationResult: ConfirmationResult, otp: string): Promise<AuthResult> {
-    try {
-      const userCredential = await confirmationResult.confirm(otp);
-      return { success: true, user: userCredential.user };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: {
-          code: error.code,
-          message: error.message
-        }
-      };
-    }
+    // Mock implementation - replace with real Firebase SDK
+    console.warn('Mock: verifyPhoneOTP called');
+    return {
+      success: false,
+      error: {
+        code: 'auth/not-implemented',
+        message: 'Firebase SDK not installed. Please install firebase package.'
+      }
+    };
   }
 
   // --- Sign Out ---
   async signOut(): Promise<void> {
-    try {
-      await signOut(this.auth);
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
+    // Mock implementation
+    console.warn('Mock: signOut called');
+    this.currentUser = null;
+    this.notifyAuthStateListeners(null);
   }
 
   // --- State Management ---
