@@ -1,57 +1,19 @@
-// Firebase SDK imports - Note: Firebase SDK needs to be installed via npm
-// For now, using type-only definitions to prevent build errors
-// TODO: Install firebase package: npm install firebase
+// 1. Import the REAL Firebase SDK functions
+import { initializeApp } from "firebase/app";
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged, 
+  RecaptchaVerifier, 
+  signInWithPhoneNumber,
+  type Auth,
+  type User,
+  type ConfirmationResult
+} from "firebase/auth";
 
-// Type definitions for Firebase (placeholder until package is installed)
-export type Auth = any;
-export type User = any;
-export type RecaptchaVerifier = any;
-export type ConfirmationResult = any;
-export type PhoneAuthProvider = any;
-
-// Placeholder Firebase functions
-const initializeApp = (config: any): any => {
-  console.warn('Firebase SDK not installed. Please run: npm install firebase');
-  return {};
-};
-
-const getAuth = (app: any): any => {
-  console.warn('Firebase SDK not installed. Please run: npm install firebase');
-  return {};
-};
-
-const signInWithEmailAndPassword = async (auth: any, email: string, password: string): Promise<any> => {
-  throw new Error('Firebase SDK not installed. Please run: npm install firebase');
-};
-
-const createUserWithEmailAndPassword = async (auth: any, email: string, password: string): Promise<any> => {
-  throw new Error('Firebase SDK not installed. Please run: npm install firebase');
-};
-
-const signOut = async (auth: any): Promise<void> => {
-  throw new Error('Firebase SDK not installed. Please run: npm install firebase');
-};
-
-const onAuthStateChanged = (auth: any, callback: (user: any) => void): any => {
-  console.warn('Firebase SDK not installed. Please run: npm install firebase');
-  return () => {};
-};
-
-const RecaptchaVerifier = class {
-  constructor(auth: any, containerId: string, options: any) {
-    console.warn('Firebase SDK not installed. Please run: npm install firebase');
-  }
-};
-
-const signInWithPhoneNumber = async (auth: any, phoneNumber: string, verifier: any): Promise<any> => {
-  throw new Error('Firebase SDK not installed. Please run: npm install firebase');
-};
-
-const signInWithCredential = async (auth: any, credential: any): Promise<any> => {
-  throw new Error('Firebase SDK not installed. Please run: npm install firebase');
-};
-
-// --- Configuration ---
+// 2. Keep your Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB79Ulw8ssi5I8nzpcueoX3poDOex2OtaY",
   authDomain: "kazilinks-95d1d.firebaseapp.com",
@@ -61,6 +23,9 @@ const firebaseConfig = {
   appId: "1:448542748498:web:bbaa6b46c32a86ad37d48b",
   measurementId: "G-50650X2SB9"
 };
+
+// Initialize Firebase App instance
+const app = initializeApp(firebaseConfig);
 
 // --- Interfaces ---
 export interface AuthResult {
@@ -82,7 +47,7 @@ class FirebaseAuthService {
   private recaptchaVerifier: RecaptchaVerifier | null = null;
 
   constructor() {
-    const app = initializeApp(firebaseConfig);
+    // 3. Use the real auth instance initialized above
     this.auth = getAuth(app);
     
     onAuthStateChanged(this.auth, (user) => {
@@ -94,9 +59,11 @@ class FirebaseAuthService {
   // --- Email Authentication ---
   async signInWithEmailAndPassword(email: string, password: string): Promise<AuthResult> {
     try {
+      // Uses the real SDK function now
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
       return { success: true, user: userCredential.user };
     } catch (error: any) {
+      console.error("Login Error:", error); // Added logging for debugging
       return {
         success: false,
         error: {
@@ -125,6 +92,11 @@ class FirebaseAuthService {
   // --- Phone Authentication ---
   async setupRecaptcha(containerId: string): Promise<RecaptchaVerifier> {
     try {
+      // Clear existing verifier if any to prevent duplicates
+      if (this.recaptchaVerifier) {
+        this.recaptchaVerifier.clear();
+      }
+      
       this.recaptchaVerifier = new RecaptchaVerifier(this.auth, containerId, {
         size: 'invisible',
         callback: () => {
@@ -214,7 +186,10 @@ class FirebaseAuthService {
   }
 
   clearRecaptcha(): void {
-    this.recaptchaVerifier = null;
+    if (this.recaptchaVerifier) {
+       this.recaptchaVerifier.clear();
+       this.recaptchaVerifier = null;
+    }
   }
 }
 
