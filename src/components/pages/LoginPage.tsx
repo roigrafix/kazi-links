@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useMember } from '@/integrations';
+// 1. Remove useMember and Import our Firebase Service
+import { firebaseAuth } from '@/services/firebaseAuth'; 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Image } from '@/components/ui/image';
@@ -10,20 +11,19 @@ import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, actions } = useMember();
+  // 2. We manage auth state locally or via context now
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
-
-  // Redirect if already authenticated
+  
+  // check if user is already logged in
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (firebaseAuth.getCurrentUser()) {
       navigate('/');
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,26 +31,27 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      // Use Wix login which handles authentication
-      actions.login();
+      // 3. Call the Real Firebase Login
+      const result = await firebaseAuth.signInWithEmailAndPassword(email, password);
+      
+      if (result.success) {
+        // Redirect to Dashboard/Home on success
+        navigate('/'); 
+      } else {
+        // Show error message from Firebase
+        setError(result.error?.message || 'Login failed');
+        setIsSubmitting(false);
+      }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError('An unexpected error occurred.');
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-primary flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner />
-          <p className="mt-4 font-paragraph text-primary-foreground">
-            Loading...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Optional: Handle Social Login (if you add Google later)
+  const handleSocialLogin = () => {
+    alert("Social login implementation coming soon!");
+  };
 
   return (
     <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -77,7 +78,7 @@ export default function LoginPage() {
           </motion.div>
           <h1 className="font-heading text-4xl font-bold mb-2">KaziLinks</h1>
           <p className="font-paragraph text-primary-foreground/70">
-            {isSignUp ? 'Create your account' : 'Welcome back'}
+            Welcome back
           </p>
         </div>
 
@@ -161,6 +162,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="font-paragraph text-logoGold hover:text-logoGold/80 transition-colors"
+                onClick={() => alert('Forgot Password feature coming soon!')}
               >
                 Forgot password?
               </button>
@@ -201,11 +203,11 @@ export default function LoginPage() {
           {/* Social Login Button */}
           <Button
             type="button"
-            onClick={actions.login}
+            onClick={handleSocialLogin}
             variant="outline"
             className="w-full border-secondary-foreground/30 text-secondary-foreground hover:bg-primary/10 font-paragraph"
           >
-            Sign in with Wix
+             Sign in with Google
           </Button>
         </motion.div>
 
@@ -219,7 +221,7 @@ export default function LoginPage() {
           <p className="font-paragraph text-primary-foreground/70">
             Don't have an account?{' '}
             <button
-              onClick={actions.login}
+              onClick={() => navigate('/signup')} 
               className="text-logoGold hover:text-logoGold/80 font-semibold transition-colors"
             >
               Sign up here
@@ -227,7 +229,7 @@ export default function LoginPage() {
           </p>
         </motion.div>
 
-        {/* Features Section */}
+        {/* Features Section - Kept exactly as is */}
         <motion.div
           className="mt-12 grid grid-cols-3 gap-4"
           initial={{ opacity: 0, y: 20 }}
