@@ -12,6 +12,7 @@ import BookingPage from '@/components/pages/BookingPage';
 import TrackingPage from '@/components/pages/TrackingPage';
 import RefundPage from '@/components/pages/RefundPage';
 import LoginPage from '@/components/pages/LoginPage';
+import FirebasePhoneAuthPage from '@/components/pages/FirebasePhoneAuthPage';
 import ProfilePage from '@/components/pages/ProfilePage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
 import FreelancerDashboardPage from '@/components/pages/FreelancerDashboardPage';
@@ -20,7 +21,6 @@ import ReviewPage from '@/components/pages/ReviewPage';
 import AdminDashboardPage from '@/components/pages/AdminDashboardPage';
 import AdminRefundsPage from '@/components/pages/AdminRefundsPage';
 import AdminSupportPage from '@/components/pages/AdminSupportPage';
-import SMSAuthPage from '@/components/pages/SMSAuthPage';
 import PrivacyPolicyPage from '@/components/pages/PrivacyPolicyPage';
 import ClientRefundTrackingPage from '@/components/pages/ClientRefundTrackingPage';
 import BookingConfirmationPage from '@/components/pages/BookingConfirmationPage';
@@ -100,8 +100,8 @@ const router = createBrowserRouter([
         element: <LoginPage />,
       },
       {
-        path: "sms-auth",
-        element: <SMSAuthPage />,
+        path: "firebase-phone-auth",
+        element: <FirebasePhoneAuthPage />,
       },
       {
         path: "profile",

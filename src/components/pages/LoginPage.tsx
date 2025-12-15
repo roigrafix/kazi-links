@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Image } from '@/components/ui/image';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Phone } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -189,6 +189,17 @@ export default function LoginPage() {
               </span>
             </div>
           </div>
+
+          {/* Phone Login Button */}
+          <Button
+            type="button"
+            onClick={() => navigate('/firebase-phone-auth')}
+            variant="outline"
+            className="w-full border-secondary-foreground/30 text-secondary-foreground hover:bg-primary/10 font-paragraph mb-3"
+          >
+            <Phone className="mr-2 h-5 w-5" />
+            Sign in with Phone
+          </Button>
 
           {/* Social Login Button */}
           <Button
