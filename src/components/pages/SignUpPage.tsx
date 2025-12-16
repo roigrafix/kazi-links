@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Image } from '@/components/ui/image';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Phone, User } from 'lucide-react';
+import { initializeGoogleOAuth, handleGoogleSignInResponse } from '@/services/googleOAuthService';
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -27,6 +28,37 @@ export default function SignUpPage() {
       navigate('/');
     }
   }, [isAuthenticated, isLoading, navigate]);
+
+  // Initialize Google OAuth on component mount
+  useEffect(() => {
+    initializeGoogleOAuth();
+    
+    // Set up Google Sign-In callback
+    const handleGoogleResponse = (response: any) => {
+      try {
+        const userData = handleGoogleSignInResponse(response);
+        console.log('Google Sign-Up successful:', userData);
+        
+        // Store the token and user data
+        localStorage.setItem('googleToken', userData.token);
+        localStorage.setItem('googleUser', JSON.stringify({
+          id: userData.id,
+          email: userData.email,
+          name: userData.name,
+          picture: userData.picture,
+        }));
+
+        // Redirect to home or dashboard
+        navigate('/');
+      } catch (err) {
+        setError('Google Sign-Up failed. Please try again.');
+        console.error('Google Sign-Up error:', err);
+      }
+    };
+
+    // Store the callback globally so Google can access it
+    (window as any).handleGoogleResponse = handleGoogleResponse;
+  }, [navigate]);
 
   const validateForm = () => {
     if (!fullName.trim()) {
@@ -75,6 +107,48 @@ export default function SignUpPage() {
       actions.login();
     } catch (err) {
       setError('Sign up failed. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle Google OAuth Sign-Up
+  const handleGoogleSignUp = () => {
+    const google = (window as any).google;
+    
+    if (!google?.accounts?.id) {
+      setError('Google Sign-Up is not available. Please check your configuration.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      // Trigger Google Sign-In prompt
+      google.accounts.id.renderButton(
+        document.getElementById('google-signup-button'),
+        {
+          type: 'standard',
+          size: 'large',
+          text: 'signup_with',
+          locale: 'en_US',
+        }
+      );
+
+      // Alternative: Use One Tap UI
+      google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // If One Tap is not displayed, show the button
+          const button = document.querySelector('[data-google-signup-button]');
+          if (button) {
+            (button as HTMLElement).click();
+          }
+        }
+      });
+    } catch (err) {
+      setError('Failed to initialize Google Sign-Up. Please try again.');
+      console.error('Google Sign-Up error:', err);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -301,15 +375,14 @@ export default function SignUpPage() {
           </Button>
 
           {/* Google Sign Up Button */}
+          <div id="google-signup-button" className="w-full" />
           <Button
             type="button"
-            onClick={() => {
-              // Google OAuth will be implemented here
-              // For now, show a message
-              setError('Google Sign Up coming soon!');
-            }}
+            onClick={handleGoogleSignUp}
+            disabled={isSubmitting}
             variant="outline"
             className="w-full border-secondary-foreground/30 text-secondary-foreground hover:bg-primary/10 font-paragraph"
+            data-google-signup-button
           >
             Sign up with Google
           </Button>

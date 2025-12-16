@@ -7,8 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Image } from '@/components/ui/image';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Phone } from 'lucide-react';
-
-// ... keep existing code (imports)
+import { initializeGoogleOAuth, handleGoogleSignInResponse } from '@/services/googleOAuthService';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -26,6 +25,37 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, isLoading, navigate]);
 
+  // Initialize Google OAuth on component mount
+  useEffect(() => {
+    initializeGoogleOAuth();
+    
+    // Set up Google Sign-In callback
+    const handleGoogleResponse = (response: any) => {
+      try {
+        const userData = handleGoogleSignInResponse(response);
+        console.log('Google Sign-In successful:', userData);
+        
+        // Store the token and user data
+        localStorage.setItem('googleToken', userData.token);
+        localStorage.setItem('googleUser', JSON.stringify({
+          id: userData.id,
+          email: userData.email,
+          name: userData.name,
+          picture: userData.picture,
+        }));
+
+        // Redirect to home or dashboard
+        navigate('/');
+      } catch (err) {
+        setError('Google Sign-In failed. Please try again.');
+        console.error('Google Sign-In error:', err);
+      }
+    };
+
+    // Store the callback globally so Google can access it
+    (window as any).handleGoogleResponse = handleGoogleResponse;
+  }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -40,14 +70,46 @@ export default function LoginPage() {
     }
   };
 
-  // Handle Google OAuth - placeholder for future implementation
+  // Handle Google OAuth Sign-In
   const handleGoogleLogin = () => {
-    // TODO: Implement Google OAuth
-    // This would typically involve:
-    // 1. Initializing Google OAuth SDK
-    // 2. Calling Google sign-in
-    // 3. Sending the token to your backend
-    setError('Google Sign In is coming soon!');
+    const google = (window as any).google;
+    
+    if (!google?.accounts?.id) {
+      setError('Google Sign-In is not available. Please check your configuration.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      // Trigger Google Sign-In prompt
+      google.accounts.id.renderButton(
+        document.getElementById('google-signin-button'),
+        {
+          type: 'standard',
+          size: 'large',
+          text: 'signin_with',
+          locale: 'en_US',
+        }
+      );
+
+      // Alternative: Use One Tap UI
+      google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // If One Tap is not displayed, show the button
+          const button = document.querySelector('[data-google-signin-button]');
+          if (button) {
+            (button as HTMLElement).click();
+          }
+        }
+      });
+    } catch (err) {
+      setError('Failed to initialize Google Sign-In. Please try again.');
+      console.error('Google Sign-In error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -209,11 +271,14 @@ export default function LoginPage() {
           </Button>
 
           {/* Social Login Button */}
+          <div id="google-signin-button" className="w-full mb-3" />
           <Button
             type="button"
             onClick={handleGoogleLogin}
+            disabled={isSubmitting}
             variant="outline"
             className="w-full border-secondary-foreground/30 text-secondary-foreground hover:bg-primary/10 font-paragraph"
+            data-google-signin-button
           >
              Sign in with Google
           </Button>
