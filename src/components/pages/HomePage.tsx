@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BaseCrudService } from '@/integrations';
+import { BaseCrudService, useMember } from '@/integrations';
 import { ServiceCategories, Freelancers } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +9,8 @@ import { Image } from '@/components/ui/image';
 import { ArrowRight, Star, Users, Calendar, MapPin } from 'lucide-react';
 
 export default function HomePage() {
+  const navigate = useNavigate();
+  const { isAuthenticated, actions } = useMember();
   const [categories, setCategories] = useState<ServiceCategories[]>([]);
   const [featuredFreelancers, setFeaturedFreelancers] = useState<Freelancers[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,16 +73,26 @@ export default function HomePage() {
                   </Link>
                 </Button>
                 
-                <Button 
-                  asChild 
-                  variant="outline" 
-                  size="lg"
-                  className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary text-lg px-8 py-6"
-                >
-                  <Link to="/freelancers">
-                    Find Freelancers
-                  </Link>
-                </Button>
+                {!isAuthenticated ? (
+                  <Button 
+                    onClick={actions.login}
+                    size="lg"
+                    className="bg-electricblue text-white hover:bg-electricblue/90 text-lg px-8 py-6"
+                  >
+                    Sign In with Google <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                ) : (
+                  <Button 
+                    asChild 
+                    variant="outline" 
+                    size="lg"
+                    className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary text-lg px-8 py-6"
+                  >
+                    <Link to="/freelancers">
+                      Find Freelancers
+                    </Link>
+                  </Button>
+                )}
               </div>
             </motion.div>
 
