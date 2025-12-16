@@ -11,6 +11,8 @@ import BookingPage from '@/components/pages/BookingPage';
 import TrackingPage from '@/components/pages/TrackingPage';
 import RefundPage from '@/components/pages/RefundPage';
 import LoginPage from '@/components/pages/LoginPage';
+import SignUpPage from '@/components/pages/SignUpPage';
+import ForgotPasswordPage from '@/components/pages/ForgotPasswordPage';
 import FirebasePhoneAuthPage from '@/components/pages/FirebasePhoneAuthPage';
 import ProfilePage from '@/components/pages/ProfilePage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
@@ -102,6 +104,14 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <LoginPage />,
+      },
+      {
+        path: "signup",
+        element: <SignUpPage />,
+      },
+      {
+        path: "forgot-password",
+        element: <ForgotPasswordPage />,
       },
       {
         path: "firebase-phone-auth",

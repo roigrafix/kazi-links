@@ -49,6 +49,8 @@ export interface Bookings {
   clientPhone?: string;
   /** @wixFieldType boolean */
   refunded?: boolean;
+  /** @wixFieldType text */
+  referenceId?: string;
 }
 
 

@@ -8,6 +8,8 @@ import { Image } from '@/components/ui/image';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Phone } from 'lucide-react';
 
+// ... keep existing code (imports)
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, actions } = useMember();
@@ -38,9 +40,14 @@ export default function LoginPage() {
     }
   };
 
-  // Optional: Handle Social Login (if you add Google later)
-  const handleSocialLogin = () => {
-    alert("Social login implementation coming soon!");
+  // Handle Google OAuth - placeholder for future implementation
+  const handleGoogleLogin = () => {
+    // TODO: Implement Google OAuth
+    // This would typically involve:
+    // 1. Initializing Google OAuth SDK
+    // 2. Calling Google sign-in
+    // 3. Sending the token to your backend
+    setError('Google Sign In is coming soon!');
   };
 
   return (
@@ -152,7 +159,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="font-paragraph text-logoGold hover:text-logoGold/80 transition-colors"
-                onClick={() => alert('Forgot Password feature coming soon!')}
+                onClick={() => navigate('/forgot-password')}
               >
                 Forgot password?
               </button>
@@ -204,7 +211,7 @@ export default function LoginPage() {
           {/* Social Login Button */}
           <Button
             type="button"
-            onClick={handleSocialLogin}
+            onClick={handleGoogleLogin}
             variant="outline"
             className="w-full border-secondary-foreground/30 text-secondary-foreground hover:bg-primary/10 font-paragraph"
           >
