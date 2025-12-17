@@ -90,7 +90,7 @@ export default function LoginPage() {
           <p className="font-paragraph text-primary-foreground/70">
             Don't have an account?{' '}
             <button
-              onClick={() => navigate('/signup')}
+              onClick={() => actions.login()}
               className="text-logoGold hover:text-logoGold/80 font-semibold transition-colors"
             >
               Sign up here
