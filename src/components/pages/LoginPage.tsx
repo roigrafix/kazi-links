@@ -1,22 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useMember } from '@/integrations';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Image } from '@/components/ui/image';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Mail, Lock, ArrowRight, Eye, EyeOff, Phone, Chrome } from 'lucide-react';
-import { initializeGoogleOAuth, handleGoogleSignInResponse, renderGoogleSignInButton } from '@/services/googleOAuthService';
+import { ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, actions } = useMember();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -24,79 +17,6 @@ export default function LoginPage() {
       navigate('/');
     }
   }, [isAuthenticated, isLoading, navigate]);
-
-  // Initialize Google OAuth on component mount
-  useEffect(() => {
-    const initGoogle = async () => {
-      const initialized = await initializeGoogleOAuth();
-      
-      if (initialized) {
-        // Set up Google Sign-In callback
-        (window as any).handleGoogleSignInCallback = (response: any) => {
-          try {
-            const userData = handleGoogleSignInResponse(response);
-            console.log('Google Sign-In successful:', userData);
-            
-            // Store the token and user data
-            localStorage.setItem('googleToken', userData.token);
-            localStorage.setItem('googleUser', JSON.stringify({
-              id: userData.id,
-              email: userData.email,
-              name: userData.name,
-              picture: userData.picture,
-            }));
-
-            // Redirect to home
-            navigate('/');
-          } catch (err) {
-            setError('Google Sign-In failed. Please try again.');
-            console.error('Google Sign-In error:', err);
-          }
-        };
-
-        // Render the Google Sign-In button
-        setTimeout(() => {
-          renderGoogleSignInButton('google-signin-button');
-        }, 100);
-      }
-    };
-
-    initGoogle();
-  }, [navigate]);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
-
-    try {
-      // Use Wix login which handles authentication
-      actions.login();
-    } catch (err) {
-      setError('Login failed. Please try again.');
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle Google OAuth Sign-In
-  const handleGoogleLogin = () => {
-    const google = (window as any).google;
-    
-    if (!google?.accounts?.id) {
-      setError('Google Sign-In is not available. Please check your configuration.');
-      return;
-    }
-
-    setError('');
-
-    try {
-      // Trigger Google Sign-In prompt (One Tap)
-      google.accounts.id.prompt();
-    } catch (err) {
-      setError('Failed to initialize Google Sign-In. Please try again.');
-      console.error('Google Sign-In error:', err);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -123,151 +43,41 @@ export default function LoginPage() {
           </motion.div>
           <h1 className="font-heading text-4xl font-bold mb-2">KaziLinks</h1>
           <p className="font-paragraph text-primary-foreground/70">
-            Welcome back
+            Sign in to your account
           </p>
         </div>
 
-        {/* Login Form Card */}
+        {/* Login Card */}
         <motion.div
           className="bg-secondary text-secondary-foreground rounded-lg p-8 shadow-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <form onSubmit={handleLogin} className="space-y-6">
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block font-paragraph text-sm font-medium mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-secondary-foreground/50" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="pl-10 bg-primary text-primary-foreground border-primary-foreground/20 placeholder:text-primary-foreground/40"
-                />
-              </div>
-            </div>
+          <div className="space-y-6">
+            <p className="font-paragraph text-sm text-secondary-foreground/70 text-center">
+              Use Wix's secure authentication to sign in to your account.
+            </p>
 
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block font-paragraph text-sm font-medium mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-secondary-foreground/50" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="pl-10 pr-10 bg-primary text-primary-foreground border-primary-foreground/20 placeholder:text-primary-foreground/40"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary-foreground/50 hover:text-secondary-foreground"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="bg-red-500/10 border border-red-500/30 rounded-lg p-3"
-              >
-                <p className="font-paragraph text-sm text-red-600">{error}</p>
-              </motion.div>
-            )}
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-secondary-foreground/30"
-                />
-                <span className="font-paragraph text-secondary-foreground/70">Remember me</span>
-              </label>
-              <button
-                type="button"
-                className="font-paragraph text-logoGold hover:text-logoGold/80 transition-colors"
-                onClick={() => navigate('/forgot-password')}
-              >
-                Forgot password?
-              </button>
-            </div>
-
-            {/* Submit Button */}
+            {/* Wix Login Button */}
             <Button
-              type="submit"
-              disabled={isSubmitting}
+              onClick={() => actions.login()}
+              disabled={isLoading}
               className="w-full bg-logoGold text-logoBlack hover:bg-logoGold/90 font-heading font-semibold text-base py-6"
             >
-              {isSubmitting ? (
+              {isLoading ? (
                 <>
                   <LoadingSpinner />
                   <span className="ml-2">Signing in...</span>
                 </>
               ) : (
                 <>
-                  Sign In
+                  Sign In with Wix
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </>
               )}
             </Button>
-          </form>
-
-          {/* Divider */}
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-secondary-foreground/20" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-secondary text-secondary-foreground/70 font-paragraph">
-                or continue with
-              </span>
-            </div>
           </div>
-
-          {/* Phone Login Button */}
-          <Button
-            type="button"
-            onClick={() => navigate('/firebase-phone-auth')}
-            variant="outline"
-            className="w-full border-secondary-foreground/30 text-secondary-foreground hover:bg-primary/10 font-paragraph mb-3"
-          >
-            <Phone className="mr-2 h-5 w-5" />
-            Sign in with Phone
-          </Button>
-
-          {/* Social Login Button */}
-          <div id="google-signin-button" className="w-full mb-3" />
-          <Button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={isSubmitting}
-            variant="outline"
-            className="w-full border-secondary-foreground/30 text-secondary-foreground hover:bg-primary/10 font-paragraph"
-          >
-            <Chrome className="mr-2 h-5 w-5" />
-            Sign in with Google
-          </Button>
         </motion.div>
 
         {/* Sign Up Link */}
@@ -280,7 +90,7 @@ export default function LoginPage() {
           <p className="font-paragraph text-primary-foreground/70">
             Don't have an account?{' '}
             <button
-              onClick={() => navigate('/signup')} 
+              onClick={() => navigate('/signup')}
               className="text-logoGold hover:text-logoGold/80 font-semibold transition-colors"
             >
               Sign up here
@@ -288,7 +98,7 @@ export default function LoginPage() {
           </p>
         </motion.div>
 
-        {/* Features Section - Kept exactly as is */}
+        {/* Features Section */}
         <motion.div
           className="mt-12 grid grid-cols-3 gap-4"
           initial={{ opacity: 0, y: 20 }}
