@@ -6,11 +6,11 @@ import { ServiceCategories, Freelancers } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Image } from '@/components/ui/image';
-import { ArrowRight, Star, Users, Calendar, MapPin } from 'lucide-react';
+import { ArrowRight, Star, Users, Calendar, MapPin, LogIn } from 'lucide-react';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useMember();
+  const { isAuthenticated, actions } = useMember();
   const [categories, setCategories] = useState<ServiceCategories[]>([]);
   const [featuredFreelancers, setFeaturedFreelancers] = useState<Freelancers[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,14 +86,13 @@ export default function HomePage() {
                   </Button>
                 ) : (
                   <Button 
-                    asChild 
+                    onClick={() => actions.login()}
                     variant="outline" 
                     size="lg"
                     className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary text-lg px-8 py-6"
                   >
-                    <Link to="/login">
-                      Sign In
-                    </Link>
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Sign Up
                   </Button>
                 )}
               </div>
