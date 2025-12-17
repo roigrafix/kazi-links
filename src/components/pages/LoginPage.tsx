@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Image } from '@/components/ui/image';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Mail, Lock, ArrowRight, Eye, EyeOff, Phone } from 'lucide-react';
-import { initializeGoogleOAuth, handleGoogleSignInResponse } from '@/services/googleOAuthService';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Phone, Chrome } from 'lucide-react';
+import { initializeGoogleOAuth, handleGoogleSignInResponse, renderGoogleSignInButton } from '@/services/googleOAuthService';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -27,33 +27,41 @@ export default function LoginPage() {
 
   // Initialize Google OAuth on component mount
   useEffect(() => {
-    initializeGoogleOAuth();
-    
-    // Set up Google Sign-In callback
-    const handleGoogleResponse = (response: any) => {
-      try {
-        const userData = handleGoogleSignInResponse(response);
-        console.log('Google Sign-In successful:', userData);
-        
-        // Store the token and user data
-        localStorage.setItem('googleToken', userData.token);
-        localStorage.setItem('googleUser', JSON.stringify({
-          id: userData.id,
-          email: userData.email,
-          name: userData.name,
-          picture: userData.picture,
-        }));
+    const initGoogle = async () => {
+      const initialized = await initializeGoogleOAuth();
+      
+      if (initialized) {
+        // Set up Google Sign-In callback
+        (window as any).handleGoogleSignInCallback = (response: any) => {
+          try {
+            const userData = handleGoogleSignInResponse(response);
+            console.log('Google Sign-In successful:', userData);
+            
+            // Store the token and user data
+            localStorage.setItem('googleToken', userData.token);
+            localStorage.setItem('googleUser', JSON.stringify({
+              id: userData.id,
+              email: userData.email,
+              name: userData.name,
+              picture: userData.picture,
+            }));
 
-        // Redirect to home or dashboard
-        navigate('/');
-      } catch (err) {
-        setError('Google Sign-In failed. Please try again.');
-        console.error('Google Sign-In error:', err);
+            // Redirect to home
+            navigate('/');
+          } catch (err) {
+            setError('Google Sign-In failed. Please try again.');
+            console.error('Google Sign-In error:', err);
+          }
+        };
+
+        // Render the Google Sign-In button
+        setTimeout(() => {
+          renderGoogleSignInButton('google-signin-button');
+        }, 100);
       }
     };
 
-    // Store the callback globally so Google can access it
-    (window as any).handleGoogleResponse = handleGoogleResponse;
+    initGoogle();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -79,36 +87,14 @@ export default function LoginPage() {
       return;
     }
 
-    setIsSubmitting(true);
     setError('');
 
     try {
-      // Trigger Google Sign-In prompt
-      google.accounts.id.renderButton(
-        document.getElementById('google-signin-button'),
-        {
-          type: 'standard',
-          size: 'large',
-          text: 'signin_with',
-          locale: 'en_US',
-        }
-      );
-
-      // Alternative: Use One Tap UI
-      google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // If One Tap is not displayed, show the button
-          const button = document.querySelector('[data-google-signin-button]');
-          if (button) {
-            (button as HTMLElement).click();
-          }
-        }
-      });
+      // Trigger Google Sign-In prompt (One Tap)
+      google.accounts.id.prompt();
     } catch (err) {
       setError('Failed to initialize Google Sign-In. Please try again.');
       console.error('Google Sign-In error:', err);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -278,9 +264,9 @@ export default function LoginPage() {
             disabled={isSubmitting}
             variant="outline"
             className="w-full border-secondary-foreground/30 text-secondary-foreground hover:bg-primary/10 font-paragraph"
-            data-google-signin-button
           >
-             Sign in with Google
+            <Chrome className="mr-2 h-5 w-5" />
+            Sign in with Google
           </Button>
         </motion.div>
 

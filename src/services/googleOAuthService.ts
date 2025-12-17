@@ -26,26 +26,73 @@ interface DecodedToken {
   exp: number;
 }
 
+export interface GoogleUser {
+  id: string;
+  email: string;
+  name: string;
+  picture: string;
+  givenName: string;
+  familyName: string;
+  emailVerified: boolean;
+  token: string;
+}
+
+let googleInitPromise: Promise<boolean> | null = null;
+
 /**
  * Initialize Google OAuth SDK
  * This should be called once when the app loads
  */
-export const initializeGoogleOAuth = () => {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  
-  if (!clientId) {
-    console.error('Google Client ID is not set. Please add VITE_GOOGLE_CLIENT_ID to your .env.local file');
-    return false;
+export const initializeGoogleOAuth = (): Promise<boolean> => {
+  // Return cached promise if already initializing
+  if (googleInitPromise) {
+    return googleInitPromise;
   }
 
-  // Load the Google Identity Services library
-  const script = document.createElement('script');
-  script.src = 'https://accounts.google.com/gsi/client';
-  script.async = true;
-  script.defer = true;
-  document.head.appendChild(script);
+  googleInitPromise = new Promise((resolve) => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    
+    if (!clientId) {
+      console.error('Google Client ID is not set. Please add VITE_GOOGLE_CLIENT_ID to your .env.local file');
+      resolve(false);
+      return;
+    }
 
-  return true;
+    // Check if script is already loaded
+    if ((window as any).google?.accounts?.id) {
+      resolve(true);
+      return;
+    }
+
+    // Load the Google Identity Services library
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      // Initialize Google Sign-In
+      const google = (window as any).google;
+      if (google?.accounts?.id) {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (window as any).handleGoogleSignInCallback,
+        });
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    };
+
+    script.onerror = () => {
+      console.error('Failed to load Google Identity Services library');
+      resolve(false);
+    };
+
+    document.head.appendChild(script);
+  });
+
+  return googleInitPromise;
 };
 
 /**
@@ -74,7 +121,7 @@ export const decodeToken = (token: string): DecodedToken | null => {
  * @param response - The credential response from Google
  * @returns Decoded user information
  */
-export const handleGoogleSignInResponse = (response: GoogleCredentialResponse) => {
+export const handleGoogleSignInResponse = (response: GoogleCredentialResponse): GoogleUser => {
   const decodedToken = decodeToken(response.credential);
   
   if (!decodedToken) {
@@ -91,6 +138,61 @@ export const handleGoogleSignInResponse = (response: GoogleCredentialResponse) =
     emailVerified: decodedToken.email_verified,
     token: response.credential,
   };
+};
+
+/**
+ * Render Google Sign-In button
+ * @param containerId - The ID of the container element
+ */
+export const renderGoogleSignInButton = (containerId: string) => {
+  const google = (window as any).google;
+  
+  if (!google?.accounts?.id) {
+    console.error('Google Sign-In is not initialized');
+    return false;
+  }
+
+  try {
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.error(`Container with ID "${containerId}" not found`);
+      return false;
+    }
+
+    google.accounts.id.renderButton(container, {
+      type: 'standard',
+      size: 'large',
+      text: 'signin_with',
+      locale: 'en_US',
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Failed to render Google Sign-In button:', error);
+    return false;
+  }
+};
+
+/**
+ * Trigger Google Sign-In prompt (One Tap)
+ */
+export const triggerGoogleSignInPrompt = () => {
+  const google = (window as any).google;
+  
+  if (!google?.accounts?.id) {
+    console.error('Google Sign-In is not initialized');
+    return;
+  }
+
+  try {
+    google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        console.log('One Tap UI not displayed');
+      }
+    });
+  } catch (error) {
+    console.error('Failed to trigger Google Sign-In prompt:', error);
+  }
 };
 
 /**
