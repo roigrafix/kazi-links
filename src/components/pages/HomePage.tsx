@@ -6,48 +6,18 @@ import { ServiceCategories, Freelancers } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Image } from '@/components/ui/image';
-import { ArrowRight, Star, Users, Calendar, MapPin, Chrome } from 'lucide-react';
-import { initializeGoogleOAuth, handleGoogleSignInResponse } from '@/services/googleOAuthService';
+import { ArrowRight, Star, Users, Calendar, MapPin } from 'lucide-react';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { isAuthenticated, actions } = useMember();
+  const { isAuthenticated } = useMember();
   const [categories, setCategories] = useState<ServiceCategories[]>([]);
   const [featuredFreelancers, setFeaturedFreelancers] = useState<Freelancers[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [googleInitialized, setGoogleInitialized] = useState(false);
 
-  // Initialize Google OAuth and fetch data
   useEffect(() => {
-    const initializeAndFetchData = async () => {
+    const fetchData = async () => {
       try {
-        // Initialize Google OAuth
-        const googleReady = await initializeGoogleOAuth();
-        setGoogleInitialized(googleReady);
-
-        // Set up Google Sign-In callback
-        (window as any).handleGoogleSignInCallback = (response: any) => {
-          try {
-            const userData = handleGoogleSignInResponse(response);
-            console.log('Google Sign-In successful:', userData);
-            
-            // Store the token and user data
-            localStorage.setItem('googleToken', userData.token);
-            localStorage.setItem('googleUser', JSON.stringify({
-              id: userData.id,
-              email: userData.email,
-              name: userData.name,
-              picture: userData.picture,
-            }));
-
-            // Redirect to home or dashboard
-            navigate('/');
-          } catch (err) {
-            console.error('Google Sign-In error:', err);
-          }
-        };
-
-        // Fetch data
         const [categoriesData, freelancersData] = await Promise.all([
           BaseCrudService.getAll<ServiceCategories>('servicecategories'),
           BaseCrudService.getAll<Freelancers>('freelancers')
@@ -56,14 +26,14 @@ export default function HomePage() {
         setCategories(categoriesData.items.filter(cat => cat.isActive).slice(0, 6));
         setFeaturedFreelancers(freelancersData.items.slice(0, 4));
       } catch (error) {
-        console.error('Error initializing:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    initializeAndFetchData();
-  }, [navigate]);
+    fetchData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-primary text-primary-foreground">
@@ -103,23 +73,7 @@ export default function HomePage() {
                   </Link>
                 </Button>
                 
-                {!isAuthenticated ? (
-                  <Button 
-                    onClick={() => {
-                      const google = (window as any).google;
-                      if (google?.accounts?.id) {
-                        google.accounts.id.prompt();
-                      } else {
-                        navigate('/login');
-                      }
-                    }}
-                    size="lg"
-                    className="bg-electricblue text-white hover:bg-electricblue/90 text-lg px-8 py-6"
-                  >
-                    <Chrome className="mr-2 h-5 w-5" />
-                    Sign In with Google <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                ) : (
+                {isAuthenticated ? (
                   <Button 
                     asChild 
                     variant="outline" 
@@ -128,6 +82,17 @@ export default function HomePage() {
                   >
                     <Link to="/freelancers">
                       Find Freelancers
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button 
+                    asChild 
+                    variant="outline" 
+                    size="lg"
+                    className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary text-lg px-8 py-6"
+                  >
+                    <Link to="/login">
+                      Sign In
                     </Link>
                   </Button>
                 )}
