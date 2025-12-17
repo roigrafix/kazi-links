@@ -56,10 +56,10 @@ export default function LoginPage() {
         >
           <div className="space-y-6">
             <p className="font-paragraph text-sm text-secondary-foreground/70 text-center">
-              Use Wix's secure authentication to sign in to your account.
+              Use secure authentication to sign in to your account.
             </p>
 
-            {/* Wix Login Button */}
+            {/* Login Button */}
             <Button
               onClick={() => actions.login()}
               disabled={isLoading}
@@ -72,7 +72,7 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  Sign In with Wix
+                  Sign In
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </>
               )}
