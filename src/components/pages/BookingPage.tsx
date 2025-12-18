@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Image } from '@/components/ui/image';
-import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle } from 'lucide-react';
+import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle, Phone, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { sendGridService } from '@/services/sendgridService';
 
@@ -38,6 +38,7 @@ interface BookingFormData {
   clientLocation: string;
   paymentMethod: 'card' | 'cash';
   savedAddressId?: string;
+  phoneVerified?: boolean;
 }
 
 const PLATFORM_FEE_PERCENTAGE = 0.1;
@@ -69,6 +70,14 @@ export default function BookingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<Array<{ id: string; address: string }>>([]);
   
+  // OTP Verification States
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isOtpSending, setIsOtpSending] = useState(false);
+  const [isOtpVerifying, setIsOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  
   const [formData, setFormData] = useState<BookingFormData>({
     serviceName: '',
     freelancerName: '',
@@ -88,7 +97,8 @@ export default function BookingPage() {
     serviceState: '',
     serviceCity: '',
     clientLocation: '',
-    paymentMethod: 'card'
+    paymentMethod: 'card',
+    phoneVerified: false
   });
 
   const calculateTotal = (amount: number) => {
@@ -97,6 +107,71 @@ export default function BookingPage() {
 
   const platformFee = formData.paymentAmount * PLATFORM_FEE_PERCENTAGE;
   const totalAmount = calculateTotal(formData.paymentAmount);
+
+  // Send OTP to phone number (Mock implementation - replace with actual SMS service)
+  const sendOtp = async () => {
+    if (!formData.clientPhone) {
+      setOtpError('Please enter a phone number');
+      return;
+    }
+
+    // Validate phone number format (basic validation for Indian numbers)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(formData.clientPhone.replace(/\D/g, ''))) {
+      setOtpError('Please enter a valid 10-digit Indian phone number');
+      return;
+    }
+
+    setIsOtpSending(true);
+    setOtpError('');
+
+    try {
+      // TODO: Integrate with actual SMS service (Twilio, AWS SNS, etc.)
+      // For now, simulate OTP sending
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setShowOtpVerification(true);
+      setOtpError('');
+      console.log('OTP sent to:', formData.clientPhone);
+    } catch (error: any) {
+      console.error('Error sending OTP:', error);
+      setOtpError(error.message || 'Failed to send OTP. Please try again.');
+    } finally {
+      setIsOtpSending(false);
+    }
+  };
+
+  // Verify OTP code (Mock implementation - replace with actual verification)
+  const verifyOtp = async () => {
+    if (!otpCode || otpCode.length !== 6) {
+      setOtpError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setIsOtpVerifying(true);
+    setOtpError('');
+
+    try {
+      // TODO: Integrate with actual OTP verification service
+      // For now, accept any 6-digit code for demo purposes
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setPhoneVerified(true);
+      setFormData(prev => ({ ...prev, phoneVerified: true }));
+      setShowOtpVerification(false);
+      setOtpCode('');
+    } catch (error: any) {
+      console.error('Error verifying OTP:', error);
+      setOtpError(error.message || 'Invalid OTP. Please try again.');
+    } finally {
+      setIsOtpVerifying(false);
+    }
+  };
+
+  // Resend OTP
+  const resendOtp = async () => {
+    setOtpCode('');
+    setOtpError('');
+    await sendOtp();
+  };
 
   const getAvailableTimeSlots = async (freelancer: Freelancers, date: Date): Promise<string[]> => {
     if (!freelancer || !date) return [];
@@ -397,6 +472,12 @@ export default function BookingPage() {
     if (!member) {
       alert('Please sign in to confirm your booking.');
       actions.login();
+      return;
+    }
+
+    // Check if phone is verified
+    if (!phoneVerified) {
+      alert('Please verify your phone number before confirming the booking.');
       return;
     }
 
@@ -1068,15 +1149,96 @@ export default function BookingPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="clientPhone">Phone Number</Label>
-                      <Input
-                        id="clientPhone"
-                        value={formData.clientPhone}
-                        onChange={(e) => setFormData(prev => ({ ...prev, clientPhone: e.target.value }))}
-                        placeholder="Enter your phone number"
-                      />
+                      <Label htmlFor="clientPhone" className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        Phone Number
+                        {phoneVerified && (
+                          <span className="text-green-600 text-xs font-semibold">✓ Verified</span>
+                        )}
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="clientPhone"
+                          value={formData.clientPhone}
+                          onChange={(e) => {
+                            setFormData(prev => ({ ...prev, clientPhone: e.target.value }));
+                            setPhoneVerified(false);
+                            setShowOtpVerification(false);
+                          }}
+                          placeholder="Enter 10-digit phone number"
+                          disabled={phoneVerified}
+                          className={phoneVerified ? 'bg-green-50' : ''}
+                        />
+                        {!phoneVerified && (
+                          <Button
+                            onClick={sendOtp}
+                            disabled={isOtpSending || !formData.clientPhone}
+                            className="bg-logoGold hover:bg-logoGold/90 text-logoBlack whitespace-nowrap"
+                            size="sm"
+                          >
+                            {isOtpSending ? 'Sending...' : 'Send OTP'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
+
+                  {/* OTP Verification Section */}
+                  {showOtpVerification && !phoneVerified && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-4"
+                    >
+                      <div className="flex items-center gap-2 text-blue-800 font-semibold">
+                        <Lock className="h-4 w-4" />
+                        Verify Your Phone Number
+                      </div>
+                      <p className="text-sm text-blue-700">
+                        We've sent a 6-digit OTP to {formData.clientPhone}. Please enter it below.
+                      </p>
+                      
+                      <div>
+                        <Label htmlFor="otpCode" className="text-blue-900">Enter OTP</Label>
+                        <Input
+                          id="otpCode"
+                          value={otpCode}
+                          onChange={(e) => {
+                            setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                            setOtpError('');
+                          }}
+                          placeholder="000000"
+                          maxLength={6}
+                          className="text-center text-2xl tracking-widest font-mono bg-white border-blue-300"
+                        />
+                      </div>
+
+                      {otpError && (
+                        <div className="p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                          <span>{otpError}</span>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={verifyOtp}
+                          disabled={isOtpVerifying || otpCode.length !== 6}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          {isOtpVerifying ? 'Verifying...' : 'Verify OTP'}
+                        </Button>
+                        <Button
+                          onClick={resendOtp}
+                          variant="outline"
+                          disabled={isOtpSending}
+                          className="flex-1"
+                        >
+                          Resend OTP
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
 
                   <div>
                     <Label htmlFor="clientEmail">Email Address</Label>
@@ -1138,7 +1300,7 @@ export default function BookingPage() {
               
               <Button
                 onClick={nextStep}
-                disabled={!isStepValid() || isSubmitting}
+                disabled={!isStepValid() || isSubmitting || (currentStep === 3 && !phoneVerified)}
                 className="w-full sm:w-auto bg-neonyellow hover:bg-neonyellow/90 text-[#6b6969]"
               >
                 {isSubmitting ? 'Processing...' : currentStep === 3 ? 'Proceed to Payment' : 'Next'}
