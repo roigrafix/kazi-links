@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Image } from '@/components/ui/image';
-import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter } from 'lucide-react';
+import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { sendGridService } from '@/services/sendgridService';
 
@@ -45,7 +45,7 @@ const PLATFORM_FEE_PERCENTAGE = 0.1;
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { member } = useMember();
+  const { member, actions } = useMember();
   
   const [services, setServices] = useState<Services[]>([]);
   const [categories, setCategories] = useState<ServiceCategories[]>([]);
@@ -393,6 +393,13 @@ export default function BookingPage() {
   };
 
   const handleSubmit = async () => {
+    // Check if user is signed in before confirming booking
+    if (!member) {
+      alert('Please sign in to confirm your booking.');
+      actions.login();
+      return;
+    }
+
     // Validation checks
     if (!selectedService || !selectedFreelancer || !formData.bookingDate) {
       alert('Please complete all required fields.');
