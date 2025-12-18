@@ -16,6 +16,7 @@ import { Image } from '@/components/ui/image';
 import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle, Phone, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { sendGridService } from '@/services/sendgridService';
+import { twilioService } from '@/services/twilioService';
 
 interface BookingFormData {
   serviceName: string;
@@ -108,7 +109,7 @@ export default function BookingPage() {
   const platformFee = formData.paymentAmount * PLATFORM_FEE_PERCENTAGE;
   const totalAmount = calculateTotal(formData.paymentAmount);
 
-  // Send OTP to phone number (Mock implementation - replace with actual SMS service)
+  // Send OTP to phone number using Twilio
   const sendOtp = async () => {
     if (!formData.clientPhone) {
       setOtpError('Please enter a phone number');
@@ -126,13 +127,28 @@ export default function BookingPage() {
     setOtpError('');
 
     try {
-      // TODO: Integrate with actual SMS service (Twilio, AWS SNS, etc.)
-      // For now, simulate OTP sending
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Check if Twilio is configured
+      if (!twilioService.isConfigured()) {
+        setOtpError('SMS service is not configured. Please contact support.');
+        console.warn('Twilio credentials not found. Check your environment variables.');
+        setIsOtpSending(false);
+        return;
+      }
+
+      // Format phone number to E.164 format
+      const formattedPhone = twilioService.formatPhoneNumber(formData.clientPhone);
       
-      setShowOtpVerification(true);
-      setOtpError('');
-      console.log('OTP sent to:', formData.clientPhone);
+      // Send OTP via Twilio
+      const result = await twilioService.sendOTP(formattedPhone);
+      
+      if (result.success) {
+        setShowOtpVerification(true);
+        setOtpError('');
+        console.log('OTP sent successfully to:', formattedPhone);
+      } else {
+        setOtpError(result.message || 'Failed to send OTP. Please try again.');
+        console.error('OTP send failed:', result.message);
+      }
     } catch (error: any) {
       console.error('Error sending OTP:', error);
       setOtpError(error.message || 'Failed to send OTP. Please try again.');
@@ -141,7 +157,7 @@ export default function BookingPage() {
     }
   };
 
-  // Verify OTP code (Mock implementation - replace with actual verification)
+  // Verify OTP code using Twilio
   const verifyOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
       setOtpError('Please enter a valid 6-digit OTP');
@@ -152,14 +168,29 @@ export default function BookingPage() {
     setOtpError('');
 
     try {
-      // TODO: Integrate with actual OTP verification service
-      // For now, accept any 6-digit code for demo purposes
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Check if Twilio is configured
+      if (!twilioService.isConfigured()) {
+        setOtpError('SMS service is not configured. Please contact support.');
+        setIsOtpVerifying(false);
+        return;
+      }
+
+      // Format phone number to E.164 format
+      const formattedPhone = twilioService.formatPhoneNumber(formData.clientPhone);
       
-      setPhoneVerified(true);
-      setFormData(prev => ({ ...prev, phoneVerified: true }));
-      setShowOtpVerification(false);
-      setOtpCode('');
+      // Verify OTP via Twilio
+      const result = await twilioService.verifyOTP(formattedPhone, otpCode);
+      
+      if (result.success && result.valid) {
+        setPhoneVerified(true);
+        setFormData(prev => ({ ...prev, phoneVerified: true }));
+        setShowOtpVerification(false);
+        setOtpCode('');
+        console.log('OTP verified successfully');
+      } else {
+        setOtpError(result.message || 'Invalid OTP. Please try again.');
+        console.error('OTP verification failed:', result.message);
+      }
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
       setOtpError(error.message || 'Invalid OTP. Please try again.');
