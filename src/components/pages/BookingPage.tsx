@@ -129,6 +129,7 @@ export default function BookingPage() {
       // TODO: Integrate with actual SMS service (Twilio, AWS SNS, etc.)
       // For now, simulate OTP sending
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
       setShowOtpVerification(true);
       setOtpError('');
       console.log('OTP sent to:', formData.clientPhone);
@@ -154,6 +155,7 @@ export default function BookingPage() {
       // TODO: Integrate with actual OTP verification service
       // For now, accept any 6-digit code for demo purposes
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
       setPhoneVerified(true);
       setFormData(prev => ({ ...prev, phoneVerified: true }));
       setShowOtpVerification(false);
