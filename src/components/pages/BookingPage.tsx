@@ -111,6 +111,7 @@ export default function BookingPage() {
 
   // Send OTP to phone number using Twilio
   const sendOtp = async () => {
+    // Validate phone number before setting loading state
     if (!formData.clientPhone) {
       setOtpError('Please enter a phone number');
       return;
@@ -118,8 +119,16 @@ export default function BookingPage() {
 
     // Validate phone number format (basic validation for Indian numbers)
     const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(formData.clientPhone.replace(/\D/g, ''))) {
+    const cleanedPhone = formData.clientPhone.replace(/\D/g, '');
+    if (!phoneRegex.test(cleanedPhone)) {
       setOtpError('Please enter a valid 10-digit Indian phone number');
+      return;
+    }
+
+    // Check if Twilio is configured before setting loading state
+    if (!twilioService.isConfigured()) {
+      setOtpError('SMS service is not configured. Please contact support.');
+      console.warn('Twilio credentials not found. Check your environment variables: VITE_TWILIO_ACCOUNT_SID, VITE_TWILIO_AUTH_TOKEN, VITE_TWILIO_SERVICE_SID');
       return;
     }
 
@@ -127,16 +136,9 @@ export default function BookingPage() {
     setOtpError('');
 
     try {
-      // Check if Twilio is configured
-      if (!twilioService.isConfigured()) {
-        setOtpError('SMS service is not configured. Please contact support.');
-        console.warn('Twilio credentials not found. Check your environment variables.');
-        setIsOtpSending(false);
-        return;
-      }
-
       // Format phone number to E.164 format
       const formattedPhone = twilioService.formatPhoneNumber(formData.clientPhone);
+      console.log('Sending OTP to formatted phone:', formattedPhone);
       
       // Send OTP via Twilio
       const result = await twilioService.sendOTP(formattedPhone);
