@@ -1,15 +1,34 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Image } from '@/components/ui/image';
 import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail, Instagram, Twitter, Linkedin, MessageCircle, LogOut } from 'lucide-react';
 import { useMember } from '@/integrations';
+import { secretsService } from '@/services/secretsService';
 
 export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { member, isAuthenticated, actions } = useMember();
+
+  // Initialize secrets service on component mount
+  useEffect(() => {
+    const initializeSecrets = async () => {
+      try {
+        const success = await secretsService.initialize();
+        if (success) {
+          console.log('✅ Secrets initialized successfully');
+        } else {
+          console.warn('⚠️ Secrets initialization failed, using environment variables as fallback');
+        }
+      } catch (error) {
+        console.error('Error initializing secrets:', error);
+      }
+    };
+
+    initializeSecrets();
+  }, []);
 
   // Default admin emails - you can modify this list
   const adminEmails = [

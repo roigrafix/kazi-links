@@ -28,16 +28,17 @@ class TwilioService {
   private accountSid: string;
   private authToken: string;
   private serviceSid: string;
+  private baseUrl = 'https://verify.twilio.com/v2';
 
   constructor() {
-     // Try to get from secrets first, fallback to env vars
+    // Try to get from secrets first, fallback to env vars
     this.accountSid = secretsService.getCredential('twilioAccountSid') || 
                       import.meta.env.VITE_TWILIO_ACCOUNT_SID || '';
     this.authToken = secretsService.getCredential('twilioAuthToken') || 
                      import.meta.env.VITE_TWILIO_AUTH_TOKEN || '';
     this.serviceSid = secretsService.getCredential('twilioServiceSid') || 
                       import.meta.env.VITE_TWILIO_SERVICE_SID || '';
-  }
+    
     if (!this.accountSid || !this.authToken) {
       console.warn(
         'Twilio credentials not configured. SMS OTP functionality will be disabled. ' +
