@@ -1,6 +1,12 @@
 /**
  * Notification Service for OTP delivery via Email (SendGrid) and SMS (Twilio)
+ * 
+ * Credentials are loaded from:
+ * 1. Wix Secrets API (production)
+ * 2. Environment variables (development fallback)
  */
+
+import { secretsService } from './secretsService';
 
 export interface OTPDeliveryOptions {
   method: 'email' | 'sms';
@@ -28,11 +34,15 @@ class NotificationService {
   private twilioPhoneNumber: string | null = null;
 
   constructor() {
-    // Initialize with environment variables or provided credentials
-    this.sendGridApiKey = import.meta.env.VITE_SENDGRID_API_KEY || null;
-    this.twilioAccountSid = import.meta.env.VITE_TWILIO_ACCOUNT_SID || null;
-    this.twilioAuthToken = import.meta.env.VITE_TWILIO_AUTH_TOKEN || null;
-    this.twilioPhoneNumber = import.meta.env.VITE_TWILIO_PHONE_NUMBER || null;
+    // Initialize with Wix Secrets API first, fallback to environment variables
+    this.sendGridApiKey = secretsService.getCredential('sendGridApiKey') || 
+                          import.meta.env.VITE_SENDGRID_API_KEY || null;
+    this.twilioAccountSid = secretsService.getCredential('twilioAccountSid') || 
+                            import.meta.env.VITE_TWILIO_ACCOUNT_SID || null;
+    this.twilioAuthToken = secretsService.getCredential('twilioAuthToken') || 
+                           import.meta.env.VITE_TWILIO_AUTH_TOKEN || null;
+    this.twilioPhoneNumber = secretsService.getCredential('twilioPhoneNumber') || 
+                             import.meta.env.VITE_TWILIO_PHONE_NUMBER || null;
   }
 
   /**

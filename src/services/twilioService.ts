@@ -2,13 +2,15 @@
  * Twilio SMS OTP Service
  * Handles SMS OTP verification for user authentication
  * 
- * IMPORTANT: Store your Twilio credentials in environment variables:
- * - Local: Create .env.local file with:
+ * IMPORTANT: Store your Twilio credentials securely:
+ * - Production: Use Wix Secrets API (see WIX_SECRETS_API_SETUP.md)
+ * - Local Development: Create .env.local file with:
  *   VITE_TWILIO_ACCOUNT_SID=your_account_sid
  *   VITE_TWILIO_AUTH_TOKEN=your_auth_token
  *   VITE_TWILIO_SERVICE_SID=VAd3e1619e0cc8a1296109fb6927e00af2
- * - Production: Add these to your deployment environment variables
  */
+
+import { secretsService } from './secretsService';
 
 interface OTPVerificationResponse {
   success: boolean;
@@ -29,14 +31,18 @@ class TwilioService {
   private baseUrl: string = 'https://verify.twilio.com/v2';
 
   constructor() {
-    this.accountSid = import.meta.env.VITE_TWILIO_ACCOUNT_SID || '';
-    this.authToken = import.meta.env.VITE_TWILIO_AUTH_TOKEN || '';
-    this.serviceSid = import.meta.env.VITE_TWILIO_SERVICE_SID || 'VAd3e1619e0cc8a1296109fb6927e00af2';
+    // Try to get from Wix Secrets API first, fallback to environment variables
+    this.accountSid = secretsService.getCredential('twilioAccountSid') || 
+                      import.meta.env.VITE_TWILIO_ACCOUNT_SID || '';
+    this.authToken = secretsService.getCredential('twilioAuthToken') || 
+                     import.meta.env.VITE_TWILIO_AUTH_TOKEN || '';
+    this.serviceSid = secretsService.getCredential('twilioServiceSid') || 
+                      import.meta.env.VITE_TWILIO_SERVICE_SID || 'VAd3e1619e0cc8a1296109fb6927e00af2';
 
     if (!this.accountSid || !this.authToken) {
       console.warn(
         'Twilio credentials not configured. SMS OTP functionality will be disabled. ' +
-        'Add VITE_TWILIO_ACCOUNT_SID and VITE_TWILIO_AUTH_TOKEN to your environment variables.'
+        'Configure credentials via Wix Secrets API or add VITE_TWILIO_ACCOUNT_SID and VITE_TWILIO_AUTH_TOKEN to .env.local'
       );
     }
   }
