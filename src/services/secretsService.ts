@@ -105,11 +105,11 @@ class SecretsService {
    */
   private loadFromEnvironment(): void {
     this.credentials = {
-      twilioAccountSid: import.meta.env.VITE_TWILIO_ACCOUNT_SID || undefined,
-      twilioAuthToken: import.meta.env.VITE_TWILIO_AUTH_TOKEN || undefined,
-      twilioServiceSid: import.meta.env.VITE_TWILIO_SERVICE_SID || undefined,
-      twilioPhoneNumber: import.meta.env.VITE_TWILIO_PHONE_NUMBER || undefined,
-      sendGridApiKey: import.meta.env.VITE_SENDGRID_API_KEY || undefined,
+      twilioAccountSid: import.meta.env.TWILIO_ACCOUNT_SID || undefined,
+      twilioAuthToken: import.meta.env.TWILIO_AUTH_TOKEN || undefined,
+      twilioServiceSid: import.meta.env.TWILIO_SERVICE_SID || undefined,
+      twilioPhoneNumber: import.meta.env.TWILIO_PHONE_NUMBER || undefined,
+      sendGridApiKey: import.meta.env.SENDGRID_API_KEY || undefined,
     };
     this.lastFetchTime = Date.now();
   }
