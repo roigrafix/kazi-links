@@ -1336,7 +1336,7 @@ export default function BookingPage() {
               
               <Button
                 onClick={nextStep}
-                disabled={!isStepValid() || isSubmitting || (currentStep === 3 && !phoneVerified)}
+                disabled={!isStepValid() || isSubmitting}
                 className="w-full sm:w-auto bg-neonyellow hover:bg-neonyellow/90 text-[#6b6969]"
               >
                 {isSubmitting ? 'Processing...' : currentStep === 3 ? 'Proceed to Payment' : 'Next'}

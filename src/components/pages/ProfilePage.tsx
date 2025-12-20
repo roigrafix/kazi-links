@@ -45,34 +45,35 @@ export default function ProfilePage() {
     try {
       setIsSaving(true);
       
-      // Check if member exists and has an ID
-      if (!member?._id) {
-        throw new Error('Member ID not found. Please log in again.');
-      }
-
-      // Check if Wix Members API is available
-      if (!memberService.isAvailable()) {
-        throw new Error('Member service is not available. Please try again later.');
+      // Check if member exists and has an email (used as ID)
+      if (!member?.loginEmail) {
+        throw new Error('Member email not found. Please log in again.');
       }
 
       // Update member data using the member service
       const updatePayload: any = {
-        _id: member._id,
+        _id: member.loginEmail,
       };
 
       // Only include fields that have been modified
-      if (editFormData.phone) {
+      if (editFormData.phone && editFormData.phone !== (member?.contact?.phones?.[0] || '')) {
         updatePayload.contact = {
           ...member.contact,
           phones: [editFormData.phone],
         };
       }
 
-      if (editFormData.address) {
+      if (editFormData.address && editFormData.address !== (member?.profile?.title || '')) {
         updatePayload.profile = {
           ...member.profile,
           title: editFormData.address,
         };
+      }
+
+      // If no fields were modified, just close the dialog
+      if (Object.keys(updatePayload).length === 1) {
+        setIsEditing(false);
+        return;
       }
 
       // Update member using the service
