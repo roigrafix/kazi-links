@@ -28,6 +28,7 @@ interface VerifyOTPResult {
 class GooglePhoneAuthService {
   private firebaseConfig: any;
   private auth: any;
+  private firebaseModules: any;
   private initialized: boolean = false;
 
   constructor() {
@@ -67,14 +68,22 @@ class GooglePhoneAuthService {
     if (!this.isConfigured()) return false;
 
     try {
-      // Dynamically import Firebase modules (optional - will fail gracefully if not installed)
+      // Dynamically import Firebase modules
       // @ts-ignore - Firebase is an optional dependency
-      const firebaseApp = await import('firebase/app').catch(() => null);
+      const firebaseApp = await import('firebase/app').catch((err) => {
+        console.error('Failed to import firebase/app:', err.message);
+        return null;
+      });
       // @ts-ignore - Firebase is an optional dependency
-      const firebaseAuth = await import('firebase/auth').catch(() => null);
+      const firebaseAuth = await import('firebase/auth').catch((err) => {
+        console.error('Failed to import firebase/auth:', err.message);
+        return null;
+      });
 
       if (!firebaseApp || !firebaseAuth) {
-        console.warn('Firebase packages not installed. Phone authentication is disabled.');
+        const errorMsg = 'Firebase SDK is not installed. Please run: npm install firebase';
+        console.error(errorMsg);
+        console.error('Installation command: npm install firebase');
         return false;
       }
 
@@ -84,12 +93,17 @@ class GooglePhoneAuthService {
       // Initialize Firebase
       const app = initializeApp(this.firebaseConfig);
       this.auth = getAuth(app);
+      this.firebaseModules = firebaseAuth;
       this.initialized = true;
 
-      console.log('Firebase Authentication initialized successfully');
+      console.log('✅ Firebase Authentication initialized successfully');
       return true;
-    } catch (error) {
-      console.error('Failed to initialize Firebase:', error);
+    } catch (error: any) {
+      console.error('❌ Failed to initialize Firebase:', error.message);
+      if (error.message?.includes('Cannot find module')) {
+        console.error('📦 Firebase SDK is not installed.');
+        console.error('💡 To fix this, run: npm install firebase');
+      }
       return false;
     }
   }
