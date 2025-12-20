@@ -1204,7 +1204,8 @@ export default function BookingPage() {
                           disabled={phoneVerified}
                           className={phoneVerified ? 'bg-green-50' : ''}
                         />
-                        {!phoneVerified && (
+                        {/* Temporarily disabled - Send OTP button */}
+                        {/* {!phoneVerified && (
                           <Button
                             onClick={sendOtp}
                             disabled={isOtpSending || !formData.clientPhone}
@@ -1213,7 +1214,7 @@ export default function BookingPage() {
                           >
                             {isOtpSending ? 'Sending...' : 'Send OTP'}
                           </Button>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </div>

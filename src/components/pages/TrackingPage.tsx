@@ -137,8 +137,18 @@ export default function TrackingPage() {
         )
       );
       
+      toast({
+        title: 'Success',
+        description: 'Booking marked as completed. You can now write a review!',
+      });
+      
     } catch (error) {
       console.error('Error marking booking as completed:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to mark booking as completed. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setCompletingBookingId(null);
     }
