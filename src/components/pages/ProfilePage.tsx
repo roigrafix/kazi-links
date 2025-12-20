@@ -1,4 +1,4 @@
-import { useMember } from '@/integrations';
+import { useMember, BaseCrudService } from '@/integrations';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { memberService } from '@/services/memberService';
 
 export default function ProfilePage() {
   const { member, actions } = useMember();
@@ -44,43 +45,43 @@ export default function ProfilePage() {
     try {
       setIsSaving(true);
       
-      // Since the Wix Members API may not have a direct updateMember method,
-      // we'll use the available API to update the profile
-      // The member data is typically read-only from the Wix SDK
-      // We need to use the Wix Members API directly
-      
-      // For now, we'll attempt to call updateMember if it exists
-      if ('updateMember' in actions && typeof actions.updateMember === 'function') {
-        await (actions as any).updateMember({
-          contact: {
-            phones: editFormData.phone ? [editFormData.phone] : [],
-          },
-          profile: {
-            title: editFormData.address,
-          }
-        });
-      } else {
-        // Fallback: Show message that updates need to be done through Wix dashboard
-        console.warn('updateMember action not available. Using alternative update method.');
-        
-        // Try to update using the Wix API directly if available
-        if (typeof window !== 'undefined' && 'Wix' in window && (window as any).Wix?.members) {
-          try {
-            await (window as any).Wix.members.updateMember({
-              contact: {
-                phones: editFormData.phone ? [editFormData.phone] : [],
-              },
-              profile: {
-                title: editFormData.address,
-              }
-            });
-          } catch (wixError) {
-            console.error('Wix API update failed:', wixError);
-            throw new Error('Unable to update profile. Please try again.');
-          }
-        }
+      // Check if member exists and has an ID
+      if (!member?._id) {
+        throw new Error('Member ID not found. Please log in again.');
       }
+
+      // Check if Wix Members API is available
+      if (!memberService.isAvailable()) {
+        throw new Error('Member service is not available. Please try again later.');
+      }
+
+      // Update member data using the member service
+      const updatePayload: any = {
+        _id: member._id,
+      };
+
+      // Only include fields that have been modified
+      if (editFormData.phone) {
+        updatePayload.contact = {
+          ...member.contact,
+          phones: [editFormData.phone],
+        };
+      }
+
+      if (editFormData.address) {
+        updatePayload.profile = {
+          ...member.profile,
+          title: editFormData.address,
+        };
+      }
+
+      // Update member using the service
+      const success = await memberService.updateMember(updatePayload);
       
+      if (!success) {
+        throw new Error('Failed to update profile. Please try again.');
+      }
+
       // Reload member data to reflect changes
       if ('loadCurrentMember' in actions && typeof actions.loadCurrentMember === 'function') {
         await (actions as any).loadCurrentMember();
