@@ -16,7 +16,7 @@ import { Image } from '@/components/ui/image';
 import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle, Phone, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { sendGridService } from '@/services/sendgridService';
-import { twilioService } from '@/services/twilioService';
+import { googlePhoneAuthService } from '@/services/googlePhoneAuthService';
 
 interface BookingFormData {
   serviceName: string;
@@ -109,7 +109,7 @@ export default function BookingPage() {
   const platformFee = formData.paymentAmount * PLATFORM_FEE_PERCENTAGE;
   const totalAmount = calculateTotal(formData.paymentAmount);
 
-  // Send OTP to phone number using Twilio
+  // Send OTP to phone number using Google Firebase
   const sendOtp = async () => {
     // Validate phone number before setting loading state
     if (!formData.clientPhone) {
@@ -117,18 +117,11 @@ export default function BookingPage() {
       return;
     }
 
-    // Validate phone number format (basic validation for Indian numbers)
+    // Validate phone number format (basic check for Indian numbers)
     const phoneRegex = /^[6-9]\d{9}$/;
     const cleanedPhone = formData.clientPhone.replace(/\D/g, '');
     if (!phoneRegex.test(cleanedPhone)) {
       setOtpError('Please enter a valid 10-digit Indian phone number');
-      return;
-    }
-
-    // Check if Twilio is configured before setting loading state
-    if (!twilioService.isConfigured()) {
-      setOtpError('SMS service is not configured. Please contact support.');
-      console.warn('Twilio credentials not found. Check your environment variables: VITE_TWILIO_ACCOUNT_SID, VITE_TWILIO_AUTH_TOKEN, VITE_TWILIO_SERVICE_SID');
       return;
     }
 
@@ -137,11 +130,11 @@ export default function BookingPage() {
 
     try {
       // Format phone number to E.164 format
-      const formattedPhone = twilioService.formatPhoneNumber(formData.clientPhone);
+      const formattedPhone = googlePhoneAuthService.formatPhoneNumber(formData.clientPhone);
       console.log('Sending OTP to formatted phone:', formattedPhone);
       
-      // Send OTP via Twilio
-      const result = await twilioService.sendOTP(formattedPhone);
+      // Send OTP via Google Firebase
+      const result = await googlePhoneAuthService.sendOTP(formattedPhone);
       
       if (result.success) {
         setShowOtpVerification(true);
@@ -159,7 +152,7 @@ export default function BookingPage() {
     }
   };
 
-  // Verify OTP code using Twilio
+  // Verify OTP code using Google Firebase
   const verifyOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
       setOtpError('Please enter a valid 6-digit OTP');
@@ -170,18 +163,8 @@ export default function BookingPage() {
     setOtpError('');
 
     try {
-      // Check if Twilio is configured
-      if (!twilioService.isConfigured()) {
-        setOtpError('SMS service is not configured. Please contact support.');
-        setIsOtpVerifying(false);
-        return;
-      }
-
-      // Format phone number to E.164 format
-      const formattedPhone = twilioService.formatPhoneNumber(formData.clientPhone);
-      
-      // Verify OTP via Twilio
-      const result = await twilioService.verifyOTP(formattedPhone, otpCode);
+      // Verify OTP via Google Firebase
+      const result = await googlePhoneAuthService.verifyOTP(otpCode);
       
       if (result.success && result.valid) {
         setPhoneVerified(true);
@@ -768,7 +751,6 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen bg-primary text-primary-foreground">
-      {/* ... rest of the JSX remains the same ... */}
       <section className="py-8 sm:py-12 bg-secondary">
         <div className="container mx-auto px-4 sm:px-6 lg:px-12 max-w-[100rem]">
           <motion.div
@@ -1204,8 +1186,7 @@ export default function BookingPage() {
                           disabled={phoneVerified}
                           className={phoneVerified ? 'bg-green-50' : ''}
                         />
-                        {/* Temporarily disabled - Send OTP button */}
-                        {/* {!phoneVerified && (
+                        {!phoneVerified && (
                           <Button
                             onClick={sendOtp}
                             disabled={isOtpSending || !formData.clientPhone}
@@ -1214,7 +1195,7 @@ export default function BookingPage() {
                           >
                             {isOtpSending ? 'Sending...' : 'Send OTP'}
                           </Button>
-                        )} */}
+                        )}
                       </div>
                     </div>
                   </div>
