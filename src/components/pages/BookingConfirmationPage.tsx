@@ -5,8 +5,10 @@ import { BaseCrudService } from '@/integrations';
 import { Bookings } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, XCircle, AlertCircle, Loader } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Loader, Calendar, Download } from 'lucide-react';
 import { sendGridService } from '@/services/sendgridService';
+import { bookingAutomationService } from '@/services/bookingAutomationService';
+import { googleCalendarService } from '@/services/googleCalendarService';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
@@ -133,6 +135,31 @@ export default function BookingConfirmationPage() {
         } catch (error) {
           console.warn('Error sending freelancer notification email:', error);
         }
+
+        // Trigger Wix Automation workflow
+        try {
+          const automationPayload = {
+            bookingId: bookingToCreate._id,
+            clientName: bookingToCreate.clientName || '',
+            clientEmail: bookingToCreate.clientEmail || '',
+            clientPhone: bookingToCreate.clientPhone || '',
+            serviceName: bookingToCreate.serviceName || '',
+            freelancerName: bookingToCreate.freelancerName || '',
+            bookingDate: formattedBookingDate,
+            bookingTime: bookingToCreate.bookingTime || '',
+            serviceAddress: bookingToCreate.serviceAddress || '',
+            paymentAmount: bookingToCreate.paymentAmount || 0,
+            serviceCity: bookingToCreate.serviceCity || '',
+            serviceState: bookingToCreate.serviceState || ''
+          };
+
+          const automationTriggered = await bookingAutomationService.triggerBookingConfirmation(automationPayload);
+          if (!automationTriggered) {
+            console.warn('Wix Automation workflow not triggered, but booking was created successfully');
+          }
+        } catch (error) {
+          console.warn('Error triggering Wix Automation:', error);
+        }
         
         // Clear sessionStorage
         sessionStorage.removeItem('pendingBooking');
@@ -179,6 +206,63 @@ export default function BookingConfirmationPage() {
       console.error('Error verifying payment:', error);
       return false;
     }
+  };
+
+  const handleAddToGoogleCalendar = () => {
+    if (!bookingData) return;
+
+    const eventData = googleCalendarService.createEventFromBooking(
+      bookingData.serviceName || '',
+      bookingData.freelancerName || '',
+      new Date(bookingData.bookingDate || ''),
+      bookingData.bookingTime || '',
+      bookingData.serviceAddress || '',
+      bookingData.clientEmail || '',
+      bookingData.clientName || '',
+      bookingData.paymentAmount || 0
+    );
+
+    const googleCalendarUrl = googleCalendarService.generateGoogleCalendarUrl(eventData);
+    window.open(googleCalendarUrl, '_blank');
+  };
+
+  const handleDownloadICalendar = () => {
+    if (!bookingData) return;
+
+    const eventData = googleCalendarService.createEventFromBooking(
+      bookingData.serviceName || '',
+      bookingData.freelancerName || '',
+      new Date(bookingData.bookingDate || ''),
+      bookingData.bookingTime || '',
+      bookingData.serviceAddress || '',
+      bookingData.clientEmail || '',
+      bookingData.clientName || '',
+      bookingData.paymentAmount || 0
+    );
+
+    googleCalendarService.downloadICalendarFile(
+      eventData,
+      bookingId,
+      `booking-${bookingId}.ics`
+    );
+  };
+
+  const handleAddToOutlook = () => {
+    if (!bookingData) return;
+
+    const eventData = googleCalendarService.createEventFromBooking(
+      bookingData.serviceName || '',
+      bookingData.freelancerName || '',
+      new Date(bookingData.bookingDate || ''),
+      bookingData.bookingTime || '',
+      bookingData.serviceAddress || '',
+      bookingData.clientEmail || '',
+      bookingData.clientName || '',
+      bookingData.paymentAmount || 0
+    );
+
+    const outlookUrl = googleCalendarService.generateOutlookCalendarUrl(eventData);
+    window.open(outlookUrl, '_blank');
   };
 
   if (paymentStatus === 'loading') {
@@ -298,6 +382,41 @@ export default function BookingConfirmationPage() {
                       </p>
                     </div>
                   )}
+
+                  {/* Add to Calendar Section */}
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calendar className="h-5 w-5 text-purple-600" />
+                      <h4 className="font-semibold text-purple-900">Add to Calendar</h4>
+                    </div>
+                    <p className="text-sm text-purple-800 mb-3">
+                      Save your booking to your calendar for easy reference.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button
+                        onClick={handleAddToGoogleCalendar}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Google Calendar
+                      </Button>
+                      <Button
+                        onClick={handleAddToOutlook}
+                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm"
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Outlook
+                      </Button>
+                      <Button
+                        onClick={handleDownloadICalendar}
+                        variant="outline"
+                        className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50 text-sm"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download (.ics)
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
 
