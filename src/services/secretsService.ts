@@ -12,6 +12,13 @@ export interface SecretCredentials {
   twilioServiceSid?: string;
   twilioPhoneNumber?: string;
   sendGridApiKey?: string;
+  firebaseApiKey?: string;
+  firebaseAuthDomain?: string;
+  firebaseProjectId?: string;
+  firebaseStorageBucket?: string;
+  firebaseMessagingSenderId?: string;
+  firebaseAppId?: string;
+  firebaseMeasurementId?: string;
 }
 
 export interface SecretsServiceConfig {
@@ -110,6 +117,13 @@ class SecretsService {
       twilioServiceSid: import.meta.env.VITE_TWILIO_SERVICE_SID || undefined,
       twilioPhoneNumber: import.meta.env.VITE_TWILIO_PHONE_NUMBER || undefined,
       sendGridApiKey: import.meta.env.VITE_SENDGRID_API_KEY || undefined,
+      firebaseApiKey: import.meta.env.VITE_FIREBASE_API_KEY || undefined,
+      firebaseAuthDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || undefined,
+      firebaseProjectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || undefined,
+      firebaseStorageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || undefined,
+      firebaseMessagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || undefined,
+      firebaseAppId: import.meta.env.VITE_FIREBASE_APP_ID || undefined,
+      firebaseMeasurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || undefined,
     };
     this.lastFetchTime = Date.now();
   }
@@ -151,6 +165,32 @@ class SecretsService {
    */
   isSendGridConfigured(): boolean {
     return !!this.credentials.sendGridApiKey;
+  }
+
+  /**
+   * Check if Firebase is configured
+   */
+  isFirebaseConfigured(): boolean {
+    return !!(
+      this.credentials.firebaseApiKey &&
+      this.credentials.firebaseAuthDomain &&
+      this.credentials.firebaseProjectId
+    );
+  }
+
+  /**
+   * Get Firebase configuration object
+   */
+  getFirebaseConfig() {
+    return {
+      apiKey: this.credentials.firebaseApiKey,
+      authDomain: this.credentials.firebaseAuthDomain,
+      projectId: this.credentials.firebaseProjectId,
+      storageBucket: this.credentials.firebaseStorageBucket,
+      messagingSenderId: this.credentials.firebaseMessagingSenderId,
+      appId: this.credentials.firebaseAppId,
+      measurementId: this.credentials.firebaseMeasurementId,
+    };
   }
 
   /**
