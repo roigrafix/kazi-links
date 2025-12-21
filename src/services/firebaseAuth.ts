@@ -1,8 +1,11 @@
-// Firebase Auth Service - Mock Implementation
-// Note: Firebase SDK is not installed. This is a mock service for development.
-// To use real Firebase, install: npm install firebase
+// Firebase Auth Service - Real Implementation with Wix Secrets Manager
+// This service uses Firebase SDK for real authentication
+// Configuration is loaded from Wix Secrets Manager for security
 
-// Mock types to match Firebase Auth API
+import { secretsService } from './secretsService';
+import { initializeFirebaseApp, getFirebaseAuth, getFirebaseAuthModules } from './firebaseConfig';
+
+// Types to match Firebase Auth API
 export type Auth = any;
 export type User = {
   uid: string;
@@ -15,17 +18,6 @@ export type ConfirmationResult = {
 };
 export type RecaptchaVerifier = {
   clear: () => void;
-};
-
-// Firebase Configuration (for reference when real SDK is installed)
-const firebaseConfig = {
-  apiKey: "AIzaSyB79Ulw8ssi5I8nzpcueoX3poDOex2OtaY",
-  authDomain: "kazilinks-95d1d.firebaseapp.com",
-  projectId: "kazilinks-95d1d",
-  storageBucket: "kazilinks-95d1d.firebasestorage.app",
-  messagingSenderId: "448542748498",
-  appId: "1:448542748498:web:bbaa6b46c32a86ad37d48b",
-  measurementId: "G-50650X2SB9"
 };
 
 // --- Interfaces ---
@@ -42,82 +34,285 @@ export interface PhoneAuthResult {
 }
 
 class FirebaseAuthService {
-  private auth: Auth;
+  private auth: Auth | null = null;
+  private firebaseApp: any = null;
   private currentUser: User | null = null;
   private authStateListeners: Array<(user: User | null) => void> = [];
   private recaptchaVerifier: RecaptchaVerifier | null = null;
+  private initialized = false;
 
   constructor() {
-    // Mock auth instance - replace with real Firebase when SDK is installed
-    this.auth = {} as Auth;
-    console.warn('Firebase Auth Service: Using mock implementation. Install firebase package for real authentication.');
+    this.initializeFirebase();
+  }
+
+  private async initializeFirebase() {
+    try {
+      // Initialize Firebase app with config from Wix Secrets
+      this.firebaseApp = await initializeFirebaseApp();
+      if (this.firebaseApp) {
+        this.auth = await getFirebaseAuth(this.firebaseApp);
+        this.initialized = true;
+        console.log('✅ Firebase Auth Service initialized successfully');
+      } else {
+        console.warn('⚠️ Firebase initialization failed - using fallback mode');
+        this.initialized = false;
+      }
+    } catch (error) {
+      console.error('Error initializing Firebase:', error);
+      this.initialized = false;
+    }
   }
 
   // --- Email Authentication ---
   async signInWithEmailAndPassword(email: string, password: string): Promise<AuthResult> {
-    // Mock implementation - replace with real Firebase SDK
-    console.warn('Mock: signInWithEmailAndPassword called');
-    return {
-      success: false,
-      error: {
-        code: 'auth/not-implemented',
-        message: 'Firebase SDK not installed. Please install firebase package.'
+    try {
+      if (!this.auth) {
+        await this.initializeFirebase();
       }
-    };
+
+      if (!this.auth) {
+        return {
+          success: false,
+          error: {
+            code: 'auth/not-available',
+            message: 'Firebase is not available. Please check your configuration.'
+          }
+        };
+      }
+
+      const authModules = await getFirebaseAuthModules();
+      if (!authModules) {
+        return {
+          success: false,
+          error: {
+            code: 'auth/not-available',
+            message: 'Firebase Auth modules not available'
+          }
+        };
+      }
+
+      const { signInWithEmailAndPassword } = authModules;
+      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
+      
+      const user: User = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        phoneNumber: userCredential.user.phoneNumber,
+        displayName: userCredential.user.displayName
+      };
+
+      this.currentUser = user;
+      this.notifyAuthStateListeners(user);
+
+      return { success: true, user };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: {
+          code: error.code || 'auth/error',
+          message: error.message || 'Failed to sign in'
+        }
+      };
+    }
   }
 
   async createUserWithEmailAndPassword(email: string, password: string): Promise<AuthResult> {
-    // Mock implementation - replace with real Firebase SDK
-    console.warn('Mock: createUserWithEmailAndPassword called');
-    return {
-      success: false,
-      error: {
-        code: 'auth/not-implemented',
-        message: 'Firebase SDK not installed. Please install firebase package.'
+    try {
+      if (!this.auth) {
+        await this.initializeFirebase();
       }
-    };
+
+      if (!this.auth) {
+        return {
+          success: false,
+          error: {
+            code: 'auth/not-available',
+            message: 'Firebase is not available. Please check your configuration.'
+          }
+        };
+      }
+
+      const authModules = await getFirebaseAuthModules();
+      if (!authModules) {
+        return {
+          success: false,
+          error: {
+            code: 'auth/not-available',
+            message: 'Firebase Auth modules not available'
+          }
+        };
+      }
+
+      const { createUserWithEmailAndPassword } = authModules;
+      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
+      
+      const user: User = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        phoneNumber: userCredential.user.phoneNumber,
+        displayName: userCredential.user.displayName
+      };
+
+      this.currentUser = user;
+      this.notifyAuthStateListeners(user);
+
+      return { success: true, user };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: {
+          code: error.code || 'auth/error',
+          message: error.message || 'Failed to create account'
+        }
+      };
+    }
   }
 
   // --- Phone Authentication ---
   async setupRecaptcha(containerId: string): Promise<RecaptchaVerifier> {
-    // Mock implementation
-    console.warn('Mock: setupRecaptcha called');
-    this.recaptchaVerifier = {
-      clear: () => console.log('Mock: RecaptchaVerifier cleared')
-    };
-    return this.recaptchaVerifier;
+    try {
+      if (!this.auth) {
+        await this.initializeFirebase();
+      }
+
+      if (!this.auth) {
+        throw new Error('Firebase Auth not available');
+      }
+
+      const authModules = await getFirebaseAuthModules();
+      if (!authModules) {
+        throw new Error('Firebase Auth modules not available');
+      }
+
+      const { RecaptchaVerifier } = authModules;
+      this.recaptchaVerifier = new RecaptchaVerifier(containerId, {
+        size: 'invisible',
+        callback: (token: string) => {
+          console.log('reCAPTCHA verified:', token);
+        },
+        'expired-callback': () => {
+          console.log('reCAPTCHA expired');
+        }
+      }, this.auth);
+
+      return this.recaptchaVerifier;
+    } catch (error: any) {
+      console.error('Error setting up reCAPTCHA:', error);
+      throw error;
+    }
   }
 
   async sendPhoneVerificationCode(phoneNumber: string, containerId: string = 'recaptcha-container'): Promise<PhoneAuthResult> {
-    // Mock implementation - replace with real Firebase SDK
-    console.warn('Mock: sendPhoneVerificationCode called for', phoneNumber);
-    return {
-      success: false,
-      error: {
-        code: 'auth/not-implemented',
-        message: 'Firebase SDK not installed. Please install firebase package to enable phone authentication.'
+    try {
+      if (!this.auth) {
+        await this.initializeFirebase();
       }
-    };
+
+      if (!this.auth) {
+        return {
+          success: false,
+          error: {
+            code: 'auth/not-available',
+            message: 'Firebase is not available. Please check your configuration.'
+          }
+        };
+      }
+
+      const authModules = await getFirebaseAuthModules();
+      if (!authModules) {
+        return {
+          success: false,
+          error: {
+            code: 'auth/not-available',
+            message: 'Firebase Auth modules not available'
+          }
+        };
+      }
+
+      const { signInWithPhoneNumber } = authModules;
+
+      // Setup reCAPTCHA if not already done
+      if (!this.recaptchaVerifier) {
+        await this.setupRecaptcha(containerId);
+      }
+
+      const confirmationResult = await signInWithPhoneNumber(
+        this.auth,
+        phoneNumber,
+        this.recaptchaVerifier
+      );
+
+      return {
+        success: true,
+        confirmationResult
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: {
+          code: error.code || 'auth/error',
+          message: error.message || 'Failed to send OTP'
+        }
+      };
+    }
   }
 
   async verifyPhoneOTP(confirmationResult: ConfirmationResult, otp: string): Promise<AuthResult> {
-    // Mock implementation - replace with real Firebase SDK
-    console.warn('Mock: verifyPhoneOTP called');
-    return {
-      success: false,
-      error: {
-        code: 'auth/not-implemented',
-        message: 'Firebase SDK not installed. Please install firebase package.'
+    try {
+      if (!confirmationResult) {
+        return {
+          success: false,
+          error: {
+            code: 'auth/invalid-confirmation',
+            message: 'Invalid confirmation result'
+          }
+        };
       }
-    };
+
+      const userCredential = await confirmationResult.confirm(otp);
+      
+      const user: User = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        phoneNumber: userCredential.user.phoneNumber,
+        displayName: userCredential.user.displayName
+      };
+
+      this.currentUser = user;
+      this.notifyAuthStateListeners(user);
+
+      return { success: true, user };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: {
+          code: error.code || 'auth/error',
+          message: error.message || 'Failed to verify OTP'
+        }
+      };
+    }
   }
 
   // --- Sign Out ---
   async signOut(): Promise<void> {
-    // Mock implementation
-    console.warn('Mock: signOut called');
-    this.currentUser = null;
-    this.notifyAuthStateListeners(null);
+    try {
+      if (!this.auth) {
+        await this.initializeFirebase();
+      }
+
+      if (this.auth) {
+        const authModules = await getFirebaseAuthModules();
+        if (authModules) {
+          const { signOut } = authModules;
+          await signOut(this.auth);
+        }
+      }
+
+      this.currentUser = null;
+      this.notifyAuthStateListeners(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   }
 
   // --- State Management ---
@@ -143,9 +338,17 @@ class FirebaseAuthService {
 
   clearRecaptcha(): void {
     if (this.recaptchaVerifier) {
-       this.recaptchaVerifier.clear();
-       this.recaptchaVerifier = null;
+      try {
+        this.recaptchaVerifier.clear();
+      } catch (error) {
+        console.warn('Error clearing reCAPTCHA:', error);
+      }
+      this.recaptchaVerifier = null;
     }
+  }
+
+  isInitialized(): boolean {
+    return this.initialized && !!this.auth;
   }
 }
 

@@ -65,6 +65,7 @@ export default function FirebasePhoneAuthPage() {
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setError('');
     setIsLoading(true);
 
@@ -110,6 +111,7 @@ export default function FirebasePhoneAuthPage() {
 
   const handleOTPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setError('');
     setIsLoading(true);
 
@@ -160,6 +162,7 @@ export default function FirebasePhoneAuthPage() {
 
   const handleResendOTP = async () => {
     setError('');
+    setIsLoading(true);
     setIsLoading(true);
 
     try {
@@ -271,7 +274,7 @@ export default function FirebasePhoneAuthPage() {
               <Button
                 type="submit"
                 disabled={isLoading || !phoneNumber.trim()}
-                className="w-full bg-logoGold text-logoBlack hover:bg-logoGold/90 font-heading font-semibold text-base py-6"
+                className="w-full bg-logoGold text-logoBlack hover:bg-logoGold/90 font-heading font-semibold text-base py-6 cursor-pointer disabled:cursor-not-allowed\"
               >
                 {isLoading ? (
                   <>
@@ -346,7 +349,7 @@ export default function FirebasePhoneAuthPage() {
               <Button
                 type="submit"
                 disabled={isLoading || otp.length !== 6}
-                className="w-full bg-logoGold text-logoBlack hover:bg-logoGold/90 font-heading font-semibold text-base py-6"
+                className="w-full bg-logoGold text-logoBlack hover:bg-logoGold/90 font-heading font-semibold text-base py-6 cursor-pointer disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

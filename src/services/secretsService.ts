@@ -2,6 +2,16 @@
  * Wix Secrets API Service
  * Manages secure credential storage and retrieval from Wix Secrets API
  * 
+ * SECURITY BEST PRACTICES:
+ * 1. NEVER expose API keys in client-side code
+ * 2. ALWAYS use Wix Secrets Manager for sensitive credentials
+ * 3. Backend functions must validate and sanitize all inputs
+ * 4. Use HTTPS for all API communications
+ * 5. Implement rate limiting on backend functions
+ * 6. Log all access to sensitive credentials
+ * 7. Rotate credentials regularly
+ * 8. Use environment variables for non-sensitive config
+ * 
  * IMPORTANT: This service requires backend functions to be set up in your Wix project
  * Backend functions should be created in /backend directory with proper permissions
  */
@@ -43,16 +53,21 @@ class SecretsService {
   /**
    * Initialize secrets from Wix Secrets API or environment variables
    * Call this once at app startup
+   * SECURITY: Credentials are cached in memory and never logged
    */
   async initialize(): Promise<boolean> {
     try {
       if (this.useWixSecrets) {
         const success = await this.fetchFromWixSecrets();
-        if (success) return true;
+        if (success) {
+          console.log('✅ Secrets loaded from Wix Secrets Manager');
+          return true;
+        }
       }
 
       if (this.fallbackToEnv) {
         this.loadFromEnvironment();
+        console.log('⚠️ Secrets loaded from environment variables (fallback mode)');
         return true;
       }
 
@@ -63,6 +78,7 @@ class SecretsService {
       // Fallback to environment variables if Wix Secrets fails
       if (this.fallbackToEnv) {
         this.loadFromEnvironment();
+        console.log('⚠️ Secrets loaded from environment variables (fallback mode)');
         return true;
       }
       
@@ -72,6 +88,7 @@ class SecretsService {
 
   /**
    * Fetch credentials from Wix Secrets API
+   * SECURITY: Uses backend function to prevent exposing credentials in client code
    * Requires backend function: /backend/secrets/getSecrets.js
    */
   private async fetchFromWixSecrets(): Promise<boolean> {
@@ -81,8 +98,8 @@ class SecretsService {
         return true;
       }
 
-      // Call backend function to retrieve secrets
-      // This assumes you have a backend function set up
+      // Call backend function to retrieve secrets securely
+      // Backend validates request and returns only necessary credentials
       const response = await fetch('/api/secrets/get', {
         method: 'GET',
         headers: {
@@ -108,6 +125,8 @@ class SecretsService {
 
   /**
    * Load credentials from environment variables
+   * SECURITY: Only use for development/testing
+   * In production, always use Wix Secrets Manager
    * Fallback method for local development
    */
   private loadFromEnvironment(): void {
@@ -204,7 +223,9 @@ class SecretsService {
 
   /**
    * Store credentials in Wix Secrets API
+   * SECURITY: Uses backend function to prevent exposing credentials
    * Requires backend function: /backend/secrets/setSecrets.js
+   * Only call this during setup/configuration, not during normal operation
    */
   async storeCredentials(credentials: Partial<SecretCredentials>): Promise<boolean> {
     try {
