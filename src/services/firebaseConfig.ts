@@ -9,6 +9,19 @@ let firebaseInitialized = false;
 let firebaseAvailable = false;
 
 /**
+ * Safely import a module with error handling
+ */
+async function safeImport(modulePath: string): Promise<any> {
+  try {
+    // Use Function constructor to avoid static module resolution
+    const importFn = new Function('path', 'return import(path)');
+    return await importFn(modulePath);
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
  * Check if Firebase SDK is available
  */
 export async function isFirebaseAvailable(): Promise<boolean> {
@@ -17,12 +30,23 @@ export async function isFirebaseAvailable(): Promise<boolean> {
   }
 
   try {
-    // Try to import Firebase modules - using dynamic import with type assertion
-    await import('firebase/app' as any);
-    await import('firebase/auth' as any);
-    firebaseAvailable = true;
+    // Try to import Firebase modules using safe import
+    const firebaseApp = await safeImport('firebase/app');
+    const firebaseAuth = await safeImport('firebase/auth');
+    
+    if (firebaseApp && firebaseAuth) {
+      firebaseAvailable = true;
+      firebaseInitialized = true;
+      return true;
+    }
+    
+    firebaseAvailable = false;
     firebaseInitialized = true;
-    return true;
+    console.warn(
+      '⚠️ Firebase SDK is not installed. Phone authentication will be disabled.\n' +
+      'To enable Firebase, run: npm install firebase'
+    );
+    return false;
   } catch (error) {
     firebaseAvailable = false;
     firebaseInitialized = true;
@@ -44,7 +68,12 @@ export async function initializeFirebaseApp(config: any) {
       return null;
     }
 
-    const { initializeApp } = await import('firebase/app' as any);
+    const firebaseApp = await safeImport('firebase/app');
+    if (!firebaseApp) {
+      return null;
+    }
+
+    const { initializeApp } = firebaseApp;
     return initializeApp(config);
   } catch (error: any) {
     console.warn('Failed to initialize Firebase:', error.message);
@@ -62,7 +91,12 @@ export async function getFirebaseAuth(app: any) {
       return null;
     }
 
-    const { getAuth } = await import('firebase/auth' as any);
+    const firebaseAuth = await safeImport('firebase/auth');
+    if (!firebaseAuth) {
+      return null;
+    }
+
+    const { getAuth } = firebaseAuth;
     return getAuth(app);
   } catch (error: any) {
     console.warn('Failed to get Firebase Auth:', error.message);
@@ -80,7 +114,7 @@ export async function getFirebaseAuthModules() {
       return null;
     }
 
-    return await import('firebase/auth' as any);
+    return await safeImport('firebase/auth');
   } catch (error: any) {
     console.warn('Failed to get Firebase Auth modules:', error.message);
     return null;
