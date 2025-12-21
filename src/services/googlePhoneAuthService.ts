@@ -9,7 +9,11 @@
  *   VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
  *   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
  *   VITE_FIREBASE_APP_ID=your_app_id
+ * 
+ * NOTE: Firebase SDK must be installed: npm install firebase
  */
+
+import { isFirebaseAvailable, initializeFirebaseApp, getFirebaseAuth, getFirebaseAuthModules } from './firebaseConfig';
 
 interface PhoneAuthResult {
   success: boolean;
@@ -68,42 +72,36 @@ class GooglePhoneAuthService {
     if (!this.isConfigured()) return false;
 
     try {
-      // Dynamically import Firebase modules
-      // @ts-ignore - Firebase is an optional dependency
-      const firebaseApp = await import('firebase/app').catch((err) => {
-        console.error('Failed to import firebase/app:', err.message);
-        return null;
-      });
-      // @ts-ignore - Firebase is an optional dependency
-      const firebaseAuth = await import('firebase/auth').catch((err) => {
-        console.error('Failed to import firebase/auth:', err.message);
-        return null;
-      });
-
-      if (!firebaseApp || !firebaseAuth) {
-        const errorMsg = 'Firebase SDK is not installed. Please run: npm install firebase';
-        console.error(errorMsg);
-        console.error('Installation command: npm install firebase');
+      // Check if Firebase SDK is available
+      const available = await isFirebaseAvailable();
+      if (!available) {
+        console.warn('Firebase SDK is not installed. Please run: npm install firebase');
         return false;
       }
 
-      const { initializeApp } = firebaseApp;
-      const { getAuth } = firebaseAuth;
+      // Initialize Firebase app
+      const app = await initializeFirebaseApp(this.firebaseConfig);
+      if (!app) {
+        return false;
+      }
 
-      // Initialize Firebase
-      const app = initializeApp(this.firebaseConfig);
-      this.auth = getAuth(app);
-      this.firebaseModules = firebaseAuth;
+      // Get Firebase Auth instance
+      this.auth = await getFirebaseAuth(app);
+      if (!this.auth) {
+        return false;
+      }
+
+      // Get Firebase Auth modules
+      this.firebaseModules = await getFirebaseAuthModules();
+      if (!this.firebaseModules) {
+        return false;
+      }
+
       this.initialized = true;
-
       console.log('✅ Firebase Authentication initialized successfully');
       return true;
     } catch (error: any) {
-      console.error('❌ Failed to initialize Firebase:', error.message);
-      if (error.message?.includes('Cannot find module')) {
-        console.error('📦 Firebase SDK is not installed.');
-        console.error('💡 To fix this, run: npm install firebase');
-      }
+      console.warn('⚠️ Firebase initialization failed:', error.message);
       return false;
     }
   }
@@ -135,13 +133,12 @@ class GooglePhoneAuthService {
       if (!initialized) {
         return {
           success: false,
-          message: 'Failed to initialize Firebase authentication',
+          message: 'Firebase SDK is not installed. Please run: npm install firebase',
         };
       }
 
-      // Create reCAPTCHA verifier
-      // @ts-ignore - Firebase is an optional dependency
-      const firebaseAuth = await import('firebase/auth').catch(() => null);
+      // Get Firebase Auth modules
+      const firebaseAuth = await getFirebaseAuthModules();
       if (!firebaseAuth) {
         return {
           success: false,
