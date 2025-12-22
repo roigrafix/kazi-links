@@ -315,7 +315,7 @@ export default function SignUpPage() {
                 I agree to the{' '}
                 <button
                   type="button"
-                  onClick={() => navigate('/privacy-policy')}
+                  onClick={() => navigate('/terms-of-service')}
                   className="text-logoGold hover:text-logoGold/80 transition-colors"
                 >
                   Terms of Service

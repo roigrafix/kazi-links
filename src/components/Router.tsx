@@ -23,6 +23,7 @@ import AdminDashboardPage from '@/components/pages/AdminDashboardPage';
 import AdminRefundsPage from '@/components/pages/AdminRefundsPage';
 import AdminSupportPage from '@/components/pages/AdminSupportPage';
 import PrivacyPolicyPage from '@/components/pages/PrivacyPolicyPage';
+import TermsOfServicePage from '@/components/pages/TermsOfServicePage';
 import ClientRefundTrackingPage from '@/components/pages/ClientRefundTrackingPage';
 import BookingConfirmationPage from '@/components/pages/BookingConfirmationPage';
 import CustomerServicePage from '@/components/pages/CustomerServicePage';
@@ -165,6 +166,10 @@ const router = createBrowserRouter([
       {
         path: "privacy-policy",
         element: <PrivacyPolicyPage />,
+      },
+      {
+        path: "terms-of-service",
+        element: <TermsOfServicePage />,
       },
       {
         path: "admin-refunds",
