@@ -9,6 +9,7 @@ import { CheckCircle, XCircle, AlertCircle, Loader, Calendar, Download } from 'l
 import { sendGridService } from '@/services/sendgridService';
 import { bookingAutomationService } from '@/services/bookingAutomationService';
 import { googleCalendarService } from '@/services/googleCalendarService';
+import { whatsappService } from '@/services/whatsappService';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
