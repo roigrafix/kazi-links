@@ -42,7 +42,7 @@ interface BookingFormData {
   phoneVerified?: boolean;
 }
 
-const PLATFORM_FEE_PERCENTAGE = 0.1;
+const PLATFORM_FEE_PERCENTAGE = 0.05;
 
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
