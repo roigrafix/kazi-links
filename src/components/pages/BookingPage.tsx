@@ -1290,7 +1290,7 @@ export default function BookingPage() {
                         <span className="font-medium">₹{formData.paymentAmount.toFixed(2)}</span>
                       </div>
                       <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                        <span>Platform Fee (10%):</span>
+                        <span>Platform Fee (5%):</span>
                         <span className="font-medium text-orange-600">₹{platformFee.toFixed(2)}</span>
                       </div>
                       <div className="border-t pt-3 flex flex-col sm:flex-row sm:justify-between gap-1 font-semibold text-lg">
