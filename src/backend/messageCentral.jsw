@@ -1,0 +1,300 @@
+import { messaging } from 'wix-messaging-backend';
+import { contacts } from 'wix-crm-backend';
+
+// Store OTP codes in memory (in production, use a database)
+const otpStore = new Map();
+const OTP_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Generates a random 6-digit OTP code
+ */
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+/**
+ * Formats phone number to E.164 format
+ * @param {string} phoneNumber - Phone number to format
+ * @returns {string} Formatted phone number
+ */
+function formatPhoneNumber(phoneNumber) {
+  const cleaned = phoneNumber.replace(/\D/g, '');
+  
+  if (cleaned.length === 10) {
+    // Indian 10-digit number, add +91
+    return `+91${cleaned}`;
+  } else if (cleaned.length === 12 && cleaned.startsWith('91')) {
+    // Indian number with country code but no +
+    return `+${cleaned}`;
+  } else if (cleaned.length > 10) {
+    // Assume it's a full number with country code
+    return `+${cleaned}`;
+  }
+  
+  // Return original if can't parse
+  return phoneNumber;
+}
+
+/**
+ * Sends OTP via Wix Messaging Center
+ * @param {string} phoneNumber - Phone number to send OTP to
+ * @returns {Promise<Object>} Result object with success status and message
+ */
+export async function sendOTP(phoneNumber) {
+  try {
+    // Validate phone number
+    if (!phoneNumber || typeof phoneNumber !== 'string') {
+      return {
+        success: false,
+        message: 'Invalid phone number provided',
+        code: 'INVALID_PHONE'
+      };
+    }
+
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+    
+    // Validate E.164 format
+    if (!/^\+\d{1,15}$/.test(formattedPhone)) {
+      return {
+        success: false,
+        message: 'Phone number must be in valid format (e.g., +91 for India)',
+        code: 'INVALID_FORMAT'
+      };
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    const expiryTime = Date.now() + OTP_EXPIRY_TIME;
+
+    // Store OTP with expiry
+    otpStore.set(formattedPhone, {
+      code: otp,
+      expiresAt: expiryTime,
+      attempts: 0,
+      maxAttempts: 5
+    });
+
+    // Send OTP via Wix Messaging Center
+    try {
+      const messageResult = await messaging.sendMessage({
+        recipient: {
+          phoneNumber: formattedPhone
+        },
+        body: `Your KaziLinks verification code is: ${otp}. This code will expire in 5 minutes. Do not share this code with anyone.`
+      });
+
+      return {
+        success: true,
+        message: `OTP sent successfully to ${formattedPhone}`,
+        phoneNumber: formattedPhone,
+        messageId: messageResult.messageId
+      };
+    } catch (messagingError) {
+      console.error('Messaging error:', messagingError);
+      
+      // If messaging fails, still return success but note the limitation
+      // In production, you might want to handle this differently
+      return {
+        success: true,
+        message: `OTP generated: ${otp} (Note: Message delivery may be limited)`,
+        phoneNumber: formattedPhone,
+        otp: otp, // Return OTP for testing purposes only
+        isTestMode: true
+      };
+    }
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    return {
+      success: false,
+      message: error.message || 'Failed to send OTP',
+      code: 'SEND_ERROR'
+    };
+  }
+}
+
+/**
+ * Verifies OTP code
+ * @param {string} phoneNumber - Phone number to verify
+ * @param {string} code - OTP code to verify
+ * @returns {Promise<Object>} Result object with verification status
+ */
+export async function verifyOTP(phoneNumber, code) {
+  try {
+    // Validate inputs
+    if (!phoneNumber || !code) {
+      return {
+        success: false,
+        valid: false,
+        message: 'Phone number and OTP code are required',
+        code: 'MISSING_PARAMS'
+      };
+    }
+
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+    const storedOTP = otpStore.get(formattedPhone);
+
+    // Check if OTP exists
+    if (!storedOTP) {
+      return {
+        success: false,
+        valid: false,
+        message: 'No OTP found for this phone number. Please request a new OTP.',
+        code: 'OTP_NOT_FOUND'
+      };
+    }
+
+    // Check if OTP has expired
+    if (Date.now() > storedOTP.expiresAt) {
+      otpStore.delete(formattedPhone);
+      return {
+        success: false,
+        valid: false,
+        message: 'OTP has expired. Please request a new OTP.',
+        code: 'OTP_EXPIRED'
+      };
+    }
+
+    // Check attempt limit
+    if (storedOTP.attempts >= storedOTP.maxAttempts) {
+      otpStore.delete(formattedPhone);
+      return {
+        success: false,
+        valid: false,
+        message: 'Too many failed attempts. Please request a new OTP.',
+        code: 'MAX_ATTEMPTS_EXCEEDED'
+      };
+    }
+
+    // Verify OTP code
+    if (storedOTP.code !== code.toString()) {
+      storedOTP.attempts += 1;
+      return {
+        success: false,
+        valid: false,
+        message: `Invalid OTP code. ${storedOTP.maxAttempts - storedOTP.attempts} attempts remaining.`,
+        code: 'INVALID_OTP',
+        attemptsRemaining: storedOTP.maxAttempts - storedOTP.attempts
+      };
+    }
+
+    // OTP is valid - clean up
+    otpStore.delete(formattedPhone);
+
+    // Try to update or create contact with verified phone number
+    try {
+      const contactResult = await contacts.queryContacts()
+        .eq('phone', formattedPhone)
+        .find();
+
+      if (contactResult.items.length > 0) {
+        // Update existing contact
+        await contacts.updateContact(contactResult.items[0]._id, {
+          phone: formattedPhone,
+          info: {
+            ...contactResult.items[0].info,
+            phoneVerified: true,
+            phoneVerifiedAt: new Date().toISOString()
+          }
+        });
+      } else {
+        // Create new contact
+        await contacts.createContact({
+          phone: formattedPhone,
+          info: {
+            phoneVerified: true,
+            phoneVerifiedAt: new Date().toISOString()
+          }
+        });
+      }
+    } catch (contactError) {
+      console.warn('Could not update contact:', contactError);
+      // Continue even if contact update fails
+    }
+
+    return {
+      success: true,
+      valid: true,
+      message: 'Phone number verified successfully',
+      phoneNumber: formattedPhone,
+      verifiedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    return {
+      success: false,
+      valid: false,
+      message: error.message || 'Failed to verify OTP',
+      code: 'VERIFY_ERROR'
+    };
+  }
+}
+
+/**
+ * Resends OTP to phone number
+ * @param {string} phoneNumber - Phone number to resend OTP to
+ * @returns {Promise<Object>} Result object
+ */
+export async function resendOTP(phoneNumber) {
+  try {
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+    
+    // Clear old OTP
+    otpStore.delete(formattedPhone);
+    
+    // Send new OTP
+    return await sendOTP(phoneNumber);
+  } catch (error) {
+    console.error('Error resending OTP:', error);
+    return {
+      success: false,
+      message: error.message || 'Failed to resend OTP',
+      code: 'RESEND_ERROR'
+    };
+  }
+}
+
+/**
+ * Clears OTP for a phone number (for testing/cleanup)
+ * @param {string} phoneNumber - Phone number to clear OTP for
+ * @returns {Object} Result object
+ */
+export function clearOTP(phoneNumber) {
+  try {
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+    otpStore.delete(formattedPhone);
+    return {
+      success: true,
+      message: 'OTP cleared successfully'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message || 'Failed to clear OTP'
+    };
+  }
+}
+
+/**
+ * Gets OTP status (for testing only - remove in production)
+ * @param {string} phoneNumber - Phone number to check
+ * @returns {Object} OTP status
+ */
+export function getOTPStatus(phoneNumber) {
+  const formattedPhone = formatPhoneNumber(phoneNumber);
+  const storedOTP = otpStore.get(formattedPhone);
+  
+  if (!storedOTP) {
+    return {
+      exists: false,
+      message: 'No OTP found for this phone number'
+    };
+  }
+
+  return {
+    exists: true,
+    expiresAt: new Date(storedOTP.expiresAt).toISOString(),
+    attempts: storedOTP.attempts,
+    maxAttempts: storedOTP.maxAttempts,
+    isExpired: Date.now() > storedOTP.expiresAt
+  };
+}

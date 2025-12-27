@@ -13,7 +13,7 @@ import RefundPage from '@/components/pages/RefundPage';
 import LoginPage from '@/components/pages/LoginPage';
 import SignUpPage from '@/components/pages/SignUpPage';
 import ForgotPasswordPage from '@/components/pages/ForgotPasswordPage';
-import FirebasePhoneAuthPage from '@/components/pages/FirebasePhoneAuthPage';
+import MessagingCenterOTPPage from '@/components/pages/MessagingCenterOTPPage';
 import ProfilePage from '@/components/pages/ProfilePage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
 import FreelancerDashboardPage from '@/components/pages/FreelancerDashboardPage';
@@ -116,8 +116,8 @@ const router = createBrowserRouter([
         element: <ForgotPasswordPage />,
       },
       {
-        path: "firebase-phone-auth",
-        element: <FirebasePhoneAuthPage />,
+        path: "phone-auth",
+        element: <MessagingCenterOTPPage />,
       },
       {
         path: "profile",
