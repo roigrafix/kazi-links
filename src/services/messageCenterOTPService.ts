@@ -1,4 +1,4 @@
-import { web } from '@/integrations';
+import { callFunction } from 'wix-web-module';
 
 interface OTPResponse {
   success: boolean;
@@ -77,7 +77,7 @@ class MessageCenterOTPService {
       }
 
       // Call backend function
-      const result = await web.callFunction('sendOTP', { phoneNumber });
+      const result = await callFunction('sendOTP', { phoneNumber });
 
       if (result.ok) {
         return result.item as OTPResponse;
@@ -122,7 +122,7 @@ class MessageCenterOTPService {
       }
 
       // Call backend function
-      const result = await web.callFunction('verifyOTP', { 
+      const result = await callFunction('verifyOTP', { 
         phoneNumber, 
         code 
       });
@@ -163,7 +163,7 @@ class MessageCenterOTPService {
       }
 
       // Call backend function
-      const result = await web.callFunction('resendOTP', { phoneNumber });
+      const result = await callFunction('resendOTP', { phoneNumber });
 
       if (result.ok) {
         return result.item as OTPResponse;
@@ -189,7 +189,7 @@ class MessageCenterOTPService {
    */
   async clearOTP(phoneNumber: string): Promise<{ success: boolean; message: string }> {
     try {
-      const result = await web.callFunction('clearOTP', { phoneNumber });
+      const result = await callFunction('clearOTP', { phoneNumber });
 
       if (result.ok) {
         return result.item;
@@ -213,7 +213,7 @@ class MessageCenterOTPService {
    */
   async getOTPStatus(phoneNumber: string): Promise<any> {
     try {
-      const result = await web.callFunction('getOTPStatus', { phoneNumber });
+      const result = await callFunction('getOTPStatus', { phoneNumber });
 
       if (result.ok) {
         return result.item;
