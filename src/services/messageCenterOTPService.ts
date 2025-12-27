@@ -1,4 +1,5 @@
-import { callFunction } from 'wix-web-module';
+// TODO: Implement backend function caller
+// import { web } from '@/integrations';
 
 interface OTPResponse {
   success: boolean;
@@ -19,6 +20,21 @@ interface VerifyResponse {
   code?: string;
   attemptsRemaining?: number;
 }
+
+// Temporary stub for backend function calls
+// Replace with actual Wix backend integration
+const web = {
+  callFunction: async (functionName: string, params: any) => {
+    console.warn(`Backend function '${functionName}' not implemented. Params:`, params);
+    return {
+      ok: false,
+      error: {
+        message: `Backend function '${functionName}' is not yet implemented. Please set up Wix backend functions.`
+      },
+      item: null
+    };
+  }
+};
 
 class MessageCenterOTPService {
   /**
@@ -77,7 +93,7 @@ class MessageCenterOTPService {
       }
 
       // Call backend function
-      const result = await callFunction('sendOTP', { phoneNumber });
+      const result = await web.callFunction('sendOTP', { phoneNumber });
 
       if (result.ok) {
         return result.item as OTPResponse;
@@ -122,7 +138,7 @@ class MessageCenterOTPService {
       }
 
       // Call backend function
-      const result = await callFunction('verifyOTP', { 
+      const result = await web.callFunction('verifyOTP', { 
         phoneNumber, 
         code 
       });
@@ -163,7 +179,7 @@ class MessageCenterOTPService {
       }
 
       // Call backend function
-      const result = await callFunction('resendOTP', { phoneNumber });
+      const result = await web.callFunction('resendOTP', { phoneNumber });
 
       if (result.ok) {
         return result.item as OTPResponse;
@@ -189,7 +205,7 @@ class MessageCenterOTPService {
    */
   async clearOTP(phoneNumber: string): Promise<{ success: boolean; message: string }> {
     try {
-      const result = await callFunction('clearOTP', { phoneNumber });
+      const result = await web.callFunction('clearOTP', { phoneNumber });
 
       if (result.ok) {
         return result.item;
@@ -213,7 +229,7 @@ class MessageCenterOTPService {
    */
   async getOTPStatus(phoneNumber: string): Promise<any> {
     try {
-      const result = await callFunction('getOTPStatus', { phoneNumber });
+      const result = await web.callFunction('getOTPStatus', { phoneNumber });
 
       if (result.ok) {
         return result.item;
