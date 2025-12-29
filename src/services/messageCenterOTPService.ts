@@ -1,18 +1,28 @@
 // Note: This service requires Wix backend functions to be implemented
-// The 'wix-data' module is only available in Wix backend environment
-// For now, we'll use a mock implementation that can be replaced with actual Wix integration
+// The backend functions are exposed via HTTP endpoints in /backend/http-functions/
 
-// Mock web module for type safety
-const web = {
-  callFunction: async (functionName: string, params: any) => {
-    console.warn(`Mock implementation: ${functionName} called with`, params);
-    return {
-      ok: false,
-      error: { message: 'Wix backend integration not available in this environment' },
-      item: null
-    };
+// Helper function to call backend HTTP functions
+async function callBackendFunction(functionName: string, params: any) {
+  try {
+    const response = await fetch(`/_functions/${functionName}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error(`Error calling ${functionName}:`, error);
+    throw error;
   }
-};
+}
 
 interface OTPResponse {
   success: boolean;
@@ -90,19 +100,9 @@ class MessageCenterOTPService {
         };
       }
 
-      // Call backend function using Wix web module
-      const result = await web.callFunction('sendOTP', { phoneNumber });
-
-      if (result.ok) {
-        return result.item as OTPResponse;
-      } else {
-        console.error('Backend error:', result.error);
-        return {
-          success: false,
-          message: result.error?.message || 'Failed to send OTP',
-          code: 'SEND_ERROR'
-        };
-      }
+      // Call backend function
+      const result = await callBackendFunction('sendOTP', { phoneNumber });
+      return result as OTPResponse;
     } catch (error: any) {
       console.error('Error sending OTP:', error);
       return {
@@ -136,23 +136,12 @@ class MessageCenterOTPService {
         };
       }
 
-      // Call backend function using Wix web module
-      const result = await web.callFunction('verifyOTP', { 
+      // Call backend function
+      const result = await callBackendFunction('verifyOTP', { 
         phoneNumber, 
         code 
       });
-
-      if (result.ok) {
-        return result.item as VerifyResponse;
-      } else {
-        console.error('Backend error:', result.error);
-        return {
-          success: false,
-          valid: false,
-          message: result.error?.message || 'Failed to verify OTP',
-          code: 'VERIFY_ERROR'
-        };
-      }
+      return result as VerifyResponse;
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
       return {
@@ -178,19 +167,9 @@ class MessageCenterOTPService {
         };
       }
 
-      // Call backend function using Wix web module
-      const result = await web.callFunction('resendOTP', { phoneNumber });
-
-      if (result.ok) {
-        return result.item as OTPResponse;
-      } else {
-        console.error('Backend error:', result.error);
-        return {
-          success: false,
-          message: result.error?.message || 'Failed to resend OTP',
-          code: 'RESEND_ERROR'
-        };
-      }
+      // Call backend function
+      const result = await callBackendFunction('resendOTP', { phoneNumber });
+      return result as OTPResponse;
     } catch (error: any) {
       console.error('Error resending OTP:', error);
       return {
@@ -206,17 +185,8 @@ class MessageCenterOTPService {
    */
   async clearOTP(phoneNumber: string): Promise<{ success: boolean; message: string }> {
     try {
-      const result = await web.callFunction('clearOTP', { phoneNumber });
-
-      if (result.ok) {
-        return result.item;
-      } else {
-        console.error('Backend error:', result.error);
-        return {
-          success: false,
-          message: result.error?.message || 'Failed to clear OTP'
-        };
-      }
+      const result = await callBackendFunction('clearOTP', { phoneNumber });
+      return result;
     } catch (error: any) {
       console.error('Error clearing OTP:', error);
       return {
@@ -231,17 +201,8 @@ class MessageCenterOTPService {
    */
   async getOTPStatus(phoneNumber: string): Promise<any> {
     try {
-      const result = await web.callFunction('getOTPStatus', { phoneNumber });
-
-      if (result.ok) {
-        return result.item;
-      } else {
-        console.error('Backend error:', result.error);
-        return {
-          exists: false,
-          message: result.error?.message || 'Failed to get OTP status'
-        };
-      }
+      const result = await callBackendFunction('getOTPStatus', { phoneNumber });
+      return result;
     } catch (error: any) {
       console.error('Error getting OTP status:', error);
       return {
