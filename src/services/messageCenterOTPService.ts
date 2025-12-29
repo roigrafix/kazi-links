@@ -1,5 +1,18 @@
-// TODO: Implement backend function caller
-// import { web } from '@/integrations';
+// Note: This service requires Wix backend functions to be implemented
+// The 'wix-data' module is only available in Wix backend environment
+// For now, we'll use a mock implementation that can be replaced with actual Wix integration
+
+// Mock web module for type safety
+const web = {
+  callFunction: async (functionName: string, params: any) => {
+    console.warn(`Mock implementation: ${functionName} called with`, params);
+    return {
+      ok: false,
+      error: { message: 'Wix backend integration not available in this environment' },
+      item: null
+    };
+  }
+};
 
 interface OTPResponse {
   success: boolean;
@@ -20,21 +33,6 @@ interface VerifyResponse {
   code?: string;
   attemptsRemaining?: number;
 }
-
-// Temporary stub for backend function calls
-// Replace with actual Wix backend integration
-const web = {
-  callFunction: async (functionName: string, params: any) => {
-    console.warn(`Backend function '${functionName}' not implemented. Params:`, params);
-    return {
-      ok: false,
-      error: {
-        message: `Backend function '${functionName}' is not yet implemented. Please set up Wix backend functions.`
-      },
-      item: null
-    };
-  }
-};
 
 class MessageCenterOTPService {
   /**
@@ -92,12 +90,13 @@ class MessageCenterOTPService {
         };
       }
 
-      // Call backend function
+      // Call backend function using Wix web module
       const result = await web.callFunction('sendOTP', { phoneNumber });
 
       if (result.ok) {
         return result.item as OTPResponse;
       } else {
+        console.error('Backend error:', result.error);
         return {
           success: false,
           message: result.error?.message || 'Failed to send OTP',
@@ -137,7 +136,7 @@ class MessageCenterOTPService {
         };
       }
 
-      // Call backend function
+      // Call backend function using Wix web module
       const result = await web.callFunction('verifyOTP', { 
         phoneNumber, 
         code 
@@ -146,6 +145,7 @@ class MessageCenterOTPService {
       if (result.ok) {
         return result.item as VerifyResponse;
       } else {
+        console.error('Backend error:', result.error);
         return {
           success: false,
           valid: false,
@@ -178,12 +178,13 @@ class MessageCenterOTPService {
         };
       }
 
-      // Call backend function
+      // Call backend function using Wix web module
       const result = await web.callFunction('resendOTP', { phoneNumber });
 
       if (result.ok) {
         return result.item as OTPResponse;
       } else {
+        console.error('Backend error:', result.error);
         return {
           success: false,
           message: result.error?.message || 'Failed to resend OTP',
@@ -210,6 +211,7 @@ class MessageCenterOTPService {
       if (result.ok) {
         return result.item;
       } else {
+        console.error('Backend error:', result.error);
         return {
           success: false,
           message: result.error?.message || 'Failed to clear OTP'
@@ -234,6 +236,7 @@ class MessageCenterOTPService {
       if (result.ok) {
         return result.item;
       } else {
+        console.error('Backend error:', result.error);
         return {
           exists: false,
           message: result.error?.message || 'Failed to get OTP status'
