@@ -27,8 +27,6 @@ import TermsOfServicePage from '@/components/pages/TermsOfServicePage';
 import ClientRefundTrackingPage from '@/components/pages/ClientRefundTrackingPage';
 import BookingConfirmationPage from '@/components/pages/BookingConfirmationPage';
 import CustomerServicePage from '@/components/pages/CustomerServicePage';
-import TestEmailPage from '@/components/pages/TestEmailPage';
-import TwilioConfigDiagnosticsPage from '@/components/pages/TwilioConfigDiagnosticsPage';
 import { AdminProtectedRoute } from '@/components/ui/admin-protected-route';
 import { MemberProtectedRoute } from '@/components/ui/member-protected-route';
 import { FreelancerProtectedRoute } from '@/components/ui/freelancer-protected-route';
@@ -187,15 +185,6 @@ const router = createBrowserRouter([
           </AdminProtectedRoute>
         ),
       },
-      {
-        path: "test-email",
-        element: <TestEmailPage />,
-      },
-      {
-        path: "twilio-diagnostics",
-        element: <TwilioConfigDiagnosticsPage />,
-      },
-
       {
         path: "*",
         element: <Navigate to="/" replace />,

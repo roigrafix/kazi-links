@@ -8,8 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertCircle, Loader, Calendar, Download } from 'lucide-react';
 import { sendGridService } from '@/services/sendgridService';
 import { bookingAutomationService } from '@/services/bookingAutomationService';
-import { googleCalendarService } from '@/services/googleCalendarService';
-import { whatsappService } from '@/services/whatsappService';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
@@ -211,59 +209,20 @@ export default function BookingConfirmationPage() {
 
   const handleAddToGoogleCalendar = () => {
     if (!bookingData) return;
-
-    const eventData = googleCalendarService.createEventFromBooking(
-      bookingData.serviceName || '',
-      bookingData.freelancerName || '',
-      new Date(bookingData.bookingDate || ''),
-      bookingData.bookingTime || '',
-      bookingData.serviceAddress || '',
-      bookingData.clientEmail || '',
-      bookingData.clientName || '',
-      bookingData.paymentAmount || 0
-    );
-
-    const googleCalendarUrl = googleCalendarService.generateGoogleCalendarUrl(eventData);
-    window.open(googleCalendarUrl, '_blank');
+    // Google Calendar functionality removed - only Message Center OTP is used
+    alert('Calendar integration has been removed. Please use your calendar app to add this event manually.');
   };
 
   const handleDownloadICalendar = () => {
     if (!bookingData) return;
-
-    const eventData = googleCalendarService.createEventFromBooking(
-      bookingData.serviceName || '',
-      bookingData.freelancerName || '',
-      new Date(bookingData.bookingDate || ''),
-      bookingData.bookingTime || '',
-      bookingData.serviceAddress || '',
-      bookingData.clientEmail || '',
-      bookingData.clientName || '',
-      bookingData.paymentAmount || 0
-    );
-
-    googleCalendarService.downloadICalendarFile(
-      eventData,
-      bookingId,
-      `booking-${bookingId}.ics`
-    );
+    // iCalendar functionality removed - only Message Center OTP is used
+    alert('iCalendar download has been removed. Please use your calendar app to add this event manually.');
   };
 
   const handleAddToOutlook = () => {
     if (!bookingData) return;
-
-    const eventData = googleCalendarService.createEventFromBooking(
-      bookingData.serviceName || '',
-      bookingData.freelancerName || '',
-      new Date(bookingData.bookingDate || ''),
-      bookingData.bookingTime || '',
-      bookingData.serviceAddress || '',
-      bookingData.clientEmail || '',
-      bookingData.clientName || '',
-      bookingData.paymentAmount || 0
-    );
-
-    const outlookUrl = googleCalendarService.generateOutlookCalendarUrl(eventData);
-    window.open(outlookUrl, '_blank');
+    // Outlook Calendar functionality removed - only Message Center OTP is used
+    alert('Outlook integration has been removed. Please use your calendar app to add this event manually.');
   };
 
   if (paymentStatus === 'loading') {

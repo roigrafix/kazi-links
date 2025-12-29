@@ -16,7 +16,7 @@ import { Image } from '@/components/ui/image';
 import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle, Phone, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { sendGridService } from '@/services/sendgridService';
-import { googlePhoneAuthService } from '@/services/googlePhoneAuthService';
+import { messageCenterOTPService } from '@/services/messageCenterOTPService';
 
 interface BookingFormData {
   serviceName: string;
@@ -130,11 +130,11 @@ export default function BookingPage() {
 
     try {
       // Format phone number to E.164 format
-      const formattedPhone = googlePhoneAuthService.formatPhoneNumber(formData.clientPhone);
+      const formattedPhone = messageCenterOTPService.formatPhoneNumber(formData.clientPhone);
       console.log('Sending OTP to formatted phone:', formattedPhone);
       
-      // Send OTP via Google Firebase
-      const result = await googlePhoneAuthService.sendOTP(formattedPhone);
+      // Send OTP via Message Center
+      const result = await messageCenterOTPService.sendOTP(formattedPhone);
       
       if (result.success) {
         setShowOtpVerification(true);
@@ -152,7 +152,7 @@ export default function BookingPage() {
     }
   };
 
-  // Verify OTP code using Google Firebase
+  // Verify OTP code using Message Center
   const verifyOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
       setOtpError('Please enter a valid 6-digit OTP');
@@ -163,8 +163,8 @@ export default function BookingPage() {
     setOtpError('');
 
     try {
-      // Verify OTP via Google Firebase
-      const result = await googlePhoneAuthService.verifyOTP(otpCode);
+      // Verify OTP via Message Center
+      const result = await messageCenterOTPService.verifyOTP(formData.clientPhone, otpCode);
       
       if (result.success && result.valid) {
         setPhoneVerified(true);
