@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useMember } from '@/integrations';
 import { messageCenterOTPService } from '@/services/messageCenterOTPService';
 import { Phone, Lock, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
+
+// Constants
+const OTP_RESEND_TIMEOUT = 60; // seconds
+const SUCCESS_REDIRECT_DELAY = 2000; // milliseconds
 
 type AuthStep = 'phone' | 'otp' | 'success';
 
@@ -24,6 +28,11 @@ export default function MessagingCenterOTPPage() {
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
   const [verifiedPhoneNumber, setVerifiedPhoneNumber] = useState('');
+  
+  // Prevent duplicate requests
+  const phoneSubmitInProgress = useRef(false);
+  const otpSubmitInProgress = useRef(false);
+  const resendInProgress = useRef(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -44,13 +53,19 @@ export default function MessagingCenterOTPPage() {
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Prevent duplicate requests
+    if (phoneSubmitInProgress.current || isLoading) {
+      return;
+    }
+
     setError('');
     setIsLoading(true);
+    phoneSubmitInProgress.current = true;
 
     try {
       if (!phoneNumber.trim()) {
         setError('Please enter a phone number');
-        setIsLoading(false);
         return;
       }
 
@@ -58,7 +73,6 @@ export default function MessagingCenterOTPPage() {
       const validation = messageCenterOTPService.validatePhoneNumber(phoneNumber);
       if (!validation.valid) {
         setError(validation.error || 'Invalid phone number');
-        setIsLoading(false);
         return;
       }
 
@@ -68,7 +82,7 @@ export default function MessagingCenterOTPPage() {
       if (result.success) {
         setVerifiedPhoneNumber(result.phoneNumber || messageCenterOTPService.formatPhoneNumber(phoneNumber));
         setStep('otp');
-        setTimeLeft(60);
+        setTimeLeft(OTP_RESEND_TIMEOUT);
         toast({
           title: 'OTP Sent',
           description: `Verification code sent to ${result.phoneNumber || phoneNumber}`,
@@ -76,29 +90,33 @@ export default function MessagingCenterOTPPage() {
       } else {
         setError(result.message || 'Failed to send OTP. Please try again.');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
+      phoneSubmitInProgress.current = false;
     }
   };
 
   const handleOTPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Prevent duplicate requests
+    if (otpSubmitInProgress.current || isLoading) {
+      return;
+    }
+
     setError('');
     setIsLoading(true);
+    otpSubmitInProgress.current = true;
 
     try {
       if (!otp.trim()) {
         setError('Please enter the OTP code');
-        setIsLoading(false);
         return;
       }
 
       if (otp.length !== 6 || !/^\d+$/.test(otp)) {
         setError('OTP must be a 6-digit code');
-        setIsLoading(false);
         return;
       }
 
@@ -115,30 +133,35 @@ export default function MessagingCenterOTPPage() {
         // Store verified phone number in session/local storage for later use
         sessionStorage.setItem('verifiedPhoneNumber', result.phoneNumber || verifiedPhoneNumber);
 
-        // Redirect to home after 2 seconds
+        // Redirect to home after delay
         setTimeout(() => {
           navigate('/');
-        }, 2000);
+        }, SUCCESS_REDIRECT_DELAY);
       } else {
         setError(result.message || 'Invalid OTP. Please try again.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to verify OTP. Please try again.');
     } finally {
       setIsLoading(false);
+      otpSubmitInProgress.current = false;
     }
   };
 
   const handleResendOTP = async () => {
+    // Prevent duplicate requests
+    if (resendInProgress.current || isLoading) {
+      return;
+    }
+
     setError('');
     setIsLoading(true);
+    resendInProgress.current = true;
 
     try {
       const result = await messageCenterOTPService.resendOTP(phoneNumber);
 
       if (result.success) {
         setOtp('');
-        setTimeLeft(60);
+        setTimeLeft(OTP_RESEND_TIMEOUT);
         toast({
           title: 'OTP Resent',
           description: `New verification code sent to ${result.phoneNumber || phoneNumber}`,
@@ -146,10 +169,9 @@ export default function MessagingCenterOTPPage() {
       } else {
         setError(result.message || 'Failed to resend OTP.');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to resend OTP.');
     } finally {
       setIsLoading(false);
+      resendInProgress.current = false;
     }
   };
 

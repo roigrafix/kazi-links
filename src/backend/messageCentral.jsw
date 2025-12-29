@@ -256,9 +256,9 @@ export async function resendOTP(phoneNumber) {
 /**
  * Clears OTP for a phone number (for testing/cleanup)
  * @param {string} phoneNumber - Phone number to clear OTP for
- * @returns {Object} Result object
+ * @returns {Promise<Object>} Result object
  */
-export function clearOTP(phoneNumber) {
+export async function clearOTP(phoneNumber) {
   try {
     const formattedPhone = formatPhoneNumber(phoneNumber);
     otpStore.delete(formattedPhone);
@@ -277,9 +277,9 @@ export function clearOTP(phoneNumber) {
 /**
  * Gets OTP status (for testing only - remove in production)
  * @param {string} phoneNumber - Phone number to check
- * @returns {Object} OTP status
+ * @returns {Promise<Object>} OTP status
  */
-export function getOTPStatus(phoneNumber) {
+export async function getOTPStatus(phoneNumber) {
   const formattedPhone = formatPhoneNumber(phoneNumber);
   const storedOTP = otpStore.get(formattedPhone);
   

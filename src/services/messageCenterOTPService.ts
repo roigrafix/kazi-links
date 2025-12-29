@@ -1,23 +1,119 @@
-// Note: This service requires Wix backend functions to be implemented
-// The backend functions are exposed via HTTP endpoints in /backend/http-functions/
+// Configuration constants
+const OTP_REQUEST_TIMEOUT = 30000; // 30 seconds timeout
+const OTP_ENDPOINT_BASE = '/_functions';
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 5;
 
-// Helper function to call backend HTTP functions
-async function callBackendFunction(functionName: string, params: any) {
+// Rate limiting store
+const requestTracker = new Map<string, number[]>();
+
+/**
+ * Validates response structure matches expected interface
+ */
+function validateOTPResponse(data: any): data is OTPResponse {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof data.success === 'boolean' &&
+    typeof data.message === 'string'
+  );
+}
+
+/**
+ * Validates verification response structure
+ */
+function validateVerifyResponse(data: any): data is VerifyResponse {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    typeof data.success === 'boolean' &&
+    typeof data.valid === 'boolean' &&
+    typeof data.message === 'string'
+  );
+}
+
+/**
+ * Checks if request should be rate limited
+ */
+function isRateLimited(identifier: string): boolean {
+  const now = Date.now();
+  const requests = requestTracker.get(identifier) || [];
+  
+  // Remove old requests outside the window
+  const recentRequests = requests.filter(time => now - time < RATE_LIMIT_WINDOW);
+  
+  if (recentRequests.length >= MAX_REQUESTS_PER_WINDOW) {
+    return true;
+  }
+  
+  // Update tracker
+  recentRequests.push(now);
+  requestTracker.set(identifier, recentRequests);
+  
+  return false;
+}
+
+/**
+ * Helper function to call backend HTTP functions with timeout
+ */
+async function callBackendFunction(functionName: string, params: any): Promise<any> {
   try {
-    const response = await fetch(`/_functions/${functionName}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(params),
-    });
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), OTP_REQUEST_TIMEOUT);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${response.status}`);
+    try {
+      const response = await fetch(`${OTP_ENDPOINT_BASE}/${functionName}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Handle different HTTP status codes
+      if (!response.ok) {
+        let errorData: any = {};
+        try {
+          errorData = await response.json();
+        } catch {
+          // Response is not JSON
+          errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+        }
+
+        const errorMessage = errorData.message || `HTTP ${response.status}`;
+        const errorCode = errorData.code || 'HTTP_ERROR';
+
+        throw new Error(`[${errorCode}] ${errorMessage}`);
+      }
+
+      // Parse and validate response
+      let data: any;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Invalid JSON response from server');
+      }
+
+      return data;
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+
+      // Handle abort (timeout)
+      if (fetchError.name === 'AbortError') {
+        throw new Error('Request timeout - server took too long to respond');
+      }
+
+      // Handle network errors
+      if (fetchError instanceof TypeError) {
+        throw new Error('Network error - unable to reach server');
+      }
+
+      throw fetchError;
     }
-
-    return await response.json();
   } catch (error: any) {
     console.error(`Error calling ${functionName}:`, error);
     throw error;
@@ -100,8 +196,28 @@ class MessageCenterOTPService {
         };
       }
 
+      // Check rate limiting
+      if (isRateLimited(`send_${phoneNumber}`)) {
+        return {
+          success: false,
+          message: 'Too many requests. Please wait before trying again.',
+          code: 'RATE_LIMITED'
+        };
+      }
+
       // Call backend function
       const result = await callBackendFunction('sendOTP', { phoneNumber });
+      
+      // Validate response structure
+      if (!validateOTPResponse(result)) {
+        console.error('Invalid response structure from sendOTP:', result);
+        return {
+          success: false,
+          message: 'Invalid response from server',
+          code: 'INVALID_RESPONSE'
+        };
+      }
+
       return result as OTPResponse;
     } catch (error: any) {
       console.error('Error sending OTP:', error);
@@ -136,11 +252,33 @@ class MessageCenterOTPService {
         };
       }
 
+      // Check rate limiting
+      if (isRateLimited(`verify_${phoneNumber}`)) {
+        return {
+          success: false,
+          valid: false,
+          message: 'Too many verification attempts. Please wait before trying again.',
+          code: 'RATE_LIMITED'
+        };
+      }
+
       // Call backend function
       const result = await callBackendFunction('verifyOTP', { 
         phoneNumber, 
         code 
       });
+
+      // Validate response structure
+      if (!validateVerifyResponse(result)) {
+        console.error('Invalid response structure from verifyOTP:', result);
+        return {
+          success: false,
+          valid: false,
+          message: 'Invalid response from server',
+          code: 'INVALID_RESPONSE'
+        };
+      }
+
       return result as VerifyResponse;
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
@@ -167,8 +305,28 @@ class MessageCenterOTPService {
         };
       }
 
+      // Check rate limiting
+      if (isRateLimited(`resend_${phoneNumber}`)) {
+        return {
+          success: false,
+          message: 'Too many resend requests. Please wait before trying again.',
+          code: 'RATE_LIMITED'
+        };
+      }
+
       // Call backend function
       const result = await callBackendFunction('resendOTP', { phoneNumber });
+
+      // Validate response structure
+      if (!validateOTPResponse(result)) {
+        console.error('Invalid response structure from resendOTP:', result);
+        return {
+          success: false,
+          message: 'Invalid response from server',
+          code: 'INVALID_RESPONSE'
+        };
+      }
+
       return result as OTPResponse;
     } catch (error: any) {
       console.error('Error resending OTP:', error);
