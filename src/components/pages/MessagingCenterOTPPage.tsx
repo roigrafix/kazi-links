@@ -59,23 +59,24 @@ export default function MessagingCenterOTPPage() {
       return;
     }
 
+    // Validate BEFORE setting loading state
+    if (!phoneNumber.trim()) {
+      setError('Please enter a phone number');
+      return;
+    }
+
+    const validation = messageCenterOTPService.validatePhoneNumber(phoneNumber);
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid phone number');
+      return;
+    }
+
+    // Now set loading state after validation passes
     setError('');
     setIsLoading(true);
     phoneSubmitInProgress.current = true;
 
     try {
-      if (!phoneNumber.trim()) {
-        setError('Please enter a phone number');
-        return;
-      }
-
-      // Validate phone number
-      const validation = messageCenterOTPService.validatePhoneNumber(phoneNumber);
-      if (!validation.valid) {
-        setError(validation.error || 'Invalid phone number');
-        return;
-      }
-
       // Send OTP
       const result = await messageCenterOTPService.sendOTP(phoneNumber);
 
@@ -90,6 +91,9 @@ export default function MessagingCenterOTPPage() {
       } else {
         setError(result.message || 'Failed to send OTP. Please try again.');
       }
+    } catch (err: any) {
+      console.error('Unexpected error in handlePhoneSubmit:', err);
+      setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
       phoneSubmitInProgress.current = false;
@@ -105,21 +109,23 @@ export default function MessagingCenterOTPPage() {
       return;
     }
 
+    // Validate BEFORE setting loading state
+    if (!otp.trim()) {
+      setError('Please enter the OTP code');
+      return;
+    }
+
+    if (otp.length !== 6 || !/^\d+$/.test(otp)) {
+      setError('OTP must be a 6-digit code');
+      return;
+    }
+
+    // Now set loading state after validation passes
     setError('');
     setIsLoading(true);
     otpSubmitInProgress.current = true;
 
     try {
-      if (!otp.trim()) {
-        setError('Please enter the OTP code');
-        return;
-      }
-
-      if (otp.length !== 6 || !/^\d+$/.test(otp)) {
-        setError('OTP must be a 6-digit code');
-        return;
-      }
-
       // Verify OTP
       const result = await messageCenterOTPService.verifyOTP(phoneNumber, otp);
 
@@ -140,6 +146,9 @@ export default function MessagingCenterOTPPage() {
       } else {
         setError(result.message || 'Invalid OTP. Please try again.');
       }
+    } catch (err: any) {
+      console.error('Unexpected error in handleOTPSubmit:', err);
+      setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
       otpSubmitInProgress.current = false;
