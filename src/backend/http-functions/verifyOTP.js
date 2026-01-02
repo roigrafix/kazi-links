@@ -6,7 +6,7 @@ import { verifyOTP } from '../messageCentral.jsw';
  * POST /_functions/verifyOTP
  * 
  * @param {Object} request - The HTTP request object
- * @param {string} request.body - JSON string containing { phoneNumber: string, code: string }
+ * @param {string} request.body - JSON string containing { phoneNumber: string, code: string, verificationId: string }
  * @returns {Promise<Object>} Response with OTP verification status
  */
 export async function post_verifyOTP(request) {
@@ -27,13 +27,13 @@ export async function post_verifyOTP(request) {
       }
     }
 
-    const { phoneNumber, code } = body;
+    const { phoneNumber, code, verificationId } = body;
 
-    if (!phoneNumber || !code) {
+    if (!phoneNumber || !code || !verificationId) {
       return badRequest({
         success: false,
         valid: false,
-        message: 'Phone number and OTP code are required',
+        message: 'Phone number, OTP code, and verification ID are required',
         code: 'MISSING_PARAMS'
       });
     }
@@ -41,7 +41,7 @@ export async function post_verifyOTP(request) {
     // Log the request for debugging (mask phone number)
     console.log(`[verifyOTP] Received verification request for phone: ${phoneNumber.replace(/\d(?=\d{4})/g, '*')}`);
 
-    const result = await verifyOTP(phoneNumber, code);
+    const result = await verifyOTP(phoneNumber, code, verificationId);
     
     // Log result
     if (result.success && result.valid) {
