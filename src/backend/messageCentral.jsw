@@ -13,6 +13,13 @@ function generateOTP() {
 }
 
 /**
+ * Generates a unique verification ID
+ */
+function generateVerificationId() {
+  return `vid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
  * Formats phone number to E.164 format
  * @param {string} phoneNumber - Phone number to format
  * @returns {string} Formatted phone number
@@ -38,7 +45,7 @@ function formatPhoneNumber(phoneNumber) {
 /**
  * Sends OTP via Wix Messaging Center
  * @param {string} phoneNumber - Phone number to send OTP to
- * @returns {Promise<Object>} Result object with success status and message
+ * @returns {Promise<Object>} Result object with success status, message, and verificationId in data
  */
 export async function sendOTP(phoneNumber) {
   try {
@@ -47,7 +54,8 @@ export async function sendOTP(phoneNumber) {
       return {
         success: false,
         message: 'Invalid phone number provided',
-        code: 'INVALID_PHONE'
+        code: 'INVALID_PHONE',
+        data: {}
       };
     }
 
@@ -58,17 +66,20 @@ export async function sendOTP(phoneNumber) {
       return {
         success: false,
         message: 'Phone number must be in valid format (e.g., +91 for India)',
-        code: 'INVALID_FORMAT'
+        code: 'INVALID_FORMAT',
+        data: {}
       };
     }
 
-    // Generate OTP
+    // Generate OTP and verification ID
     const otp = generateOTP();
+    const verificationId = generateVerificationId();
     const expiryTime = Date.now() + OTP_EXPIRY_TIME;
 
-    // Store OTP with expiry
+    // Store OTP with expiry and verification ID
     otpStore.set(formattedPhone, {
       code: otp,
+      verificationId: verificationId,
       expiresAt: expiryTime,
       attempts: 0,
       maxAttempts: 5
@@ -87,7 +98,10 @@ export async function sendOTP(phoneNumber) {
         success: true,
         message: `OTP sent successfully to ${formattedPhone}`,
         phoneNumber: formattedPhone,
-        messageId: messageResult.messageId
+        messageId: messageResult.messageId,
+        data: {
+          verificationId: verificationId
+        }
       };
     } catch (messagingError) {
       console.error('Messaging error:', messagingError);
@@ -99,7 +113,10 @@ export async function sendOTP(phoneNumber) {
         message: `OTP generated: ${otp} (Note: Message delivery may be limited)`,
         phoneNumber: formattedPhone,
         otp: otp, // Return OTP for testing purposes only
-        isTestMode: true
+        isTestMode: true,
+        data: {
+          verificationId: verificationId
+        }
       };
     }
   } catch (error) {
@@ -107,7 +124,8 @@ export async function sendOTP(phoneNumber) {
     return {
       success: false,
       message: error.message || 'Failed to send OTP',
-      code: 'SEND_ERROR'
+      code: 'SEND_ERROR',
+      data: {}
     };
   }
 }
@@ -116,16 +134,17 @@ export async function sendOTP(phoneNumber) {
  * Verifies OTP code
  * @param {string} phoneNumber - Phone number to verify
  * @param {string} code - OTP code to verify
+ * @param {string} verificationId - Verification ID from sendOTP
  * @returns {Promise<Object>} Result object with verification status
  */
-export async function verifyOTP(phoneNumber, code) {
+export async function verifyOTP(phoneNumber, code, verificationId) {
   try {
     // Validate inputs
-    if (!phoneNumber || !code) {
+    if (!phoneNumber || !code || !verificationId) {
       return {
         success: false,
         valid: false,
-        message: 'Phone number and OTP code are required',
+        message: 'Phone number, OTP code, and verification ID are required',
         code: 'MISSING_PARAMS'
       };
     }
@@ -140,6 +159,16 @@ export async function verifyOTP(phoneNumber, code) {
         valid: false,
         message: 'No OTP found for this phone number. Please request a new OTP.',
         code: 'OTP_NOT_FOUND'
+      };
+    }
+
+    // Verify verification ID matches
+    if (storedOTP.verificationId !== verificationId) {
+      return {
+        success: false,
+        valid: false,
+        message: 'Invalid verification ID. Please request a new OTP.',
+        code: 'INVALID_VERIFICATION_ID'
       };
     }
 
@@ -248,7 +277,8 @@ export async function resendOTP(phoneNumber) {
     return {
       success: false,
       message: error.message || 'Failed to resend OTP',
-      code: 'RESEND_ERROR'
+      code: 'RESEND_ERROR',
+      data: {}
     };
   }
 }

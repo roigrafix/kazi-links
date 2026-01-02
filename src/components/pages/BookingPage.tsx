@@ -78,6 +78,7 @@ export default function BookingPage() {
   const [isOtpVerifying, setIsOtpVerifying] = useState(false);
   const [otpError, setOtpError] = useState('');
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [verificationId, setVerificationId] = useState<string>('');
   
   const [formData, setFormData] = useState<BookingFormData>({
     serviceName: '',
@@ -137,6 +138,10 @@ export default function BookingPage() {
       const result = await messageCenterOTPService.sendOTP(formattedPhone);
       
       if (result.success) {
+        // Store verification ID from response
+        if (result.data?.verificationId) {
+          setVerificationId(result.data.verificationId);
+        }
         setShowOtpVerification(true);
         setOtpError('');
         console.log('OTP sent successfully to:', formattedPhone);
@@ -159,12 +164,17 @@ export default function BookingPage() {
       return;
     }
 
+    if (!verificationId) {
+      setOtpError('Verification session expired. Please request a new OTP.');
+      return;
+    }
+
     setIsOtpVerifying(true);
     setOtpError('');
 
     try {
       // Verify OTP via Message Center
-      const result = await messageCenterOTPService.verifyOTP(formData.clientPhone, otpCode);
+      const result = await messageCenterOTPService.verifyOTP(formData.clientPhone, otpCode, verificationId);
       
       if (result.success && result.valid) {
         setPhoneVerified(true);

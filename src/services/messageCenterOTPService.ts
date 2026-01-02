@@ -128,6 +128,9 @@ interface OTPResponse {
   isTestMode?: boolean;
   otp?: string;
   code?: string;
+  data?: {
+    verificationId?: string;
+  };
 }
 
 interface VerifyResponse {
@@ -230,15 +233,15 @@ class MessageCenterOTPService {
   }
 
   /**
-   * Verifies OTP code
+   * Verifies OTP code with verification ID
    */
-  async verifyOTP(phoneNumber: string, code: string): Promise<VerifyResponse> {
+  async verifyOTP(phoneNumber: string, code: string, verificationId: string): Promise<VerifyResponse> {
     try {
-      if (!phoneNumber || !code) {
+      if (!phoneNumber || !code || !verificationId) {
         return {
           success: false,
           valid: false,
-          message: 'Phone number and OTP code are required',
+          message: 'Phone number, OTP code, and verification ID are required',
           code: 'MISSING_PARAMS'
         };
       }
@@ -262,10 +265,11 @@ class MessageCenterOTPService {
         };
       }
 
-      // Call backend function
+      // Call backend function with verification ID
       const result = await callBackendFunction('verifyOTP', { 
         phoneNumber, 
-        code 
+        code,
+        verificationId
       });
 
       // Validate response structure

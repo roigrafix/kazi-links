@@ -28,6 +28,7 @@ export default function MessagingCenterOTPPage() {
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
   const [verifiedPhoneNumber, setVerifiedPhoneNumber] = useState('');
+  const [verificationId, setVerificationId] = useState('');
   
   // Prevent duplicate requests
   const phoneSubmitInProgress = useRef(false);
@@ -81,6 +82,10 @@ export default function MessagingCenterOTPPage() {
       const result = await messageCenterOTPService.sendOTP(phoneNumber);
 
       if (result.success) {
+        // Extract and store verification ID
+        const newVerificationId = result.data?.verificationId || '';
+        setVerificationId(newVerificationId);
+        
         setVerifiedPhoneNumber(result.phoneNumber || messageCenterOTPService.formatPhoneNumber(phoneNumber));
         setStep('otp');
         setTimeLeft(OTP_RESEND_TIMEOUT);
@@ -126,8 +131,8 @@ export default function MessagingCenterOTPPage() {
     otpSubmitInProgress.current = true;
 
     try {
-      // Verify OTP
-      const result = await messageCenterOTPService.verifyOTP(phoneNumber, otp);
+      // Verify OTP with verification ID
+      const result = await messageCenterOTPService.verifyOTP(phoneNumber, otp, verificationId);
 
       if (result.success && result.valid) {
         setStep('success');
@@ -169,6 +174,10 @@ export default function MessagingCenterOTPPage() {
       const result = await messageCenterOTPService.resendOTP(phoneNumber);
 
       if (result.success) {
+        // Extract and store new verification ID
+        const newVerificationId = result.data?.verificationId || verificationId;
+        setVerificationId(newVerificationId);
+        
         setOtp('');
         setTimeLeft(OTP_RESEND_TIMEOUT);
         toast({
@@ -190,6 +199,7 @@ export default function MessagingCenterOTPPage() {
     setOtp('');
     setError('');
     setVerifiedPhoneNumber('');
+    setVerificationId('');
   };
 
   return (
