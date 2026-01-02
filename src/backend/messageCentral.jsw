@@ -45,16 +45,48 @@ export async function sendOTP(phoneNumber) {
             }
         });
 
-        const result = await response.json();
+        // Check HTTP response status
+        if (!response.ok) {
+            let errorMessage = `HTTP ${response.status}`;
+            try {
+                const errorText = await response.text();
+                if (errorText) {
+                    errorMessage = `HTTP ${response.status}: ${errorText}`;
+                }
+            } catch (textError) {
+                console.warn('Could not read error response text:', textError);
+            }
+            return { success: false, message: `Message Central API error: ${errorMessage}` };
+        }
+
+        // Parse JSON response with error handling
+        let result;
+        try {
+            result = await response.json();
+        } catch (jsonError) {
+            console.error('JSON parsing error in sendOTP:', jsonError);
+            return { 
+                success: false, 
+                message: `Invalid JSON response from Message Central: ${jsonError.message}` 
+            };
+        }
+
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            return { 
+                success: false, 
+                message: 'Invalid response structure from Message Central' 
+            };
+        }
 
         if (result.responseCode === 200) {
             return {
                 success: true,
                 message: 'OTP sent successfully',
-                data: { verificationId: result.data.verificationId }
+                data: { verificationId: result.data?.verificationId }
             };
         }
-        return { success: false, message: result.message };
+        return { success: false, message: result.message || 'Unknown error from Message Central' };
     } catch (error) {
         return { success: false, message: error.message };
     }
@@ -81,9 +113,43 @@ export async function verifyOTP(phoneNumber, code, verificationId) {
             }
         });
 
-        const result = await response.json();
+        // Check HTTP response status
+        if (!response.ok) {
+            let errorMessage = `HTTP ${response.status}`;
+            try {
+                const errorText = await response.text();
+                if (errorText) {
+                    errorMessage = `HTTP ${response.status}: ${errorText}`;
+                }
+            } catch (textError) {
+                console.warn('Could not read error response text:', textError);
+            }
+            return { success: false, valid: false, message: `Message Central API error: ${errorMessage}` };
+        }
 
-        if (result.responseCode === 200 && result.data.verificationStatus === 'VERIFIED') {
+        // Parse JSON response with error handling
+        let result;
+        try {
+            result = await response.json();
+        } catch (jsonError) {
+            console.error('JSON parsing error in verifyOTP:', jsonError);
+            return { 
+                success: false, 
+                valid: false,
+                message: `Invalid JSON response from Message Central: ${jsonError.message}` 
+            };
+        }
+
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            return { 
+                success: false, 
+                valid: false,
+                message: 'Invalid response structure from Message Central' 
+            };
+        }
+
+        if (result.responseCode === 200 && result.data?.verificationStatus === 'VERIFIED') {
             // CRM SYNC LOGIC
             const formattedPhone = `+${mobile}`;
             try {
@@ -102,7 +168,7 @@ export async function verifyOTP(phoneNumber, code, verificationId) {
 
             return { success: true, valid: true, message: 'Verified' };
         }
-        return { success: false, valid: false, message: result.message || 'Invalid Code' };
+        return { success: false, valid: false, message: result.message || 'Invalid Code or Unknown error from Message Central' };
     } catch (error) {
         return { success: false, message: error.message };
     }
