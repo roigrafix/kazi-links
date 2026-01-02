@@ -1,461 +1,109 @@
+import { getSecret } from 'wix-secrets-backend';
+import { fetch } from 'wix-fetch';
 import { contacts } from 'wix-crm-backend';
-import { getSecrets } from 'wix-secrets';
+
+const BASE_URL = 'https://cpaas.messagecentral.com';
 
 /**
- * Message Central OTP Integration
- * 
- * This module integrates with Message Central API for OTP management.
- * It replaces manual OTP generation with Message Central's native endpoints.
- * 
- * SECURITY:
- * - Credentials are fetched from Wix Secrets Manager
- * - All API calls use HTTPS
- * - Verification IDs are returned by Message Central
- * - CRM integration maintains verified user records
+ * STEP 1: Get the required Auth Token
  */
-
-// Cache for Message Central credentials
-let mcCredentials = null;
-let credentialsFetchTime = 0;
-const CREDENTIALS_CACHE_DURATION = 3600000; // 1 hour
-
-/**
- * Fetches Message Central credentials from Wix Secrets Manager
- * @returns {Promise<Object>} Credentials object with customerId, password, email
- */
-async function getMessageCentralCredentials() {
-  try {
-    // Check if cached credentials are still valid
-    if (mcCredentials && (Date.now() - credentialsFetchTime) < CREDENTIALS_CACHE_DURATION) {
-      return mcCredentials;
-    }
-
-    // Fetch from Wix Secrets Manager
-    const secrets = await getSecrets({
-      keys: ['MC_CUSTOMER_ID', 'MC_PASSWORD', 'MC_EMAIL']
-    });
-
-    if (!secrets.MC_CUSTOMER_ID || !secrets.MC_PASSWORD || !secrets.MC_EMAIL) {
-      throw new Error('Message Central credentials not found in Wix Secrets Manager');
-    }
-
-    mcCredentials = {
-      customerId: secrets.MC_CUSTOMER_ID,
-      password: secrets.MC_PASSWORD,
-      email: secrets.MC_EMAIL
-    };
-
-    credentialsFetchTime = Date.now();
-    return mcCredentials;
-  } catch (error) {
-    console.error('Error fetching Message Central credentials:', error);
-    throw new Error('Failed to retrieve Message Central credentials');
-  }
+async function getAuthToken() {
+    const customerId = await getSecret('MC_CUSTOMER_ID');
+    const password = await getSecret('MC_PASSWORD');
+    const email = await getSecret('MC_EMAIL');
+    
+    // Password must be Base64 encoded for the 'key' parameter
+    const base64Key = Buffer.from(password).toString('base64');
+    
+    const url = `${BASE_URL}/auth/v1/authentication/token?customerId=${customerId}&key=${base64Key}&scope=NEW&email=${email}`;
+    
+    const response = await fetch(url, { method: 'GET' });
+    const data = await response.json();
+    return data.token;
 }
 
 /**
- * Calls Message Central API endpoint
- * @param {string} endpoint - The API endpoint path
- * @param {Object} params - Request parameters
- * @returns {Promise<Object>} API response
- */
-async function callMessageCentralAPI(endpoint, params) {
-  try {
-    const credentials = await getMessageCentralCredentials();
-
-    // Construct Message Central API URL
-    const baseUrl = 'https://api.messagingcenter.com/v1';
-    const url = `${baseUrl}${endpoint}`;
-
-    // Add authentication to params
-    const authParams = {
-      ...params,
-      customerId: credentials.customerId,
-      password: credentials.password,
-      email: credentials.email
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(authParams)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Message Central API error: ${response.status} - ${errorData.message || response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Message Central API call failed:', error);
-    throw error;
-  }
-}
-
-/**
- * Formats phone number to E.164 format
- * @param {string} phoneNumber - Phone number to format
- * @returns {string} Formatted phone number
- */
-function formatPhoneNumber(phoneNumber) {
-  const cleaned = phoneNumber.replace(/\D/g, '');
-  
-  if (cleaned.length === 10) {
-    // Indian 10-digit number, add +91
-    return `+91${cleaned}`;
-  } else if (cleaned.length === 12 && cleaned.startsWith('91')) {
-    // Indian number with country code but no +
-    return `+${cleaned}`;
-  } else if (cleaned.length > 10) {
-    // Assume it's a full number with country code
-    return `+${cleaned}`;
-  }
-  
-  // Return original if can't parse
-  return phoneNumber;
-}
-
-/**
- * Sends OTP via Message Central API
- * @param {string} phoneNumber - Phone number to send OTP to
- * @returns {Promise<Object>} Result object with success status, message, and verificationId
+ * STEP 2: Send OTP
  */
 export async function sendOTP(phoneNumber) {
-  try {
-    // Validate phone number
-    if (!phoneNumber || typeof phoneNumber !== 'string') {
-      return {
-        success: false,
-        message: 'Invalid phone number provided',
-        code: 'INVALID_PHONE',
-        data: {}
-      };
+    try {
+        const authToken = await getAuthToken();
+        const customerId = await getSecret('MC_CUSTOMER_ID');
+        
+        // Clean phone number (removing + and spaces)
+        const mobile = phoneNumber.replace(/\D/g, '');
+        const countryCode = mobile.startsWith('91') ? '91' : '91'; // Default to 91
+        const mobileNum = mobile.startsWith('91') ? mobile.slice(2) : mobile;
+
+        const sendUrl = `${BASE_URL}/verification/v3/send?countryCode=${countryCode}&mobileNumber=${mobileNum}&flowType=SMS&customerId=${customerId}`;
+
+        const response = await fetch(sendUrl, {
+            method: 'POST',
+            headers: {
+                'authToken': authToken,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.responseCode === 200) {
+            return {
+                success: true,
+                message: 'OTP sent successfully',
+                data: { verificationId: result.data.verificationId }
+            };
+        }
+        return { success: false, message: result.message };
+    } catch (error) {
+        return { success: false, message: error.message };
     }
-
-    const formattedPhone = formatPhoneNumber(phoneNumber);
-    
-    // Validate E.164 format
-    if (!/^\+\d{1,15}$/.test(formattedPhone)) {
-      return {
-        success: false,
-        message: 'Phone number must be in valid format (e.g., +91 for India)',
-        code: 'INVALID_FORMAT',
-        data: {}
-      };
-    }
-
-    // Call Message Central API to send OTP
-    const mcResponse = await callMessageCentralAPI('/otp/send', {
-      phoneNumber: formattedPhone,
-      message: 'Your KaziLinks verification code is: {code}. This code will expire in 5 minutes. Do not share this code with anyone.'
-    });
-
-    if (!mcResponse.success) {
-      return {
-        success: false,
-        message: mcResponse.message || 'Failed to send OTP via Message Central',
-        code: mcResponse.code || 'MC_SEND_ERROR',
-        data: {}
-      };
-    }
-
-    // Extract verification ID from Message Central response
-    const verificationId = mcResponse.verificationId || mcResponse.requestId;
-
-    if (!verificationId) {
-      return {
-        success: false,
-        message: 'Message Central did not return verification ID',
-        code: 'MISSING_VERIFICATION_ID',
-        data: {}
-      };
-    }
-
-    return {
-      success: true,
-      message: `OTP sent successfully to ${formattedPhone}`,
-      phoneNumber: formattedPhone,
-      messageId: mcResponse.messageId,
-      data: {
-        verificationId: verificationId
-      }
-    };
-  } catch (error) {
-    console.error('Error sending OTP:', error);
-    return {
-      success: false,
-      message: error.message || 'Failed to send OTP',
-      code: 'SEND_ERROR',
-      data: {}
-    };
-  }
 }
 
 /**
- * Verifies OTP code via Message Central API
- * @param {string} phoneNumber - Phone number to verify
- * @param {string} code - OTP code to verify
- * @param {string} verificationId - Verification ID from sendOTP
- * @returns {Promise<Object>} Result object with verification status
+ * STEP 3: Verify OTP & CRM Sync
  */
 export async function verifyOTP(phoneNumber, code, verificationId) {
-  try {
-    // Validate inputs
-    if (!phoneNumber || !code || !verificationId) {
-      return {
-        success: false,
-        valid: false,
-        message: 'Phone number, OTP code, and verification ID are required',
-        code: 'MISSING_PARAMS'
-      };
-    }
-
-    const formattedPhone = formatPhoneNumber(phoneNumber);
-
-    // Validate OTP code format
-    if (code.length !== 6 || !/^\d+$/.test(code)) {
-      return {
-        success: false,
-        valid: false,
-        message: 'OTP must be a 6-digit code',
-        code: 'INVALID_FORMAT'
-      };
-    }
-
-    // Call Message Central API to verify OTP
-    const mcResponse = await callMessageCentralAPI('/otp/verify', {
-      phoneNumber: formattedPhone,
-      code: code,
-      verificationId: verificationId
-    });
-
-    if (!mcResponse.success) {
-      return {
-        success: false,
-        valid: false,
-        message: mcResponse.message || 'Failed to verify OTP',
-        code: mcResponse.code || 'MC_VERIFY_ERROR',
-        attemptsRemaining: mcResponse.attemptsRemaining
-      };
-    }
-
-    // OTP is valid - update or create contact in Wix CRM
     try {
-      const contactResult = await contacts.queryContacts()
-        .eq('phone', formattedPhone)
-        .find();
+        const authToken = await getAuthToken();
+        const customerId = await getSecret('MC_CUSTOMER_ID');
+        
+        const mobile = phoneNumber.replace(/\D/g, '');
+        const mobileNum = mobile.startsWith('91') ? mobile.slice(2) : mobile;
 
-      if (contactResult.items.length > 0) {
-        // Update existing contact
-        await contacts.updateContact(contactResult.items[0]._id, {
-          phone: formattedPhone,
-          info: {
-            ...contactResult.items[0].info,
-            phoneVerified: true,
-            phoneVerifiedAt: new Date().toISOString()
-          }
+        const verifyUrl = `${BASE_URL}/verification/v3/validateOtp?customerId=${customerId}&verificationId=${verificationId}&code=${code}&mobileNumber=${mobileNum}&countryCode=91`;
+
+        const response = await fetch(verifyUrl, {
+            method: 'GET',
+            headers: {
+                'authToken': authToken,
+                'Content-Type': 'application/json'
+            }
         });
-      } else {
-        // Create new contact
-        await contacts.createContact({
-          phone: formattedPhone,
-          info: {
-            phoneVerified: true,
-            phoneVerifiedAt: new Date().toISOString()
-          }
-        });
-      }
-    } catch (contactError) {
-      console.warn('Could not update contact:', contactError);
-      // Continue even if contact update fails - OTP verification is still successful
+
+        const result = await response.json();
+
+        if (result.responseCode === 200 && result.data.verificationStatus === 'VERIFIED') {
+            // CRM SYNC LOGIC
+            const formattedPhone = `+${mobile}`;
+            try {
+                const contactResult = await contacts.queryContacts().eq('phone', formattedPhone).find();
+                if (contactResult.items.length > 0) {
+                    await contacts.updateContact(contactResult.items[0]._id, {
+                        info: { phoneVerified: true, phoneVerifiedAt: new Date().toISOString() }
+                    });
+                } else {
+                    await contacts.createContact({
+                        phone: formattedPhone,
+                        info: { phoneVerified: true, phoneVerifiedAt: new Date().toISOString() }
+                    });
+                }
+            } catch (crmErr) { console.warn('CRM sync failed', crmErr); }
+
+            return { success: true, valid: true, message: 'Verified' };
+        }
+        return { success: false, valid: false, message: result.message || 'Invalid Code' };
+    } catch (error) {
+        return { success: false, message: error.message };
     }
-
-    return {
-      success: true,
-      valid: true,
-      message: 'Phone number verified successfully',
-      phoneNumber: formattedPhone,
-      verifiedAt: new Date().toISOString()
-    };
-  } catch (error) {
-    console.error('Error verifying OTP:', error);
-    return {
-      success: false,
-      valid: false,
-      message: error.message || 'Failed to verify OTP',
-      code: 'VERIFY_ERROR'
-    };
-  }
-}
-
-/**
- * Resends OTP to phone number
- * @param {string} phoneNumber - Phone number to resend OTP to
- * @returns {Promise<Object>} Result object with new verification ID
- */
-export async function resendOTP(phoneNumber) {
-  try {
-    // Validate phone number
-    if (!phoneNumber || typeof phoneNumber !== 'string') {
-      return {
-        success: false,
-        message: 'Invalid phone number provided',
-        code: 'INVALID_PHONE',
-        data: {}
-      };
-    }
-
-    const formattedPhone = formatPhoneNumber(phoneNumber);
-    
-    // Validate E.164 format
-    if (!/^\+\d{1,15}$/.test(formattedPhone)) {
-      return {
-        success: false,
-        message: 'Phone number must be in valid format (e.g., +91 for India)',
-        code: 'INVALID_FORMAT',
-        data: {}
-      };
-    }
-
-    // Call Message Central API to resend OTP
-    const mcResponse = await callMessageCentralAPI('/otp/resend', {
-      phoneNumber: formattedPhone,
-      message: 'Your KaziLinks verification code is: {code}. This code will expire in 5 minutes. Do not share this code with anyone.'
-    });
-
-    if (!mcResponse.success) {
-      return {
-        success: false,
-        message: mcResponse.message || 'Failed to resend OTP',
-        code: mcResponse.code || 'MC_RESEND_ERROR',
-        data: {}
-      };
-    }
-
-    // Extract new verification ID from Message Central response
-    const verificationId = mcResponse.verificationId || mcResponse.requestId;
-
-    if (!verificationId) {
-      return {
-        success: false,
-        message: 'Message Central did not return verification ID',
-        code: 'MISSING_VERIFICATION_ID',
-        data: {}
-      };
-    }
-
-    return {
-      success: true,
-      message: `OTP resent successfully to ${formattedPhone}`,
-      phoneNumber: formattedPhone,
-      messageId: mcResponse.messageId,
-      data: {
-        verificationId: verificationId
-      }
-    };
-  } catch (error) {
-    console.error('Error resending OTP:', error);
-    return {
-      success: false,
-      message: error.message || 'Failed to resend OTP',
-      code: 'RESEND_ERROR',
-      data: {}
-    };
-  }
-}
-
-/**
- * Clears OTP for a phone number (for testing/cleanup)
- * Note: Message Central manages OTP lifecycle, this is for cleanup only
- * @param {string} phoneNumber - Phone number to clear OTP for
- * @returns {Promise<Object>} Result object
- */
-export async function clearOTP(phoneNumber) {
-  try {
-    if (!phoneNumber || typeof phoneNumber !== 'string') {
-      return {
-        success: false,
-        message: 'Invalid phone number provided',
-        code: 'INVALID_PHONE'
-      };
-    }
-
-    const formattedPhone = formatPhoneNumber(phoneNumber);
-
-    // Call Message Central API to clear OTP
-    const mcResponse = await callMessageCentralAPI('/otp/clear', {
-      phoneNumber: formattedPhone
-    });
-
-    if (!mcResponse.success) {
-      return {
-        success: false,
-        message: mcResponse.message || 'Failed to clear OTP',
-        code: mcResponse.code || 'MC_CLEAR_ERROR'
-      };
-    }
-
-    return {
-      success: true,
-      message: 'OTP cleared successfully'
-    };
-  } catch (error) {
-    console.error('Error clearing OTP:', error);
-    return {
-      success: false,
-      message: error.message || 'Failed to clear OTP',
-      code: 'CLEAR_ERROR'
-    };
-  }
-}
-
-/**
- * Gets OTP status (for testing only)
- * @param {string} phoneNumber - Phone number to check
- * @returns {Promise<Object>} OTP status
- */
-export async function getOTPStatus(phoneNumber) {
-  try {
-    if (!phoneNumber || typeof phoneNumber !== 'string') {
-      return {
-        exists: false,
-        message: 'Invalid phone number provided',
-        code: 'INVALID_PHONE'
-      };
-    }
-
-    const formattedPhone = formatPhoneNumber(phoneNumber);
-
-    // Call Message Central API to get OTP status
-    const mcResponse = await callMessageCentralAPI('/otp/status', {
-      phoneNumber: formattedPhone
-    });
-
-    if (!mcResponse.success) {
-      return {
-        exists: false,
-        message: mcResponse.message || 'No OTP found for this phone number',
-        code: mcResponse.code || 'OTP_NOT_FOUND'
-      };
-    }
-
-    return {
-      exists: true,
-      expiresAt: mcResponse.expiresAt,
-      attempts: mcResponse.attempts,
-      maxAttempts: mcResponse.maxAttempts,
-      isExpired: mcResponse.isExpired
-    };
-  } catch (error) {
-    console.error('Error getting OTP status:', error);
-    return {
-      exists: false,
-      message: error.message || 'Failed to get OTP status',
-      code: 'STATUS_ERROR'
-    };
-  }
 }
