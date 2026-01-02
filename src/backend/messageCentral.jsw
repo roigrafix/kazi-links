@@ -1,175 +1,63 @@
 import { getSecret } from 'wix-secrets-backend';
 import { fetch } from 'wix-fetch';
-import { contacts } from 'wix-crm-backend';
+import { contacts, triggeredEmails } from 'wix-crm-backend';
 
 const BASE_URL = 'https://cpaas.messagecentral.com';
 
-/**
- * STEP 1: Get the required Auth Token
- */
 async function getAuthToken() {
     const customerId = await getSecret('MC_CUSTOMER_ID');
     const password = await getSecret('MC_PASSWORD');
     const email = await getSecret('MC_EMAIL');
-    
-    // Password must be Base64 encoded for the 'key' parameter
     const base64Key = Buffer.from(password).toString('base64');
-    
     const url = `${BASE_URL}/auth/v1/authentication/token?customerId=${customerId}&key=${base64Key}&scope=NEW&email=${email}`;
-    
     const response = await fetch(url, { method: 'GET' });
     const data = await response.json();
     return data.token;
 }
 
-/**
- * STEP 2: Send OTP
- */
-export async function sendOTP(phoneNumber) {
+export async function sendOTP(mobileNumber, countryCode = '91') {
     try {
         const authToken = await getAuthToken();
         const customerId = await getSecret('MC_CUSTOMER_ID');
-        
-        // Clean phone number (removing + and spaces)
-        const mobile = phoneNumber.replace(/\D/g, '');
-        const countryCode = mobile.startsWith('91') ? '91' : '91'; // Default to 91
-        const mobileNum = mobile.startsWith('91') ? mobile.slice(2) : mobile;
-
-        const sendUrl = `${BASE_URL}/verification/v3/send?countryCode=${countryCode}&mobileNumber=${mobileNum}&flowType=SMS&customerId=${customerId}`;
-
+        const sendUrl = `${BASE_URL}/verification/v3/send?countryCode=${countryCode}&mobileNumber=${mobileNumber}&flowType=SMS&customerId=${customerId}`;
         const response = await fetch(sendUrl, {
             method: 'POST',
-            headers: {
-                'authToken': authToken,
-                'Content-Type': 'application/json'
-            }
+            headers: { 'authToken': authToken, 'Content-Type': 'application/json' }
         });
 
-        // Check HTTP response status
+        // Prevention for "Invalid JSON" error: check status before parsing
         if (!response.ok) {
-            let errorMessage = `HTTP ${response.status}`;
-            try {
-                const errorText = await response.text();
-                if (errorText) {
-                    errorMessage = `HTTP ${response.status}: ${errorText}`;
-                }
-            } catch (textError) {
-                console.warn('Could not read error response text:', textError);
-            }
-            return { success: false, message: `Message Central API error: ${errorMessage}` };
+            const errorText = await response.text();
+            console.error("Message Central Error:", errorText);
+            return { success: false, message: `Status ${response.status}: ${errorText}` };
         }
-
-        // Parse JSON response with error handling
-        let result;
-        try {
-            result = await response.json();
-        } catch (jsonError) {
-            console.error('JSON parsing error in sendOTP:', jsonError);
-            return { 
-                success: false, 
-                message: `Invalid JSON response from Message Central: ${jsonError.message}` 
-            };
-        }
-
-        // Validate response structure
-        if (!result || typeof result !== 'object') {
-            return { 
-                success: false, 
-                message: 'Invalid response structure from Message Central' 
-            };
-        }
-
-        if (result.responseCode === 200) {
-            return {
-                success: true,
-                message: 'OTP sent successfully',
-                data: { verificationId: result.data?.verificationId }
-            };
-        }
-        return { success: false, message: result.message || 'Unknown error from Message Central' };
-    } catch (error) {
-        return { success: false, message: error.message };
+        return await response.json();
+    } catch (err) {
+        return { success: false, message: err.message };
     }
 }
 
-/**
- * STEP 3: Verify OTP & CRM Sync
- */
-export async function verifyOTP(phoneNumber, code, verificationId) {
+export async function verifyOTP(mobileNumber, otpCode, verificationId) {
     try {
         const authToken = await getAuthToken();
         const customerId = await getSecret('MC_CUSTOMER_ID');
-        
-        const mobile = phoneNumber.replace(/\D/g, '');
-        const mobileNum = mobile.startsWith('91') ? mobile.slice(2) : mobile;
-
-        const verifyUrl = `${BASE_URL}/verification/v3/validateOtp?customerId=${customerId}&verificationId=${verificationId}&code=${code}&mobileNumber=${mobileNum}&countryCode=91`;
-
+        const verifyUrl = `${BASE_URL}/verification/v3/validateOtp?customerId=${customerId}&verificationId=${verificationId}&code=${otpCode}&mobileNumber=${mobileNumber}&countryCode=91`;
         const response = await fetch(verifyUrl, {
             method: 'GET',
-            headers: {
-                'authToken': authToken,
-                'Content-Type': 'application/json'
-            }
+            headers: { 'authToken': authToken, 'Content-Type': 'application/json' }
         });
+        const result = await response.json();
 
-        // Check HTTP response status
-        if (!response.ok) {
-            let errorMessage = `HTTP ${response.status}`;
-            try {
-                const errorText = await response.text();
-                if (errorText) {
-                    errorMessage = `HTTP ${response.status}: ${errorText}`;
-                }
-            } catch (textError) {
-                console.warn('Could not read error response text:', textError);
-            }
-            return { success: false, valid: false, message: `Message Central API error: ${errorMessage}` };
+        if (result.responseCode === 200 && result.data.verificationStatus === 'VERIFIED') {
+            const formattedPhone = `+${mobileNumber}`;
+            // CRM and Email logic
+            const contactResult = await contacts.queryContacts().eq('phone', formattedPhone).find();
+            let contactId = contactResult.items.length > 0 ? contactResult.items[0]._id : (await contacts.createContact({phone: formattedPhone}))._id;
+            await triggeredEmails.emailContact('VerificationSuccess', contactId, { variables: { phoneNumber: formattedPhone } });
+            return { success: true, valid: true };
         }
-
-        // Parse JSON response with error handling
-        let result;
-        try {
-            result = await response.json();
-        } catch (jsonError) {
-            console.error('JSON parsing error in verifyOTP:', jsonError);
-            return { 
-                success: false, 
-                valid: false,
-                message: `Invalid JSON response from Message Central: ${jsonError.message}` 
-            };
-        }
-
-        // Validate response structure
-        if (!result || typeof result !== 'object') {
-            return { 
-                success: false, 
-                valid: false,
-                message: 'Invalid response structure from Message Central' 
-            };
-        }
-
-        if (result.responseCode === 200 && result.data?.verificationStatus === 'VERIFIED') {
-            // CRM SYNC LOGIC
-            const formattedPhone = `+${mobile}`;
-            try {
-                const contactResult = await contacts.queryContacts().eq('phone', formattedPhone).find();
-                if (contactResult.items.length > 0) {
-                    await contacts.updateContact(contactResult.items[0]._id, {
-                        info: { phoneVerified: true, phoneVerifiedAt: new Date().toISOString() }
-                    });
-                } else {
-                    await contacts.createContact({
-                        phone: formattedPhone,
-                        info: { phoneVerified: true, phoneVerifiedAt: new Date().toISOString() }
-                    });
-                }
-            } catch (crmErr) { console.warn('CRM sync failed', crmErr); }
-
-            return { success: true, valid: true, message: 'Verified' };
-        }
-        return { success: false, valid: false, message: result.message || 'Invalid Code or Unknown error from Message Central' };
-    } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false, message: result.message };
+    } catch (err) {
+        return { success: false, message: err.message };
     }
 }
