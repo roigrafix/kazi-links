@@ -6,12 +6,147 @@ import { Bookings, RefundRequests } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Star, History, Zap } from 'lucide-react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Star, History, Zap, Edit } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
 import { realtimeService } from '@/services/realtimeService';
 import { useToast } from '@/hooks/use-toast';
+
+// Reschedule Dialog Component
+interface RescheduleDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  booking: Bookings | null;
+  onConfirm: (newDate: Date, newTime: string) => void;
+  isLoading: boolean;
+}
+
+function RescheduleDialog({ open, onOpenChange, booking, onConfirm, isLoading }: RescheduleDialogProps) {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState<string>('');
+
+  const handleConfirm = () => {
+    if (selectedDate && selectedTime) {
+      onConfirm(selectedDate, selectedTime);
+      setSelectedDate(undefined);
+      setSelectedTime('');
+    }
+  };
+
+  const getAvailableTimeSlots = (): string[] => {
+    const slots = [];
+    for (let hour = 9; hour < 20; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+    return slots;
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-secondary text-secondary-foreground max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Edit className="h-5 w-5 text-blue-600" />
+            Reschedule Booking
+          </DialogTitle>
+          <DialogDescription className="text-secondary-foreground/70">
+            Choose a new date and time for your booking. You must reschedule at least 2 hours before the original booking time.
+          </DialogDescription>
+        </DialogHeader>
+
+        {booking && (
+          <div className="space-y-4">
+            {/* Current Booking Details */}
+            <div className="bg-white/5 rounded-lg p-4 space-y-2">
+              <div>
+                <p className="text-xs text-secondary-foreground/70 mb-1">Current Booking</p>
+                <p className="font-semibold text-sm">{booking.serviceName}</p>
+              </div>
+              <div>
+                <p className="text-xs text-secondary-foreground/70 mb-1">Current Date & Time</p>
+                <p className="font-semibold text-sm">
+                  {format(new Date(booking.bookingDate || ''), 'PPP')} at {booking.bookingTime}
+                </p>
+              </div>
+            </div>
+
+            {/* New Date Selection */}
+            <div>
+              <Label className="text-secondary-foreground font-semibold mb-2 block">Select New Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal bg-white text-secondary-foreground border-gray-300 hover:bg-gray-50">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={(date) => {
+                      // Disable past dates
+                      if (date < new Date()) return true;
+                      return false;
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* New Time Selection */}
+            <div>
+              <Label htmlFor="time" className="text-secondary-foreground font-semibold mb-2 block">Select New Time</Label>
+              <select
+                id="time"
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
+                className="w-full px-3 py-2 bg-white text-secondary-foreground border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-logoGold"
+              >
+                <option value="">Choose a time slot</option>
+                {getAvailableTimeSlots().map((slot) => (
+                  <option key={slot} value={slot}>
+                    {slot}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Info Message */}
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-xs text-blue-700">
+                <strong>Note:</strong> You can only reschedule if there are at least 2 hours remaining before your original booking time.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10"
+          >
+            Cancel
+          </Button>
+          
+          <Button
+            onClick={handleConfirm}
+            disabled={!selectedDate || !selectedTime || isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isLoading ? 'Rescheduling...' : 'Confirm Reschedule'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function TrackingPage() {
   const { member } = useMember();
@@ -27,6 +162,9 @@ export default function TrackingPage() {
   const [realtimeUpdates, setRealtimeUpdates] = useState<Map<string, Bookings>>(new Map());
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [selectedBookingToCancel, setSelectedBookingToCancel] = useState<Bookings | null>(null);
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
+  const [selectedBookingToReschedule, setSelectedBookingToReschedule] = useState<Bookings | null>(null);
+  const [reschedulingBookingId, setReschedulingBookingId] = useState<string | null>(null);
 
   // Check if booking can be cancelled (12 hours before booking date)
   const canCancelBooking = (booking: Bookings): boolean => {
@@ -47,10 +185,85 @@ export default function TrackingPage() {
     return hoursUntilBooking >= 12;
   };
 
+  // Check if booking can be rescheduled (more than 2 hours before booking time)
+  const canRescheduleBooking = (booking: Bookings): boolean => {
+    if (!booking.bookingDate || booking.bookingStatus === 'cancelled' || booking.bookingStatus === 'completed') {
+      return false;
+    }
+    
+    const bookingDateTime = new Date(booking.bookingDate);
+    // If booking has a time, add it to the date
+    if (booking.bookingTime) {
+      const [hours, minutes] = booking.bookingTime.split(':').map(Number);
+      bookingDateTime.setHours(hours, minutes);
+    }
+    
+    const now = new Date();
+    const hoursUntilBooking = differenceInHours(bookingDateTime, now);
+    
+    return hoursUntilBooking > 2;
+  };
+
   // Handle cancel booking button click - Show confirmation dialog
   const handleCancelBookingClick = (booking: Bookings) => {
     setSelectedBookingToCancel(booking);
     setShowCancelConfirm(true);
+  };
+
+  // Handle reschedule booking button click - Show reschedule dialog
+  const handleRescheduleBookingClick = (booking: Bookings) => {
+    setSelectedBookingToReschedule(booking);
+    setShowRescheduleDialog(true);
+  };
+
+  // Confirm and process rescheduling
+  const handleRescheduleBookingConfirm = async (newDate: Date, newTime: string) => {
+    if (!selectedBookingToReschedule) return;
+    
+    setReschedulingBookingId(selectedBookingToReschedule._id);
+    try {
+      await BaseCrudService.update('bookings', {
+        _id: selectedBookingToReschedule._id,
+        bookingDate: newDate.toISOString(),
+        bookingTime: newTime
+      });
+      
+      // Update local state for active bookings
+      setActiveBookings(prev => 
+        prev.map(b => 
+          b._id === selectedBookingToReschedule._id 
+            ? { ...b, bookingDate: newDate.toISOString(), bookingTime: newTime }
+            : b
+        )
+      );
+      
+      // Update main bookings array
+      setBookings(prev => 
+        prev.map(b => 
+          b._id === selectedBookingToReschedule._id 
+            ? { ...b, bookingDate: newDate.toISOString(), bookingTime: newTime }
+            : b
+        )
+      );
+      
+      toast({
+        title: 'Success',
+        description: 'Booking rescheduled successfully.',
+      });
+
+      // Close reschedule dialog
+      setShowRescheduleDialog(false);
+      
+    } catch (error) {
+      console.error('Error rescheduling booking:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reschedule booking. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setReschedulingBookingId(null);
+    }
   };
 
   // Confirm and process cancellation
@@ -363,6 +576,19 @@ export default function TrackingPage() {
                     </Button>
                   )}
 
+                  {/* Reschedule Booking Button - Only for active bookings */}
+                  {canRescheduleBooking(booking) && (
+                    <Button 
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                      onClick={() => handleRescheduleBookingClick(booking)}
+                      disabled={reschedulingBookingId === booking._id}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      {reschedulingBookingId === booking._id ? 'Rescheduling...' : 'Reschedule'}
+                    </Button>
+                  )}
+
                   {/* Cancel Booking Button - Only for active bookings */}
                   {canCancelBooking(booking) && (
                     <Button 
@@ -400,7 +626,13 @@ export default function TrackingPage() {
                     <div className="flex items-start gap-2">
                       <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
                       <div className="text-sm">
-                        <p className="font-medium text-blue-800 mb-1">Cancellation Policy</p>
+                        <p className="font-medium text-blue-800 mb-1">Booking Policies</p>
+                        <p className="text-blue-700 mb-2">
+                          {canRescheduleBooking(booking) 
+                            ? "You can reschedule this booking up to 2 hours before the scheduled time."
+                            : "Rescheduling is no longer available (within 2 hours of booking time)."
+                          }
+                        </p>
                         <p className="text-blue-700">
                           {canCancelBooking(booking) 
                             ? "You can cancel this booking up to 12 hours before the scheduled time."
@@ -871,6 +1103,15 @@ export default function TrackingPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Reschedule Booking Dialog */}
+      <RescheduleDialog 
+        open={showRescheduleDialog}
+        onOpenChange={setShowRescheduleDialog}
+        booking={selectedBookingToReschedule}
+        onConfirm={handleRescheduleBookingConfirm}
+        isLoading={reschedulingBookingId !== null}
+      />
     </div>
   );
 }
