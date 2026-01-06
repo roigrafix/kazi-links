@@ -31,6 +31,7 @@ interface BookingFormData {
   clientName: string;
   clientEmail: string;
   clientPhone: string;
+  clientPhoneConfirm: string;
   paymentAmount: number;
   serviceState: string;
   serviceCity: string;
@@ -85,6 +86,7 @@ export default function BookingPage() {
     clientName: '',
     clientEmail: '',
     clientPhone: '',
+    clientPhoneConfirm: '',
     paymentAmount: 0,
     serviceState: '',
     serviceCity: '',
@@ -190,6 +192,11 @@ export default function BookingPage() {
         setCategories(categoriesData.items.filter(cat => cat.isActive));
         setLocations(locationsData.items);
         
+        // Auto-populate email from logged-in member
+        if (member?.loginEmail) {
+          setFormData(prev => ({ ...prev, clientEmail: member.loginEmail || '' }));
+        }
+        
         // Load saved address from member profile
         if (member?.profile?.title) {
           setSavedAddresses([
@@ -272,7 +279,7 @@ export default function BookingPage() {
     };
 
     fetchData();
-  }, [searchParams]);
+  }, [searchParams, member]);
 
   useEffect(() => {
     let filtered = services;
@@ -415,6 +422,11 @@ export default function BookingPage() {
 
     if (!formData.clientName || !formData.clientEmail || !formData.clientPhone) {
       alert('Please fill in all contact details.');
+      return;
+    }
+
+    if (formData.clientPhone !== formData.clientPhoneConfirm) {
+      alert('Phone numbers do not match. Please verify your phone number.');
       return;
     }
 
@@ -593,7 +605,8 @@ export default function BookingPage() {
                 (formData.houseFloorNo && formData.street && formData.area && 
                  formData.postalCode && formData.city));
       case 3:
-        return formData.clientName && formData.clientEmail && formData.clientPhone;
+        return formData.clientName && formData.clientEmail && formData.clientPhone && 
+               formData.clientPhoneConfirm && formData.clientPhone === formData.clientPhoneConfirm;
       default:
         return false;
     }
@@ -1080,12 +1093,26 @@ export default function BookingPage() {
                       />
                     </div>
                     <div>
+                      <Label htmlFor="clientEmail">Email Address</Label>
+                      <Input
+                        id="clientEmail"
+                        type="email"
+                        value={formData.clientEmail}
+                        disabled
+                        className="bg-gray-100 cursor-not-allowed"
+                        title="Email is automatically populated from your account"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Auto-populated from your account</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-semibold text-sm text-blue-900">Phone Number Verification</h4>
+                    
+                    <div>
                       <Label htmlFor="clientPhone" className="flex items-center gap-2">
                         <Phone className="h-4 w-4" />
-                        Phone Number
-                        {phoneVerified && (
-                          <span className="text-green-600 text-xs font-semibold">✓ Verified</span>
-                        )}
+                        Enter Phone Number
                       </Label>
                       <Input
                         id="clientPhone"
@@ -1095,21 +1122,41 @@ export default function BookingPage() {
                           setPhoneVerified(false);
                         }}
                         placeholder="Enter 10-digit phone number"
-                        disabled={phoneVerified}
-                        className={phoneVerified ? 'bg-green-50' : ''}
+                        className="bg-white text-gray-700 border-gray-300"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <Label htmlFor="clientEmail">Email Address</Label>
-                    <Input
-                      id="clientEmail"
-                      type="email"
-                      value={formData.clientEmail}
-                      onChange={(e) => setFormData(prev => ({ ...prev, clientEmail: e.target.value }))}
-                      placeholder="Enter your email address"
-                    />
+                    <div>
+                      <Label htmlFor="clientPhoneConfirm" className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        Confirm Phone Number
+                        {formData.clientPhone && formData.clientPhoneConfirm && formData.clientPhone === formData.clientPhoneConfirm && (
+                          <span className="text-green-600 text-xs font-semibold">✓ Match</span>
+                        )}
+                        {formData.clientPhone && formData.clientPhoneConfirm && formData.clientPhone !== formData.clientPhoneConfirm && (
+                          <span className="text-red-600 text-xs font-semibold">✗ Mismatch</span>
+                        )}
+                      </Label>
+                      <Input
+                        id="clientPhoneConfirm"
+                        value={formData.clientPhoneConfirm}
+                        onChange={(e) => setFormData(prev => ({ ...prev, clientPhoneConfirm: e.target.value }))}
+                        placeholder="Re-enter your phone number"
+                        className={`bg-white text-gray-700 border-gray-300 ${
+                          formData.clientPhone && formData.clientPhoneConfirm && formData.clientPhone === formData.clientPhoneConfirm
+                            ? 'border-green-500 bg-green-50'
+                            : formData.clientPhone && formData.clientPhoneConfirm && formData.clientPhone !== formData.clientPhoneConfirm
+                            ? 'border-red-500 bg-red-50'
+                            : ''
+                        }`}
+                      />
+                      {formData.clientPhone && formData.clientPhoneConfirm && formData.clientPhone === formData.clientPhoneConfirm && (
+                        <p className="text-xs text-green-600 mt-1 font-semibold">✓ Phone numbers match</p>
+                      )}
+                      {formData.clientPhone && formData.clientPhoneConfirm && formData.clientPhone !== formData.clientPhoneConfirm && (
+                        <p className="text-xs text-red-600 mt-1 font-semibold">✗ Phone numbers do not match</p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="bg-white/5 rounded-lg p-4 sm:p-6">
