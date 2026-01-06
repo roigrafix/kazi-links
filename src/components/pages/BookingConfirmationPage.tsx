@@ -207,22 +207,140 @@ export default function BookingConfirmationPage() {
     }
   };
 
+  const generateICalendarContent = (): string => {
+    if (!bookingData) return '';
+
+    const bookingDate = new Date(bookingData.bookingDate || '');
+    const [hours, minutes] = (bookingData.bookingTime || '09:00').split(':').map(Number);
+    
+    // Create start time
+    const startTime = new Date(bookingDate);
+    startTime.setHours(hours, minutes, 0);
+    
+    // Create end time (1 hour after start)
+    const endTime = new Date(startTime);
+    endTime.setHours(endTime.getHours() + 1);
+
+    // Format dates for iCalendar (YYYYMMDDTHHMMSSZ)
+    const formatICalDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const mins = String(date.getMinutes()).padStart(2, '0');
+      const secs = String(date.getSeconds()).padStart(2, '0');
+      return `${year}${month}${day}T${hours}${mins}${secs}Z`;
+    };
+
+    const icalContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Service Booking//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:${bookingData._id}@servicebooking.com
+DTSTAMP:${formatICalDate(new Date())}
+DTSTART:${formatICalDate(startTime)}
+DTEND:${formatICalDate(endTime)}
+SUMMARY:${bookingData.serviceName} - ${bookingData.freelancerName}
+DESCRIPTION:Service: ${bookingData.serviceName}\\nFreelancer: ${bookingData.freelancerName}\\nLocation: ${bookingData.serviceCity}, ${bookingData.serviceState}\\nBooking ID: ${bookingData._id}
+LOCATION:${bookingData.serviceAddress || `${bookingData.serviceCity}, ${bookingData.serviceState}`}
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR`;
+
+    return icalContent;
+  };
+
   const handleAddToGoogleCalendar = () => {
     if (!bookingData) return;
-    // Google Calendar functionality removed - only Message Center OTP is used
-    alert('Calendar integration has been removed. Please use your calendar app to add this event manually.');
+
+    const bookingDate = new Date(bookingData.bookingDate || '');
+    const [hours, minutes] = (bookingData.bookingTime || '09:00').split(':').map(Number);
+    
+    const startTime = new Date(bookingDate);
+    startTime.setHours(hours, minutes, 0);
+    
+    const endTime = new Date(startTime);
+    endTime.setHours(endTime.getHours() + 1);
+
+    // Format dates for Google Calendar (YYYYMMDDTHHMMSS)
+    const formatGoogleDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const mins = String(date.getMinutes()).padStart(2, '0');
+      const secs = String(date.getSeconds()).padStart(2, '0');
+      return `${year}${month}${day}T${hours}${mins}${secs}`;
+    };
+
+    const eventTitle = `${bookingData.serviceName} - ${bookingData.freelancerName}`;
+    const eventDescription = `Booking ID: ${bookingData._id}\nService: ${bookingData.serviceName}\nFreelancer: ${bookingData.freelancerName}\nLocation: ${bookingData.serviceCity}, ${bookingData.serviceState}`;
+    const eventLocation = bookingData.serviceAddress || `${bookingData.serviceCity}, ${bookingData.serviceState}`;
+
+    const googleCalendarUrl = new URL('https://calendar.google.com/calendar/render');
+    googleCalendarUrl.searchParams.append('action', 'TEMPLATE');
+    googleCalendarUrl.searchParams.append('text', eventTitle);
+    googleCalendarUrl.searchParams.append('dates', `${formatGoogleDate(startTime)}/${formatGoogleDate(endTime)}`);
+    googleCalendarUrl.searchParams.append('details', eventDescription);
+    googleCalendarUrl.searchParams.append('location', eventLocation);
+
+    window.open(googleCalendarUrl.toString(), '_blank');
   };
 
   const handleDownloadICalendar = () => {
     if (!bookingData) return;
-    // iCalendar functionality removed - only Message Center OTP is used
-    alert('iCalendar download has been removed. Please use your calendar app to add this event manually.');
+
+    const icalContent = generateICalendarContent();
+    const blob = new Blob([icalContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `booking-${bookingData._id}.ics`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleAddToOutlook = () => {
     if (!bookingData) return;
-    // Outlook Calendar functionality removed - only Message Center OTP is used
-    alert('Outlook integration has been removed. Please use your calendar app to add this event manually.');
+
+    const bookingDate = new Date(bookingData.bookingDate || '');
+    const [hours, minutes] = (bookingData.bookingTime || '09:00').split(':').map(Number);
+    
+    const startTime = new Date(bookingDate);
+    startTime.setHours(hours, minutes, 0);
+    
+    const endTime = new Date(startTime);
+    endTime.setHours(endTime.getHours() + 1);
+
+    // Format dates for Outlook (YYYY-MM-DDTHH:MM:SS)
+    const formatOutlookDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const mins = String(date.getMinutes()).padStart(2, '0');
+      const secs = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${mins}:${secs}`;
+    };
+
+    const eventTitle = `${bookingData.serviceName} - ${bookingData.freelancerName}`;
+    const eventDescription = `Booking ID: ${bookingData._id}\nService: ${bookingData.serviceName}\nFreelancer: ${bookingData.freelancerName}\nLocation: ${bookingData.serviceCity}, ${bookingData.serviceState}`;
+    const eventLocation = bookingData.serviceAddress || `${bookingData.serviceCity}, ${bookingData.serviceState}`;
+
+    const outlookUrl = new URL('https://outlook.live.com/calendar/0/deeplink/compose');
+    outlookUrl.searchParams.append('subject', eventTitle);
+    outlookUrl.searchParams.append('body', eventDescription);
+    outlookUrl.searchParams.append('startdt', formatOutlookDate(startTime));
+    outlookUrl.searchParams.append('enddt', formatOutlookDate(endTime));
+    outlookUrl.searchParams.append('location', eventLocation);
+
+    window.open(outlookUrl.toString(), '_blank');
   };
 
   if (paymentStatus === 'loading') {
