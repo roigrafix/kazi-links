@@ -93,7 +93,7 @@ export default function TrackingPage() {
       setShowCancelConfirm(false);
       
       // Redirect to refund page with booking reference ID
-      const refundUrl = `/refund?bookingRef=${selectedBookingToCancel.referenceId || selectedBookingToCancel._id}`;
+      const refundUrl = `/refund?bookingRef=${selectedBookingToCancel._id}`;
       navigate(refundUrl);
       
     } catch (error) {
@@ -478,11 +478,11 @@ export default function TrackingPage() {
               </div>
               
               {/* Booking Reference ID */}
-              {booking.referenceId && (
+              {booking._id && (
                 <div className="mt-4 pt-4 border-t border-secondary-foreground/10">
                   <div className="flex items-center justify-between">
                     <span className="text-secondary-foreground/70 text-xs font-medium">Reference ID:</span>
-                    <span className="font-mono font-semibold text-logoGold">{booking.referenceId}</span>
+                    <span className="font-mono font-semibold text-logoGold">{booking._id}</span>
                   </div>
                 </div>
               )}
@@ -834,10 +834,10 @@ export default function TrackingPage() {
               </div>
 
               {/* Reference ID Info */}
-              {selectedBookingToCancel.referenceId && (
+              {selectedBookingToCancel._id && (
                 <div className="bg-blue-50 p-3 rounded-lg">
                   <p className="text-xs text-blue-700 mb-1">Booking Reference ID</p>
-                  <p className="font-mono font-semibold text-blue-900">{selectedBookingToCancel.referenceId}</p>
+                  <p className="font-mono font-semibold text-blue-900">{selectedBookingToCancel._id}</p>
                   <p className="text-xs text-blue-600 mt-2">You'll need this ID to process your refund</p>
                 </div>
               )}

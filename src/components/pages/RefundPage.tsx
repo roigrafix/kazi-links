@@ -43,7 +43,7 @@ export default function RefundPage() {
       try {
         const { items } = await BaseCrudService.getAll<Bookings>('bookings');
         const foundBooking = items.find(
-          b => b.referenceId === bookingRef || b._id === bookingRef
+          b => b._id === bookingRef
         );
         
         if (foundBooking) {
@@ -190,10 +190,10 @@ export default function RefundPage() {
                       <p className="text-xs text-secondary-foreground/70 mb-1">Reference ID</p>
                       <div className="flex items-center justify-between">
                         <p className="font-mono font-semibold text-logoGold">
-                          {booking?.referenceId || booking?._id}
+                          {booking?._id}
                         </p>
                         <button
-                          onClick={() => copyToClipboard(booking?.referenceId || booking?._id || '')}
+                          onClick={() => copyToClipboard(booking?._id || '')}
                           className="p-2 hover:bg-white/10 rounded transition"
                         >
                           <Copy className="h-4 w-4" />
@@ -303,15 +303,15 @@ export default function RefundPage() {
                       <p className="font-semibold text-xl text-logoGold">₹{booking.paymentAmount}</p>
                     </div>
 
-                    {booking.referenceId && (
+                    {booking._id && (
                       <div className="pt-4 border-t border-secondary-foreground/10">
                         <p className="text-xs text-secondary-foreground/70 mb-2">Reference ID</p>
                         <div className="flex items-center gap-2 bg-white/5 p-2 rounded">
                           <code className="font-mono text-sm font-semibold flex-1 text-logoGold">
-                            {booking.referenceId}
+                            {booking._id}
                           </code>
                           <button
-                            onClick={() => copyToClipboard(booking.referenceId || '')}
+                            onClick={() => copyToClipboard(booking._id || '')}
                             className="p-1 hover:bg-white/10 rounded transition"
                           >
                             <Copy className="h-4 w-4" />

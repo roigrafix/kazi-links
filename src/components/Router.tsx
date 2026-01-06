@@ -13,7 +13,7 @@ import RefundPage from '@/components/pages/RefundPage';
 import LoginPage from '@/components/pages/LoginPage';
 import SignUpPage from '@/components/pages/SignUpPage';
 import ForgotPasswordPage from '@/components/pages/ForgotPasswordPage';
-import MessagingCenterOTPPage from '@/components/pages/MessagingCenterOTPPage';
+// ... keep existing code (other imports) ...
 import ProfilePage from '@/components/pages/ProfilePage';
 import FreelancerAvailabilityPage from '@/components/pages/FreelancerAvailabilityPage';
 import FreelancerDashboardPage from '@/components/pages/FreelancerDashboardPage';
@@ -113,10 +113,7 @@ const router = createBrowserRouter([
         path: "forgot-password",
         element: <ForgotPasswordPage />,
       },
-      {
-        path: "phone-auth",
-        element: <MessagingCenterOTPPage />,
-      },
+
       {
         path: "profile",
         element: (

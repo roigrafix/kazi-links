@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Image } from '@/components/ui/image';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Mail, Lock, ArrowRight, Eye, EyeOff, Phone, User } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, User, Phone } from 'lucide-react';
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -80,8 +80,11 @@ export default function SignUpPage() {
   };
 
   const handlePhoneSignUp = () => {
-    navigate('/phone-auth');
+    // Trigger Wix login which supports phone authentication
+    actions.login();
   };
+
+
 
   return (
     <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
