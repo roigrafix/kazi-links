@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Image } from '@/components/ui/image';
-import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle, Phone } from 'lucide-react';
+import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle, Phone, Info } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface BookingFormData {
@@ -710,6 +710,17 @@ export default function BookingPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Sign-In Disclaimer */}
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex gap-3">
+                    <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-blue-900 mb-1">Important: Sign In Required</p>
+                      <p className="text-sm text-blue-800 font-paragraph">
+                        You must be signed in to your account before your booking can be confirmed. Please sign in or create an account to proceed with your booking.
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Service Search & Filter */}
                   <div className="space-y-4">
                     <div>
