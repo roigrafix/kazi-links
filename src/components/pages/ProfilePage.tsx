@@ -103,28 +103,37 @@ export default function ProfilePage() {
         throw new Error('Member email not found. Please log in again.');
       }
 
-      // Update member data using the member service
+      // Build the update payload with contact and profile data
       const updatePayload: any = {
         _id: member.loginEmail,
       };
 
-      // Only include fields that have been modified
-      if (editFormData.phone && editFormData.phone !== (member?.contact?.phones?.[0] || '')) {
+      // Update contact information (phone)
+      const currentPhone = member?.contact?.phones?.[0] || '';
+      const phoneChanged = editFormData.phone !== currentPhone;
+
+      if (phoneChanged) {
         updatePayload.contact = {
-          ...member.contact,
-          phones: [editFormData.phone],
+          firstName: member?.contact?.firstName || '',
+          lastName: member?.contact?.lastName || '',
+          phones: editFormData.phone ? [editFormData.phone] : [],
         };
       }
 
-      if (editFormData.address && editFormData.address !== (member?.profile?.title || '')) {
+      // Update profile information (address)
+      const currentAddress = member?.profile?.title || '';
+      const addressChanged = editFormData.address !== currentAddress;
+
+      if (addressChanged) {
         updatePayload.profile = {
-          ...member.profile,
+          nickname: member?.profile?.nickname || '',
           title: editFormData.address,
+          photo: member?.profile?.photo || {},
         };
       }
 
       // If no fields were modified, just close the dialog
-      if (Object.keys(updatePayload).length === 1) {
+      if (!phoneChanged && !addressChanged) {
         setIsEditing(false);
         return;
       }
@@ -295,9 +304,12 @@ export default function ProfilePage() {
                         id="email"
                         type="email"
                         value={editFormData.email}
-                        onChange={(e) => handleEditChange('email', e.target.value)}
-                        className="bg-white text-logoBlack border-logoGold/30 font-paragraph"
+                        disabled
+                        className="bg-gray-100 text-logoBlack/50 border-logoGold/30 font-paragraph cursor-not-allowed"
                       />
+                      <p className="text-xs text-logoBlack/60 font-paragraph">
+                        Email cannot be changed. <button onClick={() => setActiveSettingsModal(null)} className="text-logoGold hover:underline">Contact support</button> to change your email address.
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-logoBlack font-semibold">Phone Number</Label>
@@ -306,6 +318,7 @@ export default function ProfilePage() {
                         type="tel"
                         value={editFormData.phone}
                         onChange={(e) => handleEditChange('phone', e.target.value)}
+                        placeholder="Enter your phone number"
                         className="bg-white text-logoBlack border-logoGold/30 font-paragraph"
                       />
                     </div>
