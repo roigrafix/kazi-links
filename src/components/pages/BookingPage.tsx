@@ -729,7 +729,7 @@ export default function BookingPage() {
                     <div>
                       <p className="text-sm font-semibold text-blue-900 mb-1">Important: Sign In Required</p>
                       <p className="text-sm text-blue-800 font-paragraph">
-                        You must be signed in to your account before your booking can be confirmed. Please sign in or create an account to proceed with your booking.
+                        You must be signed in to your account before your booking can be confirmed. Please sign in or create an account to proceed with your booking. If you are already signed in, you can ignore this.
                       </p>
                     </div>
                   </div>
