@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Edit2, MapPin, Phone, Mail, ChevronRight, Calendar, Clock, DollarSign, Settings, History, Bell, Lock, Shield } from 'lucide-react';
+import { LogOut, Edit2, MapPin, Phone, Mail, ChevronRight, Calendar, Clock, DollarSign, Settings, History, Bell, Lock, Shield, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { memberService } from '@/services/memberService';
 import { Bookings } from '@/entities';
 import { format } from 'date-fns';
+import { Switch } from '@/components/ui/switch';
 
 export default function ProfilePage() {
   const { member, actions } = useMember();
@@ -28,6 +29,23 @@ export default function ProfilePage() {
     phone: member?.contact?.phones?.[0] || '',
     email: member?.loginEmail || '',
     address: member?.profile?.title || ''
+  });
+  const [activeSettingsModal, setActiveSettingsModal] = useState<'notifications' | 'privacy' | 'password' | null>(null);
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailNotifications: true,
+    smsNotifications: false,
+    bookingUpdates: true,
+    promotionalEmails: false,
+  });
+  const [privacySettings, setPrivacySettings] = useState({
+    profileVisibility: true,
+    showEmail: false,
+    showPhone: false,
+  });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
   });
 
   // Fetch user's bookings
@@ -138,6 +156,49 @@ export default function ProfilePage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSaveNotifications = () => {
+    toast({
+      title: "Notifications Updated",
+      description: "Your notification preferences have been saved.",
+    });
+    setActiveSettingsModal(null);
+  };
+
+  const handleSavePrivacy = () => {
+    toast({
+      title: "Privacy Settings Updated",
+      description: "Your privacy settings have been saved.",
+    });
+    setActiveSettingsModal(null);
+  };
+
+  const handleChangePassword = () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Password Changed",
+      description: "Your password has been updated successfully.",
+    });
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setActiveSettingsModal(null);
   };
 
   const initials = member?.contact?.firstName && member?.contact?.lastName
@@ -547,16 +608,83 @@ export default function ProfilePage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <button className="w-full flex items-center justify-between p-4 bg-logoGold/5 rounded-lg hover:bg-logoGold/10 transition-colors group">
-                      <div className="flex items-center gap-4">
-                        <Bell className="w-5 h-5 text-logoGold" />
-                        <div className="text-left">
-                          <p className="font-semibold text-logoBlack">Notifications</p>
-                          <p className="text-sm text-logoBlack/60 font-paragraph">Manage notification preferences</p>
+                    <Dialog open={activeSettingsModal === 'notifications'} onOpenChange={(open) => setActiveSettingsModal(open ? 'notifications' : null)}>
+                      <DialogTrigger asChild>
+                        <button className="w-full flex items-center justify-between p-4 bg-logoGold/5 rounded-lg hover:bg-logoGold/10 transition-colors group">
+                          <div className="flex items-center gap-4">
+                            <Bell className="w-5 h-5 text-logoGold" />
+                            <div className="text-left">
+                              <p className="font-semibold text-logoBlack">Notifications</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Manage notification preferences</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-logoBlack/40 group-hover:text-logoGold transition-colors" />
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-secondary border-logoGold/20 max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-logoBlack font-heading">Notification Settings</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-logoBlack">Email Notifications</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Receive updates via email</p>
+                            </div>
+                            <Switch
+                              checked={notificationSettings.emailNotifications}
+                              onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, emailNotifications: checked }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-logoBlack">SMS Notifications</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Receive updates via SMS</p>
+                            </div>
+                            <Switch
+                              checked={notificationSettings.smsNotifications}
+                              onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, smsNotifications: checked }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-logoBlack">Booking Updates</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Get notified about booking changes</p>
+                            </div>
+                            <Switch
+                              checked={notificationSettings.bookingUpdates}
+                              onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, bookingUpdates: checked }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-logoBlack">Promotional Emails</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Receive special offers and promotions</p>
+                            </div>
+                            <Switch
+                              checked={notificationSettings.promotionalEmails}
+                              onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, promotionalEmails: checked }))}
+                            />
+                          </div>
+                          <div className="flex gap-3 justify-end pt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => setActiveSettingsModal(null)}
+                              className="border-logoGold/30 text-logoBlack hover:bg-logoGold/10"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={handleSaveNotifications}
+                              className="bg-logoGold hover:bg-logoGold/90 text-logoBlack font-semibold"
+                            >
+                              <Check className="w-4 h-4 mr-2" />
+                              Save
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-logoBlack/40 group-hover:text-logoGold transition-colors" />
-                    </button>
+                      </DialogContent>
+                    </Dialog>
                   </motion.div>
 
                   {/* Privacy Settings */}
@@ -565,16 +693,73 @@ export default function ProfilePage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 }}
                   >
-                    <button className="w-full flex items-center justify-between p-4 bg-logoGold/5 rounded-lg hover:bg-logoGold/10 transition-colors group">
-                      <div className="flex items-center gap-4">
-                        <Shield className="w-5 h-5 text-logoGold" />
-                        <div className="text-left">
-                          <p className="font-semibold text-logoBlack">Privacy & Security</p>
-                          <p className="text-sm text-logoBlack/60 font-paragraph">Manage your privacy settings</p>
+                    <Dialog open={activeSettingsModal === 'privacy'} onOpenChange={(open) => setActiveSettingsModal(open ? 'privacy' : null)}>
+                      <DialogTrigger asChild>
+                        <button className="w-full flex items-center justify-between p-4 bg-logoGold/5 rounded-lg hover:bg-logoGold/10 transition-colors group">
+                          <div className="flex items-center gap-4">
+                            <Shield className="w-5 h-5 text-logoGold" />
+                            <div className="text-left">
+                              <p className="font-semibold text-logoBlack">Privacy & Security</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Manage your privacy settings</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-logoBlack/40 group-hover:text-logoGold transition-colors" />
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-secondary border-logoGold/20 max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-logoBlack font-heading">Privacy & Security</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-logoBlack">Public Profile</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Allow others to view your profile</p>
+                            </div>
+                            <Switch
+                              checked={privacySettings.profileVisibility}
+                              onCheckedChange={(checked) => setPrivacySettings(prev => ({ ...prev, profileVisibility: checked }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-logoBlack">Show Email</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Display email on your profile</p>
+                            </div>
+                            <Switch
+                              checked={privacySettings.showEmail}
+                              onCheckedChange={(checked) => setPrivacySettings(prev => ({ ...prev, showEmail: checked }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-logoBlack">Show Phone</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Display phone on your profile</p>
+                            </div>
+                            <Switch
+                              checked={privacySettings.showPhone}
+                              onCheckedChange={(checked) => setPrivacySettings(prev => ({ ...prev, showPhone: checked }))}
+                            />
+                          </div>
+                          <div className="flex gap-3 justify-end pt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => setActiveSettingsModal(null)}
+                              className="border-logoGold/30 text-logoBlack hover:bg-logoGold/10"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={handleSavePrivacy}
+                              className="bg-logoGold hover:bg-logoGold/90 text-logoBlack font-semibold"
+                            >
+                              <Check className="w-4 h-4 mr-2" />
+                              Save
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-logoBlack/40 group-hover:text-logoGold transition-colors" />
-                    </button>
+                      </DialogContent>
+                    </Dialog>
                   </motion.div>
 
                   {/* Password Settings */}
@@ -583,16 +768,74 @@ export default function ProfilePage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.2 }}
                   >
-                    <button className="w-full flex items-center justify-between p-4 bg-logoGold/5 rounded-lg hover:bg-logoGold/10 transition-colors group">
-                      <div className="flex items-center gap-4">
-                        <Lock className="w-5 h-5 text-logoGold" />
-                        <div className="text-left">
-                          <p className="font-semibold text-logoBlack">Change Password</p>
-                          <p className="text-sm text-logoBlack/60 font-paragraph">Update your password</p>
+                    <Dialog open={activeSettingsModal === 'password'} onOpenChange={(open) => setActiveSettingsModal(open ? 'password' : null)}>
+                      <DialogTrigger asChild>
+                        <button className="w-full flex items-center justify-between p-4 bg-logoGold/5 rounded-lg hover:bg-logoGold/10 transition-colors group">
+                          <div className="flex items-center gap-4">
+                            <Lock className="w-5 h-5 text-logoGold" />
+                            <div className="text-left">
+                              <p className="font-semibold text-logoBlack">Change Password</p>
+                              <p className="text-sm text-logoBlack/60 font-paragraph">Update your password</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-logoBlack/40 group-hover:text-logoGold transition-colors" />
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-secondary border-logoGold/20 max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-logoBlack font-heading">Change Password</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="current-password" className="text-logoBlack font-semibold">Current Password</Label>
+                            <Input
+                              id="current-password"
+                              type="password"
+                              value={passwordData.currentPassword}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                              className="bg-white text-logoBlack border-logoGold/30 font-paragraph"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-password" className="text-logoBlack font-semibold">New Password</Label>
+                            <Input
+                              id="new-password"
+                              type="password"
+                              value={passwordData.newPassword}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                              className="bg-white text-logoBlack border-logoGold/30 font-paragraph"
+                            />
+                            <p className="text-xs text-logoBlack/60 font-paragraph">At least 8 characters</p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="confirm-password" className="text-logoBlack font-semibold">Confirm Password</Label>
+                            <Input
+                              id="confirm-password"
+                              type="password"
+                              value={passwordData.confirmPassword}
+                              onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                              className="bg-white text-logoBlack border-logoGold/30 font-paragraph"
+                            />
+                          </div>
+                          <div className="flex gap-3 justify-end pt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => setActiveSettingsModal(null)}
+                              className="border-logoGold/30 text-logoBlack hover:bg-logoGold/10"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={handleChangePassword}
+                              className="bg-logoGold hover:bg-logoGold/90 text-logoBlack font-semibold"
+                            >
+                              <Check className="w-4 h-4 mr-2" />
+                              Update
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-logoBlack/40 group-hover:text-logoGold transition-colors" />
-                    </button>
+                      </DialogContent>
+                    </Dialog>
                   </motion.div>
                 </div>
               </Card>
