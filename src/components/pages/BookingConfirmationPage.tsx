@@ -6,8 +6,9 @@ import { Bookings } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertCircle, Loader, Calendar, Download } from 'lucide-react';
-import { sendGridService } from '@/services/sendgridService';
+import { secureEmailService } from '@/services/secureEmailService';
 import { bookingAutomationService } from '@/services/bookingAutomationService';
+import { secureFetch } from '@/lib/csrf-protection';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
@@ -23,27 +24,36 @@ export default function BookingConfirmationPage() {
   useEffect(() => {
     const verifyPaymentAndCreateBooking = async () => {
       try {
-        // Get payment status from URL params (from payment gateway redirect)
-        const paymentId = searchParams.get('payment_id');
+        // Get session ID from URL params (from payment gateway redirect)
+        const sessionId = searchParams.get('session_id');
         const orderId = searchParams.get('order_id');
         const status = searchParams.get('status');
 
-        // Retrieve pending booking from sessionStorage
-        const pendingBookingStr = sessionStorage.getItem('pendingBooking');
-        const referenceId = sessionStorage.getItem('bookingReferenceId');
-
-        if (!pendingBookingStr || !referenceId) {
+        if (!sessionId || !orderId) {
           setPaymentStatus('failed');
-          setErrorMessage('No booking data found. Please start a new booking.');
+          setErrorMessage('No booking session found. Please start a new booking.');
           return;
         }
 
-        const pendingBooking = JSON.parse(pendingBookingStr) as Bookings;
+        // Retrieve booking data from secure backend session
+        const sessionResponse = await secureFetch(`/api/get-booking-session?sessionId=${sessionId}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!sessionResponse.ok) {
+          setPaymentStatus('failed');
+          setErrorMessage('Failed to retrieve booking session. Please try again.');
+          return;
+        }
+
+        const sessionData = await sessionResponse.json();
+        const pendingBooking = sessionData.bookingData as Bookings;
         setBookingData(pendingBooking);
 
         // Verify payment with payment gateway
         const paymentVerified = await verifyPaymentWithGateway(
-          paymentId,
+          sessionId,
           orderId,
           status,
           pendingBooking.paymentAmount || 0
@@ -89,8 +99,8 @@ export default function BookingConfirmationPage() {
             })
           : '';
         
-        // Send booking confirmation email to client
-        const clientEmailSent = await sendGridService.sendBookingConfirmation({
+        // Send booking confirmation email to client (via secure backend)
+        const clientEmailSent = await secureEmailService.sendBookingConfirmation({
           clientName: bookingToCreate.clientName || '',
           clientEmail: bookingToCreate.clientEmail || '',
           serviceName: bookingToCreate.serviceName || '',
@@ -112,7 +122,7 @@ export default function BookingConfirmationPage() {
           const freelancer = freelancers.find(f => f.fullName === bookingToCreate.freelancerName);
           
           if (freelancer && freelancer.contactEmail) {
-            const freelancerEmailSent = await sendGridService.sendFreelancerBookingNotification(
+            const freelancerEmailSent = await secureEmailService.sendFreelancerBookingNotification(
               freelancer.contactEmail,
               {
                 clientName: bookingToCreate.clientName || '',
@@ -160,9 +170,11 @@ export default function BookingConfirmationPage() {
           console.warn('Error triggering Wix Automation:', error);
         }
         
-        // Clear sessionStorage
-        sessionStorage.removeItem('pendingBooking');
-        sessionStorage.removeItem('bookingReferenceId');
+        // Clear secure session on backend
+        await secureFetch(`/api/clear-booking-session?sessionId=${sessionId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
 
         setBookingId(bookingToCreate._id);
         setPaymentStatus('success');

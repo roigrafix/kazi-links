@@ -15,6 +15,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Image } from '@/components/ui/image';
 import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle, Phone, Info } from 'lucide-react';
 import { format } from 'date-fns';
+import { validateBookingForm, isAllValid, getValidationErrors } from '@/lib/input-validation';
+import { secureFetch } from '@/lib/csrf-protection';
 
 interface BookingFormData {
   serviceName: string;
@@ -70,6 +72,7 @@ export default function BookingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<Array<{ id: string; address: string }>>([]);
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [error, setError] = useState<string>('');
   
   const [formData, setFormData] = useState<BookingFormData>({
     serviceName: '',
@@ -409,31 +412,34 @@ export default function BookingPage() {
       return;
     }
 
-    // Validation checks
+    // Comprehensive input validation
+    const validationResults = validateBookingForm(formData);
+    if (!isAllValid(validationResults)) {
+      const errors = getValidationErrors(validationResults);
+      setError(errors.join('\n'));
+      return;
+    }
+
+    // Additional validation checks
     if (!selectedService || !selectedFreelancer || !formData.bookingDate) {
-      alert('Please complete all required fields.');
+      setError('Please complete all required fields.');
       return;
     }
 
     if (!formData.bookingTime) {
-      alert('Please select a time slot.');
-      return;
-    }
-
-    if (!formData.clientName || !formData.clientEmail || !formData.clientPhone) {
-      alert('Please fill in all contact details.');
+      setError('Please select a time slot.');
       return;
     }
 
     if (formData.clientPhone !== formData.clientPhoneConfirm) {
-      alert('Phone numbers do not match. Please verify your phone number.');
+      setError('Phone numbers do not match. Please verify your phone number.');
       return;
     }
 
     if (formData.serviceLocationType === 'client' && 
         !formData.savedAddressId &&
         (!formData.houseFloorNo || !formData.street || !formData.area || !formData.city || !formData.postalCode)) {
-      alert('Please fill in your complete address.');
+      setError('Please fill in your complete address.');
       return;
     }
 
@@ -492,12 +498,23 @@ export default function BookingPage() {
         clientLocation: formData.clientLocation
       };
 
-      // Store booking data in sessionStorage for payment verification
-      sessionStorage.setItem('pendingBooking', JSON.stringify(bookingData));
-      sessionStorage.setItem('bookingReferenceId', referenceId);
+      // Create secure backend session instead of storing in sessionStorage
+      const sessionResponse = await secureFetch('/api/create-booking-session', {
+        method: 'POST',
+        body: JSON.stringify({
+          bookingData,
+          referenceId
+        })
+      });
 
-      // Redirect to payment gateway
-      redirectToPaymentGateway(bookingData as Bookings, referenceId);
+      if (!sessionResponse.ok) {
+        throw new Error('Failed to create booking session');
+      }
+
+      const sessionResult = await sessionResponse.json();
+
+      // Redirect to payment gateway with session ID only
+      redirectToPaymentGateway(sessionResult.sessionId, referenceId);
     } catch (error) {
       console.error('Error preparing booking:', error);
       alert('An error occurred while processing your booking. Please try again.');
@@ -505,20 +522,15 @@ export default function BookingPage() {
     }
   };
 
-  const redirectToPaymentGateway = (bookingData: Bookings, referenceId: string) => {
+  const redirectToPaymentGateway = (sessionId: string, referenceId: string) => {
     // Simulate payment processing - in production, integrate with Razorpay, Stripe, etc.
     // For demo purposes, we'll redirect to confirmation page with success status
     
-    // Create payment gateway URL with booking details
+    // Create payment gateway URL with session ID only (no sensitive data)
     const paymentParams = new URLSearchParams({
-      payment_id: `pay_${Math.random().toString(36).substr(2, 9)}`,
+      session_id: sessionId,
       order_id: referenceId,
       status: 'success', // In production, this comes from payment gateway
-      amount: (bookingData.paymentAmount! * 100).toString(),
-      customerName: bookingData.clientName || '',
-      customerEmail: bookingData.clientEmail || '',
-      customerPhone: bookingData.clientPhone || '',
-      description: `${bookingData.serviceName} - ${bookingData.freelancerName}`
     });
 
     // Redirect to booking confirmation page
