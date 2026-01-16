@@ -136,7 +136,7 @@ export interface Freelancers {
   fullName?: string;
   /** @wixFieldType text */
   serviceArea?: string;
-  /** @wixFieldType image */
+  /** @wixFieldType image - Contains image URL, render with <Image> component, NOT as text */
   profilePicture?: string;
   /** @wixFieldType text */
   bio?: string;
@@ -217,7 +217,7 @@ export interface ServiceCategories {
   categoryName?: string;
   /** @wixFieldType text */
   categoryDescription?: string;
-  /** @wixFieldType image */
+  /** @wixFieldType image - Contains image URL, render with <Image> component, NOT as text */
   categoryImage?: string;
   /** @wixFieldType boolean */
   isActive?: boolean;
@@ -244,7 +244,7 @@ export interface Services {
   durationMinutes?: number;
   /** @wixFieldType text */
   categoryName?: string;
-  /** @wixFieldType image */
+  /** @wixFieldType image - Contains image URL, render with <Image> component, NOT as text */
   serviceImage?: string;
   /** @wixFieldType boolean */
   isBookable?: boolean;

@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertCircle, Loader, Calendar, Download } from 'lucide-react';
 import { secureEmailService } from '@/services/secureEmailService';
 import { bookingAutomationService } from '@/services/bookingAutomationService';
-import { secureFetch } from '@/lib/csrf-protection';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
@@ -24,36 +23,31 @@ export default function BookingConfirmationPage() {
   useEffect(() => {
     const verifyPaymentAndCreateBooking = async () => {
       try {
-        // Get session ID from URL params (from payment gateway redirect)
-        const sessionId = searchParams.get('session_id');
+        // Get order ID and status from URL params (from payment gateway redirect)
         const orderId = searchParams.get('order_id');
         const status = searchParams.get('status');
 
-        if (!sessionId || !orderId) {
+        if (!orderId) {
           setPaymentStatus('failed');
-          setErrorMessage('No booking session found. Please start a new booking.');
+          setErrorMessage('No booking reference found. Please start a new booking.');
           return;
         }
 
-        // Retrieve booking data from secure backend session
-        const sessionResponse = await secureFetch(`/api/get-booking-session?sessionId=${sessionId}`, {
-          method: 'GET',
-          credentials: 'include'
-        });
+        // Retrieve booking data from sessionStorage
+        const pendingBookingStr = sessionStorage.getItem('pendingBooking');
+        const storedReferenceId = sessionStorage.getItem('bookingReferenceId');
 
-        if (!sessionResponse.ok) {
+        if (!pendingBookingStr || storedReferenceId !== orderId) {
           setPaymentStatus('failed');
-          setErrorMessage('Failed to retrieve booking session. Please try again.');
+          setErrorMessage('Booking session expired or invalid. Please start a new booking.');
           return;
         }
 
-        const sessionData = await sessionResponse.json();
-        const pendingBooking = sessionData.bookingData as Bookings;
+        const pendingBooking = JSON.parse(pendingBookingStr) as Bookings;
         setBookingData(pendingBooking);
 
         // Verify payment with payment gateway
         const paymentVerified = await verifyPaymentWithGateway(
-          sessionId,
           orderId,
           status,
           pendingBooking.paymentAmount || 0
@@ -170,11 +164,9 @@ export default function BookingConfirmationPage() {
           console.warn('Error triggering Wix Automation:', error);
         }
         
-        // Clear secure session on backend
-        await secureFetch(`/api/clear-booking-session?sessionId=${sessionId}`, {
-          method: 'DELETE',
-          credentials: 'include'
-        });
+        // Clear sessionStorage
+        sessionStorage.removeItem('pendingBooking');
+        sessionStorage.removeItem('bookingReferenceId');
 
         setBookingId(bookingToCreate._id);
         setPaymentStatus('success');
@@ -193,7 +185,6 @@ export default function BookingConfirmationPage() {
   }, [searchParams]);
 
   const verifyPaymentWithGateway = async (
-    paymentId: string | null,
     orderId: string | null,
     status: string | null,
     amount: number

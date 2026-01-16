@@ -16,7 +16,6 @@ import { Image } from '@/components/ui/image';
 import { CalendarIcon, Clock, DollarSign, MapPin, User, CreditCard, CheckCircle, Search, Filter, AlertCircle, Phone, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { validateBookingForm, isAllValid, getValidationErrors } from '@/lib/input-validation';
-import { secureFetch } from '@/lib/csrf-protection';
 
 interface BookingFormData {
   serviceName: string;
@@ -498,23 +497,12 @@ export default function BookingPage() {
         clientLocation: formData.clientLocation
       };
 
-      // Create secure backend session instead of storing in sessionStorage
-      const sessionResponse = await secureFetch('/api/create-booking-session', {
-        method: 'POST',
-        body: JSON.stringify({
-          bookingData,
-          referenceId
-        })
-      });
+      // Store booking data in sessionStorage for confirmation page
+      sessionStorage.setItem('pendingBooking', JSON.stringify(bookingData));
+      sessionStorage.setItem('bookingReferenceId', referenceId);
 
-      if (!sessionResponse.ok) {
-        throw new Error('Failed to create booking session');
-      }
-
-      const sessionResult = await sessionResponse.json();
-
-      // Redirect to payment gateway with session ID only
-      redirectToPaymentGateway(sessionResult.sessionId, referenceId);
+      // Redirect to payment gateway
+      redirectToPaymentGateway(referenceId);
     } catch (error) {
       console.error('Error preparing booking:', error);
       alert('An error occurred while processing your booking. Please try again.');
@@ -522,13 +510,12 @@ export default function BookingPage() {
     }
   };
 
-  const redirectToPaymentGateway = (sessionId: string, referenceId: string) => {
+  const redirectToPaymentGateway = (referenceId: string) => {
     // Simulate payment processing - in production, integrate with Razorpay, Stripe, etc.
     // For demo purposes, we'll redirect to confirmation page with success status
     
-    // Create payment gateway URL with session ID only (no sensitive data)
+    // Create payment gateway URL
     const paymentParams = new URLSearchParams({
-      session_id: sessionId,
       order_id: referenceId,
       status: 'success', // In production, this comes from payment gateway
     });
