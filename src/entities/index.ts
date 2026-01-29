@@ -189,6 +189,8 @@ export interface NotificationSettings {
   _createdDate?: Date;
   _updatedDate?: Date;
   /** @wixFieldType text */
+  userEmail?: string;
+  /** @wixFieldType text */
   userId?: string;
   /** @wixFieldType boolean */
   emailNotificationsEnabled?: boolean;
