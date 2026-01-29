@@ -181,6 +181,29 @@ export interface IndianLocations {
 
 
 /**
+ * Collection ID: notificationsettings
+ * Interface for NotificationSettings
+ */
+export interface NotificationSettings {
+  _id: string;
+  _createdDate?: Date;
+  _updatedDate?: Date;
+  /** @wixFieldType text */
+  userId?: string;
+  /** @wixFieldType boolean */
+  emailNotificationsEnabled?: boolean;
+  /** @wixFieldType boolean */
+  smsNotificationsEnabled?: boolean;
+  /** @wixFieldType boolean */
+  pushNotificationsEnabled?: boolean;
+  /** @wixFieldType text */
+  notificationFrequency?: string;
+  /** @wixFieldType text */
+  notificationTypes?: string;
+}
+
+
+/**
  * Collection ID: refunds
  * Interface for RefundRequests
  */
