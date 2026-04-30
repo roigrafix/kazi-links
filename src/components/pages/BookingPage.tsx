@@ -295,7 +295,10 @@ export default function BookingPage() {
     }
 
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(service => service.categoryName === selectedCategory);
+      // Use case-insensitive comparison to handle category name variations
+      filtered = filtered.filter(service => 
+        service.categoryName?.toLowerCase() === selectedCategory.toLowerCase()
+      );
     }
 
     if (priceRange !== 'all') {

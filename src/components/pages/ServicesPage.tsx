@@ -60,7 +60,10 @@ export default function ServicesPage() {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(service => service.categoryName === selectedCategory);
+      // Use case-insensitive comparison to handle category name variations
+      filtered = filtered.filter(service => 
+        service.categoryName?.toLowerCase() === selectedCategory.toLowerCase()
+      );
     }
 
     // Filter by price range
