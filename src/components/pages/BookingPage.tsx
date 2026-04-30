@@ -560,15 +560,22 @@ export default function BookingPage() {
     }
 
     const filteredFreelancers = baseFreelancers.filter(freelancer => {
+      // Parse comma-separated values for state matching
+      const serviceStatesArray = freelancer.serviceStates?.split(',').map(s => s.trim().toLowerCase()) || [];
+      const preferredStatesArray = freelancer.preferredStates?.split(',').map(s => s.trim().toLowerCase()) || [];
+      const stateList = [...serviceStatesArray, ...preferredStatesArray];
+      
       const matchesState = state ? (
-        freelancer.serviceStates?.toLowerCase().includes(state.toLowerCase()) ||
-        freelancer.preferredStates?.toLowerCase().includes(state.toLowerCase())
+        stateList.length === 0 || stateList.includes(state.toLowerCase())
       ) : true;
 
+      // Parse comma-separated values for city matching
+      const serviceCitiesArray = freelancer.serviceCities?.split(',').map(c => c.trim().toLowerCase()) || [];
+      const preferredCitiesArray = freelancer.preferredCities?.split(',').map(c => c.trim().toLowerCase()) || [];
+      const cityList = [...serviceCitiesArray, ...preferredCitiesArray, (freelancer.city?.toLowerCase() || '')].filter(Boolean);
+      
       const matchesCity = city ? (
-        freelancer.serviceCities?.toLowerCase().includes(city.toLowerCase()) ||
-        freelancer.preferredCities?.toLowerCase().includes(city.toLowerCase()) ||
-        freelancer.city?.toLowerCase().includes(city.toLowerCase())
+        cityList.length === 0 || cityList.includes(city.toLowerCase())
       ) : true;
 
       return matchesState && matchesCity;
