@@ -6,6 +6,7 @@ import { Image } from '@/components/ui/image';
 import { Menu, X, MapPin, Users, Briefcase, Calendar, Phone, Mail, Instagram, Twitter, Linkedin, MessageCircle, LogOut } from 'lucide-react';
 import { useMember } from '@/integrations';
 import { secretsService } from '@/services/secretsService';
+import NotificationCenter from '@/components/NotificationCenter';
 
 export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -89,6 +90,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-primary text-primary-foreground">
+      <NotificationCenter />
       {/* Header */}
       <header className="bg-primary text-primary-foreground border-b border-primary-foreground/10 sticky top-0 z-50">
         <div className="container mx-auto px-6 lg:px-12 max-w-[100rem]">

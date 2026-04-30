@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, AlertCircle, Loader, Calendar, Download } from 'lucide-react';
 import { secureEmailService } from '@/services/secureEmailService';
 import { bookingAutomationService } from '@/services/bookingAutomationService';
+import { useNotification } from '@/hooks/useNotification';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
 export default function BookingConfirmationPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const notification = useNotification();
   
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('loading');
   const [bookingData, setBookingData] = useState<Bookings | null>(null);
