@@ -195,6 +195,44 @@ export default function FreelancerDashboardPage() {
     }
   };
 
+  const handleVerifyServicePIN = async (pin: string): Promise<boolean> => {
+    if (!selectedBookingForPIN) return false;
+
+    try {
+      // Compare the entered PIN with the booking's PIN
+      if (pin === selectedBookingForPIN.pin) {
+        // PIN is correct - update booking status to completed
+        const updatedBooking = {
+          ...selectedBookingForPIN,
+          bookingStatus: 'completed'
+        };
+
+        await BaseCrudService.update('bookings', updatedBooking);
+        
+        // Update local state
+        setBookings(bookings.map(b => b._id === selectedBookingForPIN._id ? updatedBooking : b));
+        
+        toast({
+          title: "Success",
+          description: "Service PIN verified! Booking marked as completed.",
+        });
+        
+        return true;
+      } else {
+        // PIN is incorrect
+        return false;
+      }
+    } catch (error) {
+      console.error('Error verifying PIN:', error);
+      toast({
+        title: "Error",
+        description: "Failed to verify PIN. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   const handleBookingLiveStatusUpdate = async (bookingId: string, status: string) => {
     try {
       setUpdatingBookingId(bookingId);
@@ -342,6 +380,16 @@ END:VCALENDAR`;
 
   return (
     <div className="min-h-screen bg-background">
+      <PINVerificationModal
+        isOpen={pinVerificationOpen}
+        onClose={() => {
+          setPinVerificationOpen(false);
+          setSelectedBookingForPIN(null);
+        }}
+        onVerify={handleVerifyServicePIN}
+        bookingId={selectedBookingForPIN?._id || ''}
+        clientName={selectedBookingForPIN?.clientName || ''}
+      />
       <div className="max-w-[120rem] mx-auto p-6">
         {/* Header */}
         <div className="mb-10">
