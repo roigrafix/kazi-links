@@ -592,19 +592,6 @@ export default function TrackingPage() {
 
                 {/* Action Buttons */}
                 <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                  {/* Mark as Completed Button - Only for active bookings */}
-                  {booking.bookingStatus !== 'cancelled' && booking.bookingStatus !== 'completed' && (
-                    <Button 
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700 text-white flex-1"
-                      onClick={() => handleMarkAsCompleted(booking)}
-                      disabled={completingBookingId === booking._id}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      {completingBookingId === booking._id ? 'Marking...' : 'Mark as Completed'}
-                    </Button>
-                  )}
-
                   {/* Reschedule Booking Button - Only for active bookings */}
                   {canRescheduleBooking(booking) && (
                     <Button 

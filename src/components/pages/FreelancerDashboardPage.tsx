@@ -897,7 +897,7 @@ END:VCALENDAR`;
                           Add to Calendar
                         </Button>
                         
-                        {/* PIN Verification Button */}
+                        {/* PIN Verification Button - Only show if booking not completed and has PIN */}
                         {booking.bookingStatus !== 'completed' && booking.pin && (
                           <Button
                             onClick={() => {
@@ -907,8 +907,16 @@ END:VCALENDAR`;
                             className="w-full h-11 text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 flex items-center justify-center gap-2"
                           >
                             <Lock className="h-5 w-5" />
-                            Verify Service PIN
+                            Verify Service PIN & Complete
                           </Button>
+                        )}
+                        
+                        {/* Mark as Completed Status - Only show for completed bookings */}
+                        {booking.bookingStatus === 'completed' && (
+                          <div className="p-3 bg-green-50 rounded-lg border border-green-200 flex items-center gap-2">
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                            <span className="text-sm font-semibold text-green-700">Service Completed</span>
+                          </div>
                         )}
                       </div>
                     </div>
