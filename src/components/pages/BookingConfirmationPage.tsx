@@ -64,6 +64,7 @@ export default function BookingConfirmationPage() {
         }
 
         // Payment successful - create the booking in database
+        const generatedPIN = generateBookingPIN();
         const bookingToCreate: Bookings = {
           _id: pendingBooking._id || crypto.randomUUID(),
           serviceName: pendingBooking.serviceName,
@@ -83,6 +84,7 @@ export default function BookingConfirmationPage() {
           serviceState: pendingBooking.serviceState,
           serviceCity: pendingBooking.serviceCity,
           clientLocation: pendingBooking.clientLocation,
+          pin: generatedPIN,
           refunded: false
         };
 
@@ -173,7 +175,7 @@ export default function BookingConfirmationPage() {
         sessionStorage.removeItem('bookingReferenceId');
 
         setBookingId(bookingToCreate._id);
-        setBookingPIN(bookingToCreate.pin || '');
+        setBookingPIN(generatedPIN);
         setPaymentStatus('success');
       } catch (error) {
         console.error('Error verifying payment or creating booking:', error);

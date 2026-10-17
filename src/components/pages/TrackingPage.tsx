@@ -11,10 +11,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Star, History, Zap, Edit } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, Navigation, CheckCircle, AlertCircle, Calendar, X, Star, History, Zap, Edit, Lock, Copy } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
 import { realtimeService } from '@/services/realtimeService';
 import { useToast } from '@/hooks/use-toast';
+import { formatPINDisplay } from '@/lib/pin-generator';
 
 // Reschedule Dialog Component
 interface RescheduleDialogProps {
@@ -543,6 +544,34 @@ export default function TrackingPage() {
                         )}
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* PIN Section */}
+                {booking.pin && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Lock className="h-4 w-4 text-purple-600" />
+                      <span className="text-xs font-semibold text-purple-900">Service PIN</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-lg font-bold text-purple-900 font-mono tracking-widest">
+                        {formatPINDisplay(booking.pin)}
+                      </p>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(booking.pin || '');
+                          alert('PIN copied to clipboard!');
+                        }}
+                        className="p-1 hover:bg-purple-100 rounded"
+                        title="Copy PIN"
+                      >
+                        <Copy className="h-4 w-4 text-purple-600" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-purple-700 mt-2">
+                      Share this PIN with your freelancer to activate the service.
+                    </p>
                   </div>
                 )}
 
