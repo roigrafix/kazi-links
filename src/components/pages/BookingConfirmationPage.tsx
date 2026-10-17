@@ -5,10 +5,11 @@ import { BaseCrudService } from '@/integrations';
 import { Bookings } from '@/entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, XCircle, AlertCircle, Loader, Calendar, Download } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Loader, Calendar, Download, Copy, Lock } from 'lucide-react';
 import { secureEmailService } from '@/services/secureEmailService';
 import { bookingAutomationService } from '@/services/bookingAutomationService';
 import { useNotification } from '@/hooks/useNotification';
+import { generateBookingPIN, formatPINDisplay } from '@/lib/pin-generator';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
@@ -21,6 +22,7 @@ export default function BookingConfirmationPage() {
   const [bookingData, setBookingData] = useState<Bookings | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [bookingId, setBookingId] = useState('');
+  const [bookingPIN, setBookingPIN] = useState('');
 
   useEffect(() => {
     const verifyPaymentAndCreateBooking = async () => {
@@ -171,6 +173,7 @@ export default function BookingConfirmationPage() {
         sessionStorage.removeItem('bookingReferenceId');
 
         setBookingId(bookingToCreate._id);
+        setBookingPIN(bookingToCreate.pin || '');
         setPaymentStatus('success');
       } catch (error) {
         console.error('Error verifying payment or creating booking:', error);
@@ -465,6 +468,41 @@ END:VCALENDAR`;
                       </p>
                     </div>
                   )}
+
+                  {/* PIN Section */}
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Lock className="h-5 w-5 text-purple-600" />
+                      <h4 className="font-semibold text-purple-900">Your Service PIN</h4>
+                    </div>
+                    <p className="text-sm text-purple-800 mb-4">
+                      Share this PIN with your freelancer to activate the service. This PIN is unique to your booking and ensures secure service verification.
+                    </p>
+                    <div className="bg-white rounded-lg p-4 border-2 border-purple-300 flex items-center justify-between">
+                      <div className="text-center flex-1">
+                        <p className="text-xs text-purple-600 font-semibold mb-1">PIN</p>
+                        <p className="text-3xl font-bold text-purple-900 font-mono tracking-widest">
+                          {bookingPIN ? formatPINDisplay(bookingPIN) : '---'}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          if (bookingPIN) {
+                            navigator.clipboard.writeText(bookingPIN);
+                            alert('PIN copied to clipboard!');
+                          }
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="ml-4 border-purple-300 text-purple-700 hover:bg-purple-100"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-purple-700 mt-3 font-semibold">
+                      ⚠️ Keep this PIN confidential. Only share it with your assigned freelancer.
+                    </p>
+                  </div>
 
                   {/* Add to Calendar Section */}
                   <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">

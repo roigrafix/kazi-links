@@ -14,6 +14,8 @@ export interface Bookings {
   /** @wixFieldType text */
   clientLocation?: string;
   /** @wixFieldType text */
+  pin?: string;
+  /** @wixFieldType text */
   liveStatus?: string;
   /** @wixFieldType text */
   serviceName?: string;

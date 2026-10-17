@@ -11,9 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, User, Briefcase, TrendingUp, Star, MapPin, Phone, Mail, Navigation, MessageSquare, Download } from 'lucide-react';
+import { Calendar, Clock, User, Briefcase, TrendingUp, Star, MapPin, Phone, Mail, Navigation, MessageSquare, Download, Lock, CheckCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import PINVerificationModal from '@/components/PINVerificationModal';
 
 const LIVE_STATUS_OPTIONS = ['On The Way', '10mins', '5mins', '2mins', 'Arrived'];
 
@@ -44,6 +45,8 @@ export default function FreelancerDashboardPage() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
+  const [pinVerificationOpen, setPinVerificationOpen] = useState(false);
+  const [selectedBookingForPIN, setSelectedBookingForPIN] = useState<Bookings | null>(null);
 
   // Form states
   const [profileForm, setProfileForm] = useState({
@@ -837,7 +840,7 @@ END:VCALENDAR`;
                       )}
 
                       {/* Add to Calendar Button */}
-                      <div className="mt-6 pt-6 border-t border-gray-200">
+                      <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
                         <Button
                           onClick={() => handleAddToCalendar(booking)}
                           className="w-full h-11 text-base font-semibold bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2"
@@ -845,6 +848,20 @@ END:VCALENDAR`;
                           <Calendar className="h-5 w-5" />
                           Add to Calendar
                         </Button>
+                        
+                        {/* PIN Verification Button */}
+                        {booking.bookingStatus !== 'completed' && booking.pin && (
+                          <Button
+                            onClick={() => {
+                              setSelectedBookingForPIN(booking);
+                              setPinVerificationOpen(true);
+                            }}
+                            className="w-full h-11 text-base font-semibold bg-purple-600 text-white hover:bg-purple-700 flex items-center justify-center gap-2"
+                          >
+                            <Lock className="h-5 w-5" />
+                            Verify Service PIN
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
